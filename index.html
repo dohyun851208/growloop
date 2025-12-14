@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부평서초뉴스 | Bupyeong Seo Elementary News</title>
+
+    <!-- Fonts: Pretendard for clean Korean typography -->
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Breaking News Ticker -->
+    <div class="breaking-news-bar">
+        <div class="breaking-label">속보</div>
+        <div class="ticker-wrap">
+            <div class="ticker-item">부평서초등학교 5학년 2반, "뉴스 만들기" 프로젝트 대성공 예감!</div>
+            <div class="ticker-item">모든 학생이 1일 기자가 되어 학교 소식을 전합니다.</div>
+            <div class="ticker-item">급식실 특급 메뉴 "마라탕" 등장에 전교생 환호!</div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="header-top">
+            <div class="date-display" id="currentDate">2024년 10월 24일 목요일</div>
+            <div class="social-icons">
+                <i class="fa-brands fa-youtube"></i>
+                <i class="fa-brands fa-instagram"></i>
+                <i class="fa-solid fa-school"></i>
+            </div>
+        </div>
+        <div class="header-brand">
+            <img src="logo.png" alt="부평서초뉴스" class="main-logo">
+            <p class="section-tagline">우리들의 이야기가 뉴스가 되는 곳</p>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li class="active">홈</li>
+                <li>학교소식</li>
+                <li>우리반이야기</li>
+                <li>사설/칼럼</li>
+                <li>포토뉴스</li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <!-- Hero Section (Featured Article) -->
+        <section class="hero-section" id="heroSection">
+            <!-- Dynamically populated or default fallback -->
+            <div class="hero-placeholder">
+                <div class="hero-content">
+                    <span class="category-tag">특집</span>
+                    <h2>등록된 주요 뉴스가 없습니다.</h2>
+                    <p>기자가 되어 첫 번째 뉴스를 작성해보세요!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Grid Layout -->
+        <div class="content-wrapper">
+            <!-- Latest News Column -->
+            <section class="latest-news">
+                <div class="section-title">
+                    <h3><i class="fa-solid fa-bolt"></i> 최신 뉴스</h3>
+                </div>
+                <div class="news-grid" id="newsGrid">
+                    <!-- News Cards will be injected here -->
+                </div>
+            </section>
+
+            <!-- Sidebar (Weather, Popular, etc) -->
+            <aside class="sidebar">
+                <div class="sidebar-widget reporter-call">
+                    <h3><i class="fa-solid fa-pen-nib"></i> 꼬마 기자단 모집</h3>
+                    <p>여러분의 목소리가 뉴스가 됩니다.<br>지금 바로 기사를 작성해보세요!</p>
+                    <button class="btn-write-news" id="openEditorBtn">
+                        <i class="fa-solid fa-camera"></i> 기사 작성하기
+                    </button>
+                </div>
+
+                <div class="sidebar-widget popular-news">
+                    <h3>많이 본 뉴스</h3>
+                    <ul class="rank-list">
+                        <li><span>1</span> <a href="#">내일 체육대회 우승 반은?</a></li>
+                        <li><span>2</span> <a href="#">도서관 신간 도서 50권 입고</a></li>
+                        <li><span>3</span> <a href="#">방과후 학교 인기 강좌 BEST 3</a></li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+
+    </main>
+
+    <footer class="main-footer">
+        <div class="footer-content">
+            <p>&copy; 2024 부평서초등학교. All Rights Reserved.</p>
+            <p>본 사이트는 교육용 프로젝트로 실제 뉴스가 아닙니다.</p>
+        </div>
+    </footer>
+
+    <!-- Editor Modal (Reporter Room) -->
+    <div class="modal-overlay" id="editorModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-pen-to-square"></i> 기사 작성실</h2>
+                <button class="btn-close" id="closeEditorBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="newsForm">
+                    <div class="form-group">
+                        <label>제목</label>
+                        <input type="text" id="newsTitle" placeholder="기사 제목을 입력하세요" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group half">
+                            <label>기자 이름</label>
+                            <input type="text" id="newsReporter" placeholder="홍길동 기자" required>
+                        </div>
+                        <div class="form-group half">
+                            <label>카테고리</label>
+                            <select id="newsCategory">
+                                <option value="학교소식">학교소식</option>
+                                <option value="우리반이야기">우리반이야기</option>
+                                <option value="인터뷰">인터뷰</option>
+                                <option value="속보">속보</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>대표 이미지</label>
+                        <div class="image-upload-box" id="dropZone">
+                            <input type="file" id="newsImage" accept="image/*" hidden>
+                            <div class="upload-placeholder">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                <p>클릭하여 사진 업로드</p>
+                            </div>
+                            <img id="imagePreview" class="hidden" alt="Preview">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>기사 내용</label>
+                        <textarea id="newsContent" rows="8" placeholder="육하원칙에 따라 생생한 소식을 전해주세요!" required></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" id="cancelBtn">취소</button>
+                        <button type="submit" class="btn-submit">발행하기</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Article Reader Modal (Detail View) -->
+    <div class="modal-overlay" id="readerModal">
+        <div class="modal-container reader-container">
+            <div class="modal-header">
+                <div class="reader-meta">
+                    <span class="category-tag" id="readCategory">학교소식</span>
+                    <span class="read-date" id="readDate">2024. 10. 24.</span>
+                </div>
+                <button class="btn-close" id="closeReaderBtn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body reader-body">
+                <h2 id="readTitle" class="article-title">기사 제목이 여기에 들어갑니다.</h2>
+                <div class="reporter-line">
+                    <i class="fa-solid fa-user-pen"></i> <span id="readReporter">홍길동 기자</span>
+                </div>
+                <div class="article-image-wrapper">
+                    <img id="readImage" src="" alt="News Image">
+                </div>
+                <div class="article-content" id="readContent">
+                    기사 본문 내용...
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="closeReaderBtnAlt">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
