@@ -45,7 +45,7 @@ async function checkAuthAndRoute() {
 
     if (!session) {
       const path = window.location.pathname;
-      if (!path.includes('index.html')) {
+      if (!path.includes('index.html') && !window.location.search.includes('debug=teacher')) {
         window.location.href = 'index.html';
       }
       return;
@@ -88,8 +88,21 @@ async function checkAuthAndRoute() {
 
       // 먼저 로딩 숨기고 탭을 표시하여 빈 화면 방지
       document.getElementById('authLoadingSection').classList.add('hidden');
-      document.getElementById('teacherTab').classList.remove('hidden');
-      document.getElementById('teacherMain').classList.remove('hidden');
+      const tTab = document.getElementById('teacherTab');
+      const tMain = document.getElementById('teacherMain');
+
+      tTab.classList.remove('hidden');
+      tTab.style.display = 'block';
+      tTab.style.opacity = '1';
+
+      tMain.classList.remove('hidden');
+      tMain.style.display = 'block';
+      tMain.style.opacity = '1';
+
+      // 교사용 메인 화면 진입 시 기본적으로 '너의 조언(review)' 탭을 띄우고 평가 기준 초기화
+      setTimeout(() => {
+        switchMiniTab('review');
+      }, 100);
 
 
 
@@ -116,7 +129,7 @@ async function checkAuthAndRoute() {
       document.getElementById('studentMainSection').classList.remove('hidden');
 
       const typeText = currentStudent.type === 'individual' ? '학생' : '모둠';
-      document.getElementById('welcomeMsg').textContent = currentClassCode + ' 클래스 ' + currentStudent.id + '번 ' + typeText + ' 환영합니다!';
+      document.getElementById('welcomeMsg').textContent = currentClassCode + ' ' + currentStudent.id + '번 ' + typeText + ' 환영합니다!';
 
       document.getElementById('reviewerId').value = currentStudent.id;
       document.getElementById('submitReviewerLabel').textContent = currentStudent.type === 'individual' ? '나의 번호' : '나의 모둠';
@@ -672,27 +685,31 @@ async function switchMiniTab(mode) {
   document.getElementById('reviewSubTabArea').classList.add('hidden');
 
   // 교사 메인 탭 버튼만 선택 (설정 내부의 AI/수동 전환 버튼 제외)
-  const mainTabBtns = document.querySelectorAll('#teacherMain > .mini-tab-container > .mini-tab-btn');
-  mainTabBtns.forEach(b => { b.classList.remove('active', 'active-setting'); });
+  const mainTabBtns = document.querySelectorAll('#teacherMain .bottom-nav .nav-item');
+  mainTabBtns.forEach(b => {
+    b.classList.remove('active-nav');
+    b.classList.remove('active-setting'); // legacy cleanup if any
+  });
 
   if (mode === 'review') {
-    // 너의 조언 - 하위 탭 표시 후 기본으로 전체 현황
+    // 전체 현황 - 하위 탭 표시 후 기본으로 전체 현황
     document.getElementById('reviewSubTabArea').classList.remove('hidden');
-    mainTabBtns[0].classList.add('active');
+    mainTabBtns[0].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'block';
+    const el = document.getElementById('rankingMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     await switchReviewSubTab('ranking');
   } else if (mode === 'diary') {
-    mainTabBtns[1].classList.add('active');
+    mainTabBtns[1].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('diaryMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     initDiaryDate(); loadTeacherDiaryData();
   } else if (mode === 'praise') {
-    mainTabBtns[2].classList.add('active');
+    mainTabBtns[2].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('praiseMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     loadPraiseStats(); loadPendingPraises(); loadApprovedPraises(); loadAutoApproveStatus();
   } else if (mode === 'settings') {
-    mainTabBtns[3].classList.add('active-setting');
+    mainTabBtns[3].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('settingsMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     loadClassSettingsUI(); loadStudentMappingData();
@@ -750,12 +767,16 @@ function renderRatingItems(criteria) {
   });
 }
 function selectRating(idx, score, btn) { btn.parentElement.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); currentRatings[idx] = score; if (navigator.vibrate) navigator.vibrate(10); }
-function insertTemplate(text) {
-  const ta = document.getElementById('reviewContent');
-  const start = ta.selectionStart;
-  ta.value = ta.value.substring(0, start) + text + ta.value.substring(ta.selectionEnd);
+function insertTemplate(text, targetId = 'reviewContent') {
+  const ta = document.getElementById(targetId);
+  if (!ta) return;
+  const start = ta.selectionStart ?? ta.value.length;
+  const end = ta.selectionEnd ?? ta.value.length;
+  ta.value = ta.value.substring(0, start) + text + ta.value.substring(end);
   ta.selectionStart = ta.selectionEnd = start + text.length;
-  ta.focus(); updateCharCount();
+  ta.focus();
+  ta.scrollTop = ta.scrollHeight;
+  if (targetId === 'reviewContent') updateCharCount();
 }
 function updateCharCount() {
   const len = document.getElementById('reviewContent').value.length;
@@ -1192,7 +1213,7 @@ async function generateCriteriaAI(btn) {
   const grade = document.getElementById('autoSchoolLevel').value + ' ' + document.getElementById('autoGradeSelect').value;
   const evalTarget = document.getElementById('autoTargetSelect').value;
   const objTask = await getObjectiveAndTask(date);
-  if (!objTask.objective && !objTask.task) { showModal({ type: 'alert', icon: '❌', title: '오류', message: "저장된 학습목표나 과제가 없습니다. 먼저 '기본 정보 저장' 버튼을 눌러주세요." }); return; }
+  if (!objTask.objective && !objTask.task) { showModal({ type: 'alert', icon: '❌', title: '오류', message: "저장된 학습목표나 과제가 없습니다.<br><br>먼저 '기본 정보 저장' 버튼을 눌러주세요." }); return; }
   setLoading(true, btn, '🤖 AI 생성 중...');
   const targetText = evalTarget === 'group' ? '모둠' : '개인';
   const prompt = '당신은 초중고 교사를 위한 동료평가 기준 생성 전문가입니다.\n\n[입력 정보]\n- 학년: ' + grade + '\n- 평가 대상: ' + targetText + ' 평가\n- 학습목표: ' + (objTask.objective || '(미입력)') + '\n- 평가과제: ' + (objTask.task || '(미입력)') + '\n\n[출력 규칙]\n1. 반드시 3개 영역, 각 영역 2문항씩 총 6개 문항을 생성.\n2. 모든 문항은 "~했나요?", "~되었나요?" 형태의 질문.\n3. 학생이 이해할 수 있는 쉬운 표현 사용.\n4. \'또래\' 대신 \'친구\' 표현 사용.\n\n[영역별 기준]\n① 지식·이해 영역\n- 문항1: 내용 정확성\n- 문항2: 정보 다양성/근거\n② 과정·기능 영역\n- 문항1: 구성/디자인/가독성\n- 문항2: 전달력/발표/자료활용\n③ 가치·태도 영역\n- 문항1: 집중/책임감\n- 문항2: 협력/역할수행 (' + targetText + ' 특성 반영)\n\n[출력 형식]\n반드시 아래 JSON 형식으로만 응답. 다른 말 절대 금지.\n{"criteria": ["지식이해1", "지식이해2", "과정기능1", "과정기능2", "가치태도1", "가치태도2"]}';
@@ -1282,6 +1303,10 @@ function toggleGratitudeTag(tag) {
     selectedGratitudeTags = selectedGratitudeTags.filter(t => t !== tag);
     tagBtn.classList.remove('selected');
   } else {
+    if (selectedGratitudeTags.length >= 2) {
+      showModal({ type: 'alert', icon: '⚠️', title: '알림', message: '감사 태그는 최대 2개까지 선택할 수 있어요!' });
+      return;
+    }
     selectedGratitudeTags.push(tag);
     tagBtn.classList.add('selected');
   }
@@ -2016,56 +2041,56 @@ async function submitReply(messageId) {
 const personalityQuestions = [
   {
     id: 1,
-    category: '피드백 선호도',
-    question: '피드백을 받을 때 어떤 방식이 더 좋나요?',
+    category: '조언 수용 성향 (개선지향 vs 인정지향)',
+    question: '결과물에 대한 조언을 받을 때 어떤 방식이 더 좋나요?',
     optionA: { label: 'A', text: '구체적인 개선점과 해결방법' },
     optionB: { label: 'B', text: '잘한 점 중심의 격려와 응원' }
   },
   {
     id: 2,
-    category: '피드백 선호도',
-    question: '평가 결과를 볼 때 어떤 정보가 더 중요한가요?',
-    optionA: { label: 'A', text: '숫자와 데이터 중심의 분석' },
-    optionB: { label: 'B', text: '전체적인 느낌과 방향성' }
+    category: '결과 정리 방식 선호 (수치/근거형 vs 요약/방향형)',
+    question: '평가 결과를 받을 때, 어떤 형태로 정리되어 있으면 더 도움이 되나요?',
+    optionA: { label: 'A', text: '점수/수치와 근거가 정리된 결과' },
+    optionB: { label: 'B', text: '한눈에 요약된 전체 흐름과 다음 방향' }
   },
   {
     id: 3,
-    category: '동기부여 유형',
+    category: '동기 원천 (결과형 vs 과정형)',
     question: '공부할 때 무엇이 더 동기부여가 되나요?',
-    optionA: { label: 'A', text: '목표 달성과 성과 향상' },
+    optionA: { label: 'A', text: '성적/결과가 오르거나 목표를 달성할 때' },
     optionB: { label: 'B', text: '새로운 것을 배우는 과정 자체' }
   },
   {
     id: 4,
-    category: '동기부여 유형',
+    category: '실수 이후 회복 스타일 (해결 중심 vs 정서 지지 중심)',
     question: '잘못했을 때 어떤 말이 더 도움이 되나요?',
     optionA: { label: 'A', text: '이렇게 하면 더 나아질거야' },
     optionB: { label: 'B', text: '괜찮아, 다음엔 더 잘할 수 있어' }
   },
   {
     id: 5,
-    category: '학습 스타일',
+    category: '과제 진행 방식 (계획형 vs 유연형)',
     question: '과제를 할 때 어떤 방식이 더 편한가요?',
     optionA: { label: 'A', text: '체계적인 계획을 세우고 진행' },
     optionB: { label: 'B', text: '유연하게 상황에 맞춰 진행' }
   },
   {
     id: 6,
-    category: '학습 스타일',
+    category: '학습 접근 방식 (가이드형 vs 해보면서형)',
     question: '새로운 걸 배울 때 어떤 게 더 좋나요?',
     optionA: { label: 'A', text: '명확한 지침과 단계' },
-    optionB: { label: 'B', text: '자유로운 탐색과 실험' }
+    optionB: { label: 'B', text: '일단 해보면서 감을 잡고 방법을 찾아가기' }
   },
   {
     id: 7,
-    category: '감정 표현',
+    category: '칭찬 선호 방식 (구체 칭찬 vs 전체 칭찬)',
     question: '좋은 결과가 나왔을 때 어떤 게 기분이 더 좋나요?',
     optionA: { label: 'A', text: '이 부분이 특히 훌륭했어!' },
     optionB: { label: 'B', text: '정말 잘했어! 멋져!' }
   },
   {
     id: 8,
-    category: '감정 표현',
+    category: '스트레스 상황에서 필요한 지원 (문제해결 중심 vs 정서지지 중심)',
     question: '힘들 때 어떤 말이 더 위로가 되나요?',
     optionA: { label: 'A', text: '이건 이렇게 바꿔보자' },
     optionB: { label: 'B', text: '힘내! 넌 할 수 있어' }
