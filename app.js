@@ -95,7 +95,7 @@ async function checkAuthAndRoute() {
 
       // 기본 탭으로 '너의 조언' 진입 (내부에서 loadTeacherData 호출됨)
       try {
-        switchMiniTab('review');
+        await switchMiniTab('review');
       } catch (dataError) {
         console.warn('교사 데이터 로드 중 일부 오류:', dataError);
       }
@@ -342,12 +342,16 @@ document.getElementById('teacherDate').addEventListener('change', function () {
 // DB 헬퍼
 // ============================================
 async function getClassInfo() {
-  const { data } = await db.from('classes').select('*').eq('class_code', currentClassCode).maybeSingle();
-  return data;
+  try {
+    const { data } = await db.from('classes').select('*').eq('class_code', currentClassCode).maybeSingle();
+    return data;
+  } catch (err) { console.warn('getClassInfo 오류:', err); return null; }
 }
 async function getClassSettings() {
-  const info = await getClassInfo();
-  return { studentCount: info ? info.student_count : 30, groupCount: info ? info.group_count : 6 };
+  try {
+    const info = await getClassInfo();
+    return { studentCount: info ? info.student_count : 30, groupCount: info ? info.group_count : 6 };
+  } catch (err) { console.warn('getClassSettings 오류:', err); return { studentCount: 30, groupCount: 6 }; }
 }
 async function getObjectiveAndTask(dateStr) {
   const { data: objData } = await db.from('objectives').select('objective').eq('class_code', currentClassCode).eq('eval_date', dateStr).maybeSingle();
@@ -668,7 +672,7 @@ function switchSelfTab(mode) {
     loadDashboardData();
   }
 }
-function switchMiniTab(mode) {
+async function switchMiniTab(mode) {
   // 모든 컨텐츠 탭 숨기기
   ['ranking', 'student', 'criteria', 'diary', 'praise', 'settings'].forEach(t => document.getElementById(t + 'MiniTab').classList.add('hidden'));
   // 하위 탭 영역 숨기기
@@ -683,7 +687,7 @@ function switchMiniTab(mode) {
     document.getElementById('reviewSubTabArea').classList.remove('hidden');
     mainTabBtns[0].classList.add('active');
     document.getElementById('rankStudentArea').style.display = 'block';
-    switchReviewSubTab('ranking');
+    await switchReviewSubTab('ranking');
   } else if (mode === 'diary') {
     mainTabBtns[1].classList.add('active');
     document.getElementById('rankStudentArea').style.display = 'none';
@@ -702,7 +706,7 @@ function switchMiniTab(mode) {
   }
 }
 
-function switchReviewSubTab(mode) {
+async function switchReviewSubTab(mode) {
   ['ranking', 'student', 'criteria'].forEach(t => document.getElementById(t + 'MiniTab').classList.add('hidden'));
   const subBtns = document.querySelectorAll('#reviewSubTabArea .sub-tab-btn');
   subBtns.forEach(b => b.classList.remove('active'));
@@ -712,7 +716,7 @@ function switchReviewSubTab(mode) {
   if (mode === 'ranking') {
     subBtns[0].classList.add('active');
     document.getElementById('rankStudentArea').style.display = 'block';
-    loadTeacherData();
+    await loadTeacherData();
   } else if (mode === 'student') {
     subBtns[1].classList.add('active');
     document.getElementById('rankStudentArea').style.display = 'block';
@@ -909,6 +913,7 @@ async function generateSummary(reviews) {
 // 교사 - 전체 현황
 // ============================================
 async function loadTeacherData() {
+  try {
   const dateEl = document.getElementById('teacherDate');
   if (!dateEl) return;
   const date = dateEl.value;
@@ -916,7 +921,9 @@ async function loadTeacherData() {
   const typeChecked = document.querySelector('input[name="teacherEvalType"]:checked');
   const type = typeChecked ? typeChecked.value : 'individual';
   document.getElementById('rankingTable').innerHTML = '<p style="text-align:center;">데이터 불러오는 중...</p>';
-  const [settings, reviewsResult] = await Promise.all([getClassSettings(), db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('review_type', type)]);
+  const results = await Promise.allSettled([getClassSettings(), db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('review_type', type)]);
+  const settings = results[0].status === 'fulfilled' ? results[0].value : { studentCount: 30, groupCount: 6 };
+  const reviewsResult = results[1].status === 'fulfilled' ? results[1].value : { data: [] };
   const totalStudents = type === 'group' ? settings.groupCount : settings.studentCount;
   const reviews = reviewsResult.data || [];
   const stats = {}; const allCriteriaSet = new Set();
@@ -934,27 +941,39 @@ async function loadTeacherData() {
   ranking.sort((a, b) => b.totalAvg - a.totalAvg); ranking.forEach((r, i) => r.rank = i + 1);
   const students = Object.keys(stats).sort((a, b) => parseInt(a) - parseInt(b));
   document.querySelectorAll('#rankingMiniTab .chart-container').forEach(el => el.remove());
-  renderTeacherDashboard({ ranking, students }, totalStudents);
+  await renderTeacherDashboard({ ranking, students }, totalStudents);
   renderRankingTable(ranking, allCriteriaList, type);
   renderStudentSelector(students);
   document.getElementById('studentReviews').innerHTML = '';
+  } catch (err) {
+    console.warn('loadTeacherData 오류:', err);
+    document.getElementById('rankingTable').innerHTML = '<p style="text-align:center;color:var(--text-sub);">데이터를 불러오는 중 오류가 발생했습니다. 새로고침해 주세요.</p>';
+  }
 }
 async function renderTeacherDashboard(data, totalStudents) {
   const d = document.getElementById('teacherDashboard');
-  const evaluated = data.students.length;
-  let totalAvg = 0; if (data.ranking.length > 0) totalAvg = (data.ranking.reduce((a, r) => a + r.totalAvg, 0) / data.ranking.length).toFixed(2);
-  const totalReviews = data.ranking.reduce((a, r) => a + r.count, 0);
-  const participation = totalStudents > 0 ? Math.round((evaluated / totalStudents) * 100) : 0;
-  // 오늘 성장 일기 작성률 및 메시지 수 조회
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const [diaryRes, msgRes] = await Promise.allSettled([
-    db.from('daily_reflections').select('student_id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('reflection_date', today),
-    db.from('teacher_messages').select('id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('has_reply', false)
-  ]);
-  const diaryCount = diaryRes.status === 'fulfilled' ? (diaryRes.value.count || 0) : 0;
-  const msgCount = msgRes.status === 'fulfilled' ? (msgRes.value.count || 0) : 0;
-  const diaryPct = totalStudents > 0 ? Math.round((diaryCount / totalStudents) * 100) : 0;
-  d.innerHTML = '<div class="stat-card"><span class="stat-number">' + participation + '%</span><span class="stat-label">평가 참여율 (' + evaluated + '/' + totalStudents + ')</span></div><div class="stat-card blue"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">전체 평균 점수</span></div><div class="stat-card" style="border-left-color:var(--color-teal);"><span class="stat-number" style="color:var(--color-teal);">' + totalReviews + '건</span><span class="stat-label">총 평가 수</span></div><div class="stat-card" style="border-left-color:var(--color-rose);"><span class="stat-number" style="color:var(--color-rose);">' + diaryPct + '%</span><span class="stat-label">오늘 일기 작성률 (' + diaryCount + '/' + totalStudents + ')</span></div>' + (msgCount > 0 ? '<div class="stat-card" style="border-left-color:#e67e22;"><span class="stat-number" style="color:#e67e22;">' + msgCount + '건</span><span class="stat-label">미답변 메시지</span></div>' : '');
+  try {
+    const evaluated = data.students.length;
+    let totalAvg = 0; if (data.ranking.length > 0) totalAvg = (data.ranking.reduce((a, r) => a + r.totalAvg, 0) / data.ranking.length).toFixed(2);
+    const totalReviews = data.ranking.reduce((a, r) => a + r.count, 0);
+    const participation = totalStudents > 0 ? Math.round((evaluated / totalStudents) * 100) : 0;
+    // 오늘 성장 일기 작성률 및 메시지 수 조회
+    let diaryCount = 0, msgCount = 0;
+    try {
+      const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const [diaryRes, msgRes] = await Promise.allSettled([
+        db.from('daily_reflections').select('student_id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('reflection_date', today),
+        db.from('teacher_messages').select('id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('has_reply', false)
+      ]);
+      diaryCount = diaryRes.status === 'fulfilled' && diaryRes.value.count ? diaryRes.value.count : 0;
+      msgCount = msgRes.status === 'fulfilled' && msgRes.value.count ? msgRes.value.count : 0;
+    } catch (subErr) { console.warn('대시보드 부가 데이터 조회 오류:', subErr); }
+    const diaryPct = totalStudents > 0 ? Math.round((diaryCount / totalStudents) * 100) : 0;
+    d.innerHTML = '<div class="stat-card"><span class="stat-number">' + participation + '%</span><span class="stat-label">평가 참여율 (' + evaluated + '/' + totalStudents + ')</span></div><div class="stat-card blue"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">전체 평균 점수</span></div><div class="stat-card" style="border-left-color:var(--color-teal);"><span class="stat-number" style="color:var(--color-teal);">' + totalReviews + '건</span><span class="stat-label">총 평가 수</span></div><div class="stat-card" style="border-left-color:var(--color-rose);"><span class="stat-number" style="color:var(--color-rose);">' + diaryPct + '%</span><span class="stat-label">오늘 일기 작성률 (' + diaryCount + '/' + totalStudents + ')</span></div>' + (msgCount > 0 ? '<div class="stat-card" style="border-left-color:#e67e22;"><span class="stat-number" style="color:#e67e22;">' + msgCount + '건</span><span class="stat-label">미답변 메시지</span></div>' : '');
+  } catch (err) {
+    console.warn('renderTeacherDashboard 오류:', err);
+    d.innerHTML = '<div class="stat-card"><span class="stat-number">-</span><span class="stat-label">데이터 로드 실패</span></div>';
+  }
 }
 function renderRankingTable(ranking, criteria, type) {
   const container = document.getElementById('rankingTable');
