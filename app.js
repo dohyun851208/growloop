@@ -27,7 +27,7 @@ let currentMessageMode = null; // 'anonymous' or 'named'
 let selectedStarCount = 0;
 let quizAnswers = {}; // 성향 진단 답변 저장
 let studentPersonality = null; // 학생 성향 정보
-let calendarMonth = new Date(); // 대시보드 캘린더 월
+
 
 // ============================================
 // 구글 인증 및 라우팅 (New)
@@ -524,8 +524,8 @@ function showCustomConfirm(message, onConfirm, onCancel) { showModal({ type: 'co
 
 // 학생 메인 탭 선택 (나의 기록 vs 너의 조언)
 function switchStudentMainTab(mode) {
-  // 기존 탭 버튼 대신 하단 내비게이션 버튼 선택
-  const btns = document.querySelectorAll('.bottom-nav .nav-item');
+  // 학생용 하단 내비게이션 버튼만 선택
+  const btns = document.querySelectorAll('#studentMainSection .bottom-nav .nav-item');
   document.getElementById('peerEvaluationSection').classList.add('hidden');
   document.getElementById('selfEvaluationSection').classList.add('hidden');
   document.getElementById('praiseSection').classList.add('hidden');
@@ -620,6 +620,88 @@ async function loadStudentSettingsData() {
     area.innerHTML = '<p style="color:var(--text-sub); text-align:center;">성향 정보를 불러올 수 없습니다.</p>';
   }
 }
+
+// 성향 다시 진단하기 (설정 페이지용)
+async function resetPersonalityFromSettings() {
+  showCustomConfirm('성향을 다시 진단하시겠습니까? 기존 진단 결과는 삭제됩니다.', async () => {
+    try {
+      await db.from('student_personality')
+        .delete()
+        .eq('class_code', currentClassCode)
+        .eq('student_id', currentStudent.id);
+
+      studentPersonality = null;
+      // 탭 전환 및 퀴즈 표시
+      switchStudentMainTab('self');
+    } catch (err) {
+      showModal({ type: 'alert', icon: '❌', title: '오류', message: '초기화 실패: ' + err.message });
+    }
+  });
+}
+
+// 학급 변경 및 데이터 전체 초기화
+async function changeClassAndReset() {
+  const newCodeInput = document.getElementById('newClassCodeInput');
+  const newCode = newCodeInput.value.trim().replace(/\s/g, '');
+  if (!newCode) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '이동할 학급 코드를 입력해주세요.' });
+    return;
+  }
+
+  if (newCode === currentClassCode) {
+    showModal({ type: 'alert', icon: 'ℹ️', title: '알림', message: '현재와 동일한 학급 코드입니다.' });
+    return;
+  }
+
+  // 1. 학급 존재 확인
+  const { data: cls, error: clsError } = await db.from('classes').select('class_name').eq('class_code', newCode).maybeSingle();
+  if (clsError) {
+    showModal({ type: 'alert', icon: '❌', title: '오류', message: '학급 확인 중 오류가 발생했습니다.' });
+    return;
+  }
+  if (!cls) {
+    showModal({ type: 'alert', icon: '❌', title: '오류', message: '존재하지 않는 학급 코드입니다.' });
+    return;
+  }
+
+  const msg = `[학급 변경: ${cls.class_name}]\n정말 학급을 변경하시겠습니까?\n이동 시 기존의 모든 기록(일기, 평가, 칭찬 등)이 영구 삭제됩니다.`;
+
+  showCustomConfirm(msg, async () => {
+    try {
+      const { data: session } = await db.auth.getSession();
+      const user = session?.session?.user;
+      if (!user) return;
+
+      const sid = String(currentStudent.id);
+
+      // 2. 기존 데이터 일괄 삭제
+      await Promise.all([
+        db.from('daily_reflections').delete().eq('class_code', currentClassCode).eq('student_id', sid),
+        db.from('reviews').delete().eq('class_code', currentClassCode).or(`reviewer_id.eq.${sid},target_id.eq.${sid}`),
+        db.from('student_personality').delete().eq('class_code', currentClassCode).eq('student_id', sid),
+        db.from('praise_messages').delete().eq('class_code', currentClassCode).or(`sender_id.eq.${sid},receiver_id.eq.${sid}`),
+        db.from('student_goals').delete().eq('class_code', currentClassCode).eq('student_id', sid),
+        db.from('teacher_messages').delete().eq('class_code', currentClassCode).eq('student_id', sid),
+        db.from('project_reflections').delete().eq('class_code', currentClassCode).eq('student_id', sid)
+      ]);
+
+      // 3. 프로필 정보 업데이트
+      await db.from('user_profiles')
+        .update({ class_code: newCode, class_name: cls.class_name })
+        .eq('google_uid', user.id);
+
+      showModal({
+        type: 'alert', icon: '✅', title: '변경 완료', message: '학급 변경 및 데이터 초기화가 완료되었습니다.\n다시 로그인해주시기 바랍니다.',
+        onConfirm: () => { window.location.reload(); }
+      });
+
+    } catch (err) {
+      console.error('학급 변경 오류:', err);
+      showModal({ type: 'alert', icon: '❌', title: '오류', message: '변경 중 오류가 발생했습니다: ' + err.message });
+    }
+  });
+}
+
 
 async function saveStudentSettings() {
   const newName = document.getElementById('studentSettingClassName').value.trim();
@@ -2436,7 +2518,7 @@ async function loadDashboardData() {
 
     document.getElementById('streakBadgeArea').classList.remove('hidden');
     renderStreakAndBadges(allRecords);
-    renderCalendar(allRecords);
+
     renderLearningWordCloud(allRecords);
     renderSubjectChart(allRecords);
     renderGratitudeStats(allRecords);
@@ -2574,68 +2656,7 @@ function renderStreakAndBadges(records) {
   badgeEl.innerHTML = badges.map(b => '<div class="badge-item" title="' + b.desc + '"><span style="font-size:1.4rem;">' + b.icon + '</span><span style="font-size:0.72rem;color:var(--text-sub);">' + b.label + '</span></div>').join('');
 }
 
-// ① 기록 캘린더
-function renderCalendar(records) {
-  const grid = document.getElementById('calendarGrid');
-  const title = document.getElementById('calendarTitle');
-  const year = calendarMonth.getFullYear();
-  const month = calendarMonth.getMonth();
 
-  title.textContent = year + '년 ' + (month + 1) + '월';
-
-  const firstDay = new Date(year, month, 1).getDay();
-  const lastDate = new Date(year, month + 1, 0).getDate();
-  const todayStr = new Date(new Date().getTime() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-  // 날짜별 기록 맵
-  const recordMap = {};
-  records.forEach(r => { recordMap[r.reflection_date] = r; });
-
-  let html = '';
-  const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-  dayNames.forEach(d => { html += '<div class="calendar-header">' + d + '</div>'; });
-
-  // 빈 칸
-  for (let i = 0; i < firstDay; i++) html += '<div class="calendar-day empty"></div>';
-
-  for (let d = 1; d <= lastDate; d++) {
-    const dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    const rec = recordMap[dateStr];
-    let cls = 'calendar-day';
-    if (dateStr === todayStr) cls += ' today';
-    if (rec) {
-      if (rec.gratitude_text && rec.learning_text) cls += ' has-both';
-      else if (rec.gratitude_text) cls += ' has-gratitude';
-      else if (rec.learning_text) cls += ' has-learning';
-      cls += ' clickable';
-    }
-    html += '<div class="' + cls + '" data-date="' + dateStr + '">' + d + '</div>';
-  }
-
-  grid.innerHTML = html;
-  // 날짜 클릭 시 미리보기
-  grid.querySelectorAll('.calendar-day.clickable').forEach(el => {
-    el.onclick = () => {
-      const date = el.dataset.date;
-      const rec = recordMap[date];
-      if (!rec) return;
-      grid.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-      el.classList.add('selected');
-      const preview = document.getElementById('calendarPreview');
-      let h = '<div style="font-weight:700;margin-bottom:8px;color:var(--primary);">📅 ' + date + '</div>';
-      if (rec.gratitude_text) h += '<div style="margin-bottom:6px;"><span style="font-weight:600;">💝 감사:</span> ' + escapeHtml(rec.gratitude_text.substring(0, 100)) + (rec.gratitude_text.length > 100 ? '...' : '') + '</div>';
-      if (rec.learning_text) h += '<div><span style="font-weight:600;">📚 배움:</span> ' + escapeHtml(rec.learning_text.substring(0, 100)) + (rec.learning_text.length > 100 ? '...' : '') + '</div>';
-      if (rec.subject_tags && rec.subject_tags.length > 0) h += '<div style="margin-top:6px;">' + rec.subject_tags.map(t => '<span style="display:inline-block;padding:2px 8px;background:var(--bg-soft);border-radius:10px;font-size:0.75rem;margin:2px;">' + t + '</span>').join('') + '</div>';
-      preview.innerHTML = h;
-      preview.classList.remove('hidden');
-    };
-  });
-}
-
-function changeCalendarMonth(delta) {
-  calendarMonth.setMonth(calendarMonth.getMonth() + delta);
-  loadDashboardData();
-}
 
 // ② 배움 키워드 워드클라우드
 function renderLearningWordCloud(records) {
