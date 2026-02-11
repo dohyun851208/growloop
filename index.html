@@ -720,16 +720,6 @@
                         </button>
                     </div>
                 </div>
-
-                <div
-                    style="margin-top: 20px; padding: 12px; background: rgba(244, 63, 94, 0.05); border-radius: 12px; border: 1px dashed rgba(244, 63, 94, 0.3);">
-                    <p
-                        style="font-size: 0.85rem; color: #e11d48; line-height: 1.5; word-break: keep-all; text-align: center;">
-                        📢 <strong>안내:</strong> 만 14세 미만 아동은 가정통신문 등을 통해 보호자(법정대리인)의 동의를 받은 후 서비스를 이용할 수 있습니다.
-                    </p>
-                </div>
-
-
             </div>
 
             <!-- Loading State -->
@@ -974,7 +964,8 @@
                     return;
                 }
 
-                const redirectUrl = window.location.origin + '/app.html?role=' + role;
+                // 주소를 동적으로 가져오지 않고 아예 새 주소로 고정하여 튕김 방지
+                const redirectUrl = "https://grow-loop.vercel.app/app.html?role=" + role;
 
                 const { data, error } = await db.auth.signInWithOAuth({
                     provider: 'google',
