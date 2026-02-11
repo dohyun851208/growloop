@@ -3,7 +3,7 @@
 // Supabase 설정
 // ============================================
 const SUPABASE_URL = 'https://ftvalqzaiooebkulafzg.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_oNfoK3MlhcFkuvWs9BE97g_6UHbNy_4';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0dmFscXphaW9vZWJrdWxhZnpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzNzk1MzAsImV4cCI6MjA4NTk1NTUzMH0.M1qXvUIuNe2y-9y1gQ2svRdHvDKrMRQ4oMGZPIZveQs';
 const GEMINI_API_KEY = 'AIzaSyA3c5OMfaLKwugsWGGJplh9vGyoOlWDNdk';
 
 const { createClient } = supabase;
