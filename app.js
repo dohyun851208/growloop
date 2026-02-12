@@ -641,10 +641,13 @@ async function resetPersonalityFromSettings() {
 
 // 학급 변경 및 데이터 전체 초기화
 async function changeClassAndReset() {
+  const newNameInput = document.getElementById('newClassNameInput');
   const newCodeInput = document.getElementById('newClassCodeInput');
+  const newName = newNameInput.value.trim();
   const newCode = newCodeInput.value.trim().replace(/\s/g, '');
-  if (!newCode) {
-    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '이동할 학급 코드를 입력해주세요.' });
+
+  if (!newName || !newCode) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '이동할 학급명과 학급 코드를 모두 입력해주세요.' });
     return;
   }
 
@@ -653,7 +656,7 @@ async function changeClassAndReset() {
     return;
   }
 
-  // 1. 학급 존재 확인
+  // 1. 학급 존재 확인 및 학급명 일치 확인
   const { data: cls, error: clsError } = await db.from('classes').select('class_name').eq('class_code', newCode).maybeSingle();
   if (clsError) {
     showModal({ type: 'alert', icon: '❌', title: '오류', message: '학급 확인 중 오류가 발생했습니다.' });
@@ -661,6 +664,11 @@ async function changeClassAndReset() {
   }
   if (!cls) {
     showModal({ type: 'alert', icon: '❌', title: '오류', message: '존재하지 않는 학급 코드입니다.' });
+    return;
+  }
+
+  if (cls.class_name !== newName) {
+    showModal({ type: 'alert', icon: '❌', title: '정보 불일치', message: '입력하신 학급명이 해당 학급 코드의 실제 학급명과 일치하지 않습니다.' });
     return;
   }
 
@@ -770,64 +778,6 @@ async function resetPersonalityFromSettings() {
   });
 }
 
-// 학급 변경 및 데이터 초기화
-async function changeClassAndReset() {
-  const newCode = document.getElementById('newClassCodeInput').value.replace(/\s/g, '');
-  if (!newCode) {
-    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '새 학급 코드를 입력해주세요.' });
-    return;
-  }
-  if (newCode === currentClassCode) {
-    showModal({ type: 'alert', icon: '⚠️', title: '동일 학급', message: '현재와 같은 학급 코드입니다.' });
-    return;
-  }
-
-  showCustomConfirm('⚠️ 학급을 변경하면 기존 데이터(일기, 평가, 칭찬 등)가 모두 삭제됩니다.\n\n정말 변경하시겠습니까?', async () => {
-    try {
-      // 새 학급 존재 확인
-      const { data: cls, error: clsError } = await db.from('classes').select('*').eq('class_code', newCode).maybeSingle();
-      if (clsError) throw clsError;
-      if (!cls) {
-        showModal({ type: 'alert', icon: '❌', title: '오류', message: '존재하지 않는 학급 코드입니다.' });
-        return;
-      }
-
-      const sid = String(currentStudent.id);
-      const cc = currentClassCode;
-
-      // 기존 데이터 삭제
-      await Promise.all([
-        db.from('reviews').delete().eq('class_code', cc).eq('reviewer_id', sid),
-        db.from('daily_reflections').delete().eq('class_code', cc).eq('student_id', sid),
-        db.from('project_reflections').delete().eq('class_code', cc).eq('student_id', sid),
-        db.from('teacher_messages').delete().eq('class_code', cc).eq('student_id', sid),
-        db.from('praise_messages').delete().eq('class_code', cc).eq('sender_id', sid),
-        db.from('student_personality').delete().eq('class_code', cc).eq('student_id', sid)
-      ]);
-
-      // 프로필 업데이트
-      const { data: session } = await db.auth.getSession();
-      if (!session?.session?.user) return;
-
-      await db.from('user_profiles')
-        .update({ class_code: newCode, class_name: cls.class_name })
-        .eq('google_uid', session.session.user.id)
-        .eq('role', 'student');
-
-      showModal({
-        type: 'alert',
-        icon: '🎉',
-        title: '학급 변경 완료',
-        message: cls.class_name + ' 학급으로 이동했습니다.\n페이지를 새로고침합니다.',
-        onConfirm: () => window.location.reload()
-      });
-
-    } catch (err) {
-      console.error('학급 변경 오류:', err);
-      showModal({ type: 'alert', icon: '❌', title: '오류', message: '학급 변경에 실패했습니다: ' + err.message });
-    }
-  });
-}
 
 // 너의 조언 세부 탭 (평가하기 vs 결과보기)
 async function switchPeerTab(mode) {
@@ -926,7 +876,7 @@ async function switchMiniTab(mode) {
     mainTabBtns[2].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('praiseMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
-    loadPraiseStats(); loadPendingPraises(); loadApprovedPraises(); loadAutoApproveStatus();
+    loadPraiseStats(); loadPendingPraises(); loadApprovedPraises(); loadAutoApproveStatus(); initMessageDate(); loadTeacherMessages();
   } else if (mode === 'settings') {
     mainTabBtns[3].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
@@ -1639,8 +1589,6 @@ async function submitDailyReflection() {
 
   const gratitudeText = document.getElementById('gratitudeText').value.trim();
   const learningText = document.getElementById('learningText').value.trim();
-  const teacherMessage = document.getElementById('teacherMessage').value.trim();
-  const wantsReply = document.getElementById('wantsReply').checked;
 
   if (!gratitudeText && !learningText) {
     showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '감사한 것이나 배운 것 중 하나는 써주세요.' });
@@ -1661,31 +1609,13 @@ async function submitDailyReflection() {
       gratitude_text: gratitudeText || null,
       gratitude_tags: selectedGratitudeTags.length > 0 ? selectedGratitudeTags : null,
       learning_text: learningText || null,
-      subject_tags: selectedSubjectTags.length > 0 ? selectedSubjectTags : null,
-      has_teacher_message: !!teacherMessage
+      subject_tags: selectedSubjectTags.length > 0 ? selectedSubjectTags : null
     };
 
-    const { data: savedReflection, error: reflectionError } = await db.from('daily_reflections')
-      .upsert(reflectionData, { onConflict: 'class_code,student_id,reflection_date' })
-      .select()
-      .single();
+    const { error: reflectionError } = await db.from('daily_reflections')
+      .upsert(reflectionData, { onConflict: 'class_code,student_id,reflection_date' });
 
     if (reflectionError) throw reflectionError;
-
-    // 선생님께 메시지가 있으면 저장
-    if (teacherMessage && currentMessageMode) {
-      const messageData = {
-        class_code: currentClassCode,
-        reflection_id: savedReflection.id,
-        student_id: currentMessageMode === 'named' ? String(currentStudent.id) : null,
-        is_anonymous: currentMessageMode === 'anonymous',
-        message_content: teacherMessage,
-        wants_reply: wantsReply,
-        has_reply: false
-      };
-      const { error: messageError } = await db.from('teacher_messages').insert(messageData);
-      if (messageError) throw messageError;
-    }
 
     setLoading(false, btn, '저장하기');
     showMsg(msg, '성공적으로 저장되었습니다! 🎉', 'success');
@@ -1693,21 +1623,13 @@ async function submitDailyReflection() {
     // AI 맞춤 피드백 생성
     generateAiFeedback(gratitudeText, learningText, selectedSubjectTags);
 
-    // 입력 필드 초기화 (메시지만)
-    if (teacherMessage) {
-      document.getElementById('teacherMessage').value = '';
-      document.getElementById('wantsReply').checked = false;
-      currentMessageMode = null;
-      document.getElementById('anonymousBtn').classList.remove('active');
-      document.getElementById('namedBtn').classList.remove('active');
-      document.getElementById('messageInputArea').classList.add('hidden');
-    }
-
-  } catch (error) {
+  } catch (err) {
+    console.error('일기 저장 오류:', err);
     setLoading(false, btn, '저장하기');
-    showMsg(msg, '오류: ' + error.message, 'error');
+    showMsg(msg, '저장 실패: ' + err.message, 'error');
   }
 }
+
 
 // AI 맞춤 피드백 생성 (감사+배움 글에 대해)
 async function generateAiFeedback(gratitude, learning, subjects) {
@@ -1742,8 +1664,7 @@ async function checkForTeacherReplies() {
   const { data: messages } = await db.from('teacher_messages')
     .select('id, message_content, teacher_replies(*)')
     .eq('class_code', currentClassCode)
-    .eq('student_id', String(currentStudent.id))
-    .eq('wants_reply', true);
+    .eq('student_id', String(currentStudent.id));
 
   if (!messages || messages.length === 0) return;
 
@@ -1864,7 +1785,7 @@ function initDiaryDate() {
 async function loadTeacherDiaryData() {
   if (!currentClassCode) return;
 
-  const selectedDate = document.getElementById('diaryViewDate').value;
+  const selectedDate = document.getElementById('diaryViewDate')?.value;
   if (!selectedDate) return;
 
   try {
@@ -1878,23 +1799,9 @@ async function loadTeacherDiaryData() {
       .eq('class_code', currentClassCode)
       .eq('reflection_date', selectedDate);
 
-    const { data: allMessages } = await db.from('teacher_messages')
-      .select('*')
-      .eq('class_code', currentClassCode);
-
     // 통계 업데이트
     document.getElementById('totalReflections').textContent = allReflections?.length || 0;
     document.getElementById('todayReflections').textContent = todayReflections?.length || 0;
-    document.getElementById('totalMessages').textContent = allMessages?.length || 0;
-
-    // 선택한 날짜의 메시지 로드
-    const { data: messages } = await db.from('teacher_messages')
-      .select('*, daily_reflections!inner(*), teacher_replies(*)')
-      .eq('class_code', currentClassCode)
-      .eq('daily_reflections.reflection_date', selectedDate)
-      .order('created_at', { ascending: false });
-
-    renderMessageList(messages || []);
 
     // 감정 키워드 알림 감지
     renderEmotionAlerts(todayReflections || []);
@@ -1920,16 +1827,121 @@ async function loadTeacherDiaryData() {
   }
 }
 
+// 학생 메시지 날짜 초기화
+function initMessageDate() {
+  const kr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
+  const today = kr.toISOString().split('T')[0];
+  document.getElementById('messageViewDate').value = today;
+}
+
+// 학생 메시지 로드 (칭찬 우체통 탭)
+async function loadTeacherMessages() {
+  if (!currentClassCode) return;
+  const selectedDate = document.getElementById('messageViewDate')?.value;
+  if (!selectedDate) return;
+
+  try {
+    const { data: messages } = await db.from('teacher_messages')
+      .select('*, daily_reflections(reflection_date)')
+      .eq('class_code', currentClassCode)
+      .gte('created_at', selectedDate + 'T00:00:00')
+      .lt('created_at', selectedDate + 'T23:59:59.999')
+      .order('created_at', { ascending: false });
+
+    renderMessageList(messages || []);
+  } catch (error) {
+    console.error('Error loading messages:', error);
+  }
+}
+
 // ============================================
-// 칭찬 우체통
+// 우체통
 // ============================================
 function switchPraiseTab(mode) {
   const btns = document.querySelectorAll('#praiseSection .sub-tab-btn');
   document.getElementById('praiseSendTab').classList.add('hidden');
   document.getElementById('praiseReceivedTab').classList.add('hidden');
+  document.getElementById('teacherMessageTab').classList.add('hidden');
   btns.forEach(b => b.classList.remove('active'));
-  if (mode === 'send') { btns[0].classList.add('active'); document.getElementById('praiseSendTab').classList.remove('hidden'); }
-  else { btns[1].classList.add('active'); document.getElementById('praiseReceivedTab').classList.remove('hidden'); loadReceivedPraises(); }
+
+  if (mode === 'send') {
+    btns[0].classList.add('active');
+    document.getElementById('praiseSendTab').classList.remove('hidden');
+  } else if (mode === 'received') {
+    btns[1].classList.add('active');
+    document.getElementById('praiseReceivedTab').classList.remove('hidden');
+    loadReceivedPraises();
+  } else if (mode === 'teacher') {
+    btns[2].classList.add('active');
+    document.getElementById('teacherMessageTab').classList.remove('hidden');
+    checkForTeacherReplies();
+  }
+}
+
+// 선생님께 메시지만 전송
+async function submitTeacherMessageOnly() {
+  if (!currentStudent || !currentClassCode) {
+    showModal({ type: 'alert', icon: '⚠️', title: '오류', message: '로그인이 필요합니다.' });
+    return;
+  }
+
+  const teacherMessage = document.getElementById('teacherMessage').value.trim();
+
+  if (!teacherMessage) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '메시지를 입력해주세요.' });
+    return;
+  }
+
+  if (!currentMessageMode) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '익명/실명을 선택해주세요.' });
+    return;
+  }
+
+  const btn = document.getElementById('sendTeacherMsgBtn');
+  const msg = document.getElementById('teacherMsgResult');
+
+  setLoading(true, btn, '보내는 중...');
+
+  try {
+    const messageData = {
+      class_code: currentClassCode,
+      student_id: currentMessageMode === 'named' ? String(currentStudent.id) : null,
+      is_anonymous: currentMessageMode === 'anonymous',
+      message_content: teacherMessage,
+      has_reply: false
+    };
+
+    // 오늘 날짜의 reflection_id 찾기 (선택 사항)
+    const kr = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
+    const today = kr.toISOString().split('T')[0];
+    const { data: reflection } = await db.from('daily_reflections')
+      .select('id')
+      .eq('class_code', currentClassCode)
+      .eq('student_id', String(currentStudent.id))
+      .eq('reflection_date', today)
+      .maybeSingle();
+
+    if (reflection) {
+      messageData.reflection_id = reflection.id;
+    }
+
+    const { error: messageError } = await db.from('teacher_messages').insert(messageData);
+    if (messageError) throw messageError;
+
+    setLoading(false, btn, '보내기');
+    showMsg(msg, '선생님께 편지가 전달되었습니다! 💌', 'success');
+
+    // 입력 필드 초기화
+    document.getElementById('teacherMessage').value = '';
+    currentMessageMode = null;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('messageInputArea').classList.add('hidden');
+
+  } catch (err) {
+    console.error('메시지 전송 오류:', err);
+    setLoading(false, btn, '보내기');
+    showMsg(msg, '전송 실패: ' + err.message, 'error');
+  }
 }
 async function loadPraiseData() {
   if (!currentStudent || !currentClassCode) return;
@@ -1998,7 +2010,7 @@ async function loadReceivedPraises() {
   }).join('');
 }
 
-// 교사 - 칭찬 우체통 관리
+// 교사 - 우체통 관리
 async function loadPendingPraises() {
   const container = document.getElementById('pendingPraiseList');
   container.innerHTML = '<p style="text-align:center;">불러오는 중...</p>';
@@ -2107,9 +2119,6 @@ function renderMessageList(messages) {
   messages.forEach(msg => {
     const studentId = msg.is_anonymous ? '익명' : (msg.student_id + '번');
     const badgeClass = msg.is_anonymous ? 'badge-anonymous' : 'badge-named';
-    const hasReply = msg.teacher_replies && msg.teacher_replies.length > 0;
-    const wantsReply = msg.wants_reply;
-
     const date = new Date(msg.created_at);
     const timeStr = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
@@ -2117,23 +2126,12 @@ function renderMessageList(messages) {
       <div class="message-card">
         <div class="message-card-header">
           <span class="message-card-badge ${badgeClass}">${studentId}</span>
-          ${hasReply ? '<span class="replied-badge">✓ 답장 완료</span>' : (wantsReply ? '<span style="color:var(--color-teal); font-size:0.85rem;">💬 답장 요청</span>' : '')}
         </div>
         <div class="message-card-content">${escapeHtml(msg.message_content)}</div>
         <div class="message-card-meta">
           <span>📅 ${msg.daily_reflections?.reflection_date || '날짜 미상'}</span>
           <span>🕐 ${timeStr}</span>
         </div>
-        ${hasReply ? `
-          <div style="margin-top:10px; padding:10px; background:var(--color-teacher-bg); border-left:3px solid var(--color-teacher); border-radius:6px;">
-            <div style="font-size:0.8rem; color:var(--color-teacher); font-weight:600; margin-bottom:5px;">내 답장:</div>
-            <div style="color:var(--text-main); font-size:0.9rem;">${escapeHtml(msg.teacher_replies[0].reply_content)}</div>
-          </div>
-        ` : `
-          <div class="message-card-actions">
-            <button class="reply-btn" data-msg-id="${msg.id}" data-student-id="${escapeHtml(studentId)}" data-msg-content="${escapeHtml(msg.message_content)}" onclick="showReplyModal(this.dataset.msgId, this.dataset.studentId, this.dataset.msgContent)">답장하기</button>
-          </div>
-        `}
       </div>
     `;
   });
@@ -2174,81 +2172,6 @@ function renderKeywordStats(tagCounts) {
   html += '</div>';
 
   container.innerHTML = html;
-}
-
-// 답장 모달 표시
-function showReplyModal(messageId, studentId, messageContent) {
-  const safeStudentId = escapeHtml(studentId);
-  const safeContent = escapeHtml(messageContent);
-  const overlay = document.createElement('div');
-  overlay.className = 'reply-modal-overlay';
-  overlay.innerHTML = `
-    <div class="reply-modal">
-      <div class="reply-modal-header">
-        💌 ${safeStudentId} 학생에게 답장
-      </div>
-      <div class="reply-modal-content">
-        <div style="background:var(--bg-soft); padding:10px; border-radius:8px; margin-bottom:15px; font-size:0.9rem; color:var(--text-sub);">
-          <strong>학생 메시지:</strong><br>
-          "${safeContent}"
-        </div>
-        <textarea id="replyTextarea" class="reply-textarea" placeholder="따뜻한 답장을 작성해주세요..."></textarea>
-      </div>
-      <div class="reply-modal-actions">
-        <button class="reply-cancel-btn" onclick="closeReplyModal()">취소</button>
-        <button class="reply-submit-btn" data-msg-id="${escapeHtml(messageId)}" onclick="submitReply(this.dataset.msgId)">답장 보내기</button>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(overlay);
-  document.getElementById('replyTextarea').focus();
-
-  // 모달 외부 클릭 시 닫기
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) closeReplyModal();
-  });
-}
-
-// 답장 모달 닫기
-function closeReplyModal() {
-  const overlay = document.querySelector('.reply-modal-overlay');
-  if (overlay) overlay.remove();
-}
-
-// 답장 제출
-async function submitReply(messageId) {
-  const textarea = document.getElementById('replyTextarea');
-  const replyContent = textarea.value.trim();
-
-  if (!replyContent) {
-    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '답장 내용을 입력해주세요.' });
-    return;
-  }
-
-  try {
-    // 답장 저장
-    const { error: replyError } = await db.from('teacher_replies').insert({
-      message_id: messageId,
-      reply_content: replyContent
-    });
-
-    if (replyError) throw replyError;
-
-    // 메시지 상태 업데이트
-    const { error: updateError } = await db.from('teacher_messages')
-      .update({ has_reply: true })
-      .eq('id', messageId);
-
-    if (updateError) throw updateError;
-
-    closeReplyModal();
-    showModal({ type: 'alert', icon: '✅', title: '답장 완료', message: '답장이 성공적으로 전송되었습니다!' });
-    loadTeacherDiaryData(); // 목록 새로고침
-
-  } catch (error) {
-    showModal({ type: 'alert', icon: '❌', title: '오류', message: '답장 전송 실패: ' + error.message });
-  }
 }
 
 // (중복 탭 전환 함수 제거됨 - 위의 switchStudentMainTab, switchPeerTab, switchSelfTab 사용)
