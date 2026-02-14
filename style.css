@@ -1561,6 +1561,63 @@ button:disabled {
     box-shadow: none
 }
 
+
+.teacher-status-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+.teacher-date-filter {
+    width: auto;
+    min-width: 150px;
+}
+
+.teacher-date-filter label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.teacher-eval-type-selector {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    border: 2px solid #e7e5e4;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.teacher-eval-type-selector label {
+    min-width: 112px;
+    justify-content: center;
+    font-family: 'Jua', sans-serif;
+    font-size: 1rem;
+    gap: 6px;
+    line-height: 1;
+}
+
+
+.teacher-eval-type-selector input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+.teacher-eval-type-selector label {
+    position: relative;
+    white-space: nowrap;
+}
+
+.teacher-eval-type-selector label span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}
+
 #rankStudentArea>div {
     display: flex;
     align-items: flex-end;
@@ -1760,15 +1817,27 @@ button:disabled {
         align-items: stretch
     }
 
-    #rankStudentArea .type-selector {
-        flex-direction: row;
-        height: auto
+    .teacher-status-filter {
+        gap: 10px;
     }
 
-    #rankStudentArea .type-selector label {
+    .teacher-date-filter {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .teacher-eval-type-selector {
+        width: 100%;
+        flex-direction: row;
+        height: auto;
+    }
+
+    .teacher-eval-type-selector label {
         flex: 1;
+        min-width: 0;
         justify-content: center;
-        padding: 10px
+        padding: 12px 8px;
+        font-size: 0.92rem;
     }
 
     #rankStudentArea .type-selector label:first-child {
@@ -1803,7 +1872,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�기?��? (Self-Evaluation) 컴포?�트 */
+/* ?ê¸°?ê? (Self-Evaluation) ì»´í¬?í¸ */
 /* ============================================ */
 .gratitude-tags {
     display: grid;
@@ -1996,7 +2065,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* 교사???�기?��? 관�?*/
+/* êµì¬???ê¸°?ê? ê´ë¦?*/
 /* ============================================ */
 .message-card {
     background: var(--bg-card);
@@ -2239,7 +2308,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�브 ??(?�료?��?/?�기?��? ?��?) */
+/* ?ë¸ ??(?ë£?ê?/?ê¸°?ê? ?´ë?) */
 /* ============================================ */
 .sub-tab-container {
     display: flex;
@@ -2285,7 +2354,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�향 진단 (Personality Quiz) */
+/* ?±í¥ ì§ë¨ (Personality Quiz) */
 /* ============================================ */
 .quiz-question {
     background: var(--bg-card);
@@ -2390,7 +2459,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* 과목/?�동 ?�그 */
+/* ê³¼ëª©/?ë ?ê·¸ */
 /* ============================================ */
 .subject-tags {
     display: flex;
@@ -2419,7 +2488,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* 캘린??그리??*/
+/* ìºë¦°??ê·¸ë¦¬??*/
 /* ============================================ */
 .calendar-grid {
     display: grid;
@@ -2494,7 +2563,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�드 ?�라?�드 */
+/* ?ë ?´ë¼?°ë */
 /* ============================================ */
 .word-cloud {
     display: flex;
@@ -2522,7 +2591,7 @@ button:disabled {
 .word-cloud-item.size-5 { font-size: 1.4rem; font-weight: 800; }
 
 /* ============================================ */
-/* 뱃�? */
+/* ë±ì? */
 /* ============================================ */
 .badge-item {
     display: flex;
@@ -2540,7 +2609,7 @@ button:disabled {
 [data-theme="dark"] .badge-item { background: var(--bg-soft); }
 
 /* ============================================ */
-/* 과목�?차트 */
+/* ê³¼ëª©ë³?ì°¨í¸ */
 /* ============================================ */
 .subject-chart { min-height: 80px; }
 .subject-bar-item {
@@ -2577,7 +2646,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* 감사 그래??*/
+/* ê°ì¬ ê·¸ë??*/
 /* ============================================ */
 .gratitude-chart { min-height: 80px; }
 .gratitude-stat-row {
@@ -2607,7 +2676,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�장 ?�?�라??*/
+/* ?±ì¥ ??ë¼??*/
 /* ============================================ */
 .growth-timeline { min-height: 80px; }
 .timeline-item {
@@ -2655,7 +2724,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�약 리포??버튼 */
+/* ?ì½ ë¦¬í¬??ë²í¼ */
 /* ============================================ */
 .summary-period-btn {
     padding: 10px;
@@ -2685,7 +2754,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�용?��? / 개인?�보처리방침 모달 ?��???*/
+/* ?´ì©?½ê? / ê°ì¸?ë³´ì²ë¦¬ë°©ì¹¨ ëª¨ë¬ ?¤í???*/
 /* ============================================ */
 .terms-modal-body {
     text-align: left;
@@ -2819,7 +2888,7 @@ button:disabled {
     background: var(--text-sub, #8A7F76);
 }
 
-/* ?�크모드 */
+/* ?¤í¬ëª¨ë */
 [data-theme="dark"] .terms-modal-body {
     color: var(--text-main);
 }
@@ -2831,7 +2900,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* 추�? 기능 ?��???(�?�� ?�체?? 목표 관�??? */
+/* ì¶ê? ê¸°ë¥ ?¤í???(ì¹?°¬ ?°ì²´?? ëª©í ê´ë¦??? */
 /* ============================================ */
 .target-grid {
     display: grid;
@@ -2889,7 +2958,7 @@ button:disabled {
     border: 1px dashed var(--border);
     font-size: 0.85rem;
 }
-/* �ϴ� ������̼� �� ��Ÿ�� (Glassmorphism) */
+/* ÇÏ´Ü ³»ºñ°ÔÀÌ¼Ç ¹Ù ½ºÅ¸ÀÏ (Glassmorphism) */
 .bottom-nav {
     position: fixed;
     bottom: 20px;
@@ -2953,10 +3022,10 @@ button:disabled {
     transform: scale(1.1);
 }
 
-/* �ϴ� ������̼� ���� Ȯ�� */
+/* ÇÏ´Ü ³»ºñ°ÔÀÌ¼Ç °ø°£ È®º¸ */
 #studentTab {
     padding-bottom: 90px;
 }
 
-/* ��ũ ��� ���� */
+/* ´ÙÅ© ¸ðµå ´ëÀÀ */
 
