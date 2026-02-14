@@ -104,7 +104,7 @@ textarea,
 select {
     border: 2px solid #e7e5e4 !important;
     border-radius: 12px !important;
-    font-family: 'Noto Sans KR', sans-serif !important;
+    font-family: 'Jua', sans-serif !important;
     transition: all 0.3s ease;
 }
 
@@ -194,12 +194,12 @@ button[onclick*="logout"]:hover {
 
 .accent-box.box-blue {
     border-color: #a7f3d0 !important;
-    background: #F0FDF9 !important;
+    background: #ffffff !important;
 }
 
 .accent-box.box-violet {
     border-color: #a7f3d0 !important;
-    background: #F0FDF9 !important;
+    background: #ffffff !important;
 }
 
 .box-label {
@@ -382,14 +382,14 @@ div[style*="border-top-color"] {
 }
 
 .ranking-table th {
-    background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%) !important;
+    background: linear-gradient(135deg, #fb923c 0%, #f97316 100%) !important;
     color: white !important;
     font-family: 'Jua', sans-serif !important;
 }
 
 /* ── 18. 진행 바 ─────────────────────────── */
 .bar-fill {
-    background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%) !important;
+    /* background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%) !important; */
     border-radius: 10px !important;
 }
 
@@ -652,7 +652,7 @@ input:checked+.switch-slider:before {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 15px;
+    margin-top: 25px;
     margin-bottom: 5px;
 }
 
@@ -661,9 +661,9 @@ input:checked+.switch-slider:before {
     border: 2px solid #e5e7eb !important;
     border-radius: 50px !important;
     padding: 10px 18px !important;
-    font-size: 1rem !important;
+    font-size: 0.84rem !important;
     font-family: 'Jua', sans-serif !important;
-    color: #4b5563 !important;
+    color: #0f766e !important;
     cursor: pointer !important;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
@@ -739,7 +739,7 @@ input:checked+.switch-slider:before {
     border: 2px solid #e5e7eb !important;
     border-radius: 50px !important;
     padding: 8px 16px !important;
-    font-size: 0.9rem !important;
+    font-size: 0.63rem !important;
     font-family: 'Jua', sans-serif !important;
     color: #4b5563 !important;
     cursor: pointer !important;

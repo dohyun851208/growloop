@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GrowLoop - 우리 반 성장 파트너</title>
+    <title>BaeumLog - 우리 반 성장 파트너</title>
 
     <!-- Google Fonts - Jua -->
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
@@ -1013,98 +1013,99 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="landing.css">
     <!-- Noto Sans KR for Modals -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <!-- Background decorations -->
-    <div class="bg-decoration bg-circle-1"></div>
-    <div class="bg-decoration bg-circle-2"></div>
+    <!-- Glow Blob Decorations -->
+    <div class="glow-blob glow-blob-1"></div>
+    <div class="glow-blob glow-blob-2"></div>
+    <div class="glow-blob glow-blob-3"></div>
+    <div class="glow-blob glow-blob-4"></div>
 
     <div class="landing-wrapper">
 
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav" id="topNav">
+            <div class="nav-brand" onclick="document.getElementById('heroSection').scrollIntoView({behavior:'smooth'})">
+                BaeumLog
+            </div>
+            <div class="nav-actions" id="mainSection">
+                <button class="nav-login-btn student-login" onclick="signInWithGoogle('student')">
+                    <svg class="google-icon-sm" viewBox="0 0 24 24">
+                        <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    학생 로그인
+                </button>
+                <button class="nav-login-btn teacher-login" onclick="signInWithGoogle('teacher')">
+                    <svg class="google-icon-sm" viewBox="0 0 24 24">
+                        <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                    교사 로그인
+                </button>
+            </div>
+            <!-- Loading State -->
+            <div id="loadingSection" class="hidden nav-loading">
+                <div class="spinner-sm"></div>
+                <span>로그인 중...</span>
+            </div>
+        </nav>
+
         <!-- Hero Section -->
         <section class="hero-section" id="heroSection">
-            <div class="container">
-                <div class="card">
-                    <!-- Logo Section -->
-                    <div class="logo-section">
-                        <p class="subtitle"
-                            style="font-size: 1.1rem; font-weight: 700; color:#57534e; margin-bottom: 20px;">쓰고,
-                            나누고, 성장하는 우리 반 플랫폼</p>
-                        <div style="display: flex; justify-content: center;">
-                            <h1 class="title"
-                                style="font-size: 2.7rem; margin: 0; display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px; border: 3px solid var(--primary); border-radius: 50px; color: var(--primary); background: white; box-shadow: 0 4px 15px rgba(244, 63, 94, 0.1);">
-                                <span class="logo-emoji"
-                                    style="margin: 0; font-size: 2.7rem; animation: float 4s ease-in-out infinite;">🌱</span>
-                                GrowLoop
-                            </h1>
-                        </div>
+            <div class="hero-center">
+                <p class="hero-tagline"><span class="hl-rose">성향 분석</span>으로 시작하는 <span class="hl-violet">AI 코칭</span></p>
+                <p class="hero-sub"><span class="hl-rose">쓰고</span>, <span class="hl-teal">나누고</span>, <span class="hl-amber">성장하는</span><br>우리 반 플랫폼</p>
+                <h1 class="hero-brand">
+                    <span class="brand-emoji">🌱</span>
+                    배움로그
+                </h1>
+                <div class="hero-typing-area">
+                    <p class="hero-typing-text">
+                        지금 우리 반은&nbsp;<span class="typed-word" id="typedWord"></span><span class="cursor"></span>
+                    </p>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-emoji">✍️</span>
+                        <span class="stat-number" data-target="1247">0</span>
+                        <span class="stat-label">성장일기 기록</span>
                     </div>
-
-                    <!-- Main Section -->
-                    <div id="mainSection">
-
-                        <div class="role-grid">
-                            <!-- Student Card -->
-                            <div class="role-card student-card" onclick="signInWithGoogle('student')">
-                                <div class="role-image-wrapper">
-                                    <img src="images/student_activity.png" alt="학생 활동" class="role-img">
-                                </div>
-                                <div class="role-title">학생</div>
-                                <button class="role-btn">
-                                    <svg class="google-icon" viewBox="0 0 24 24">
-                                        <path fill="#fff"
-                                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                        <path fill="#fff"
-                                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                        <path fill="#fff"
-                                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                                        <path fill="#fff"
-                                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                    </svg>
-                                    쓰고 나누기
-                                </button>
-                            </div>
-
-                            <!-- Teacher Card -->
-                            <div class="role-card teacher-card" onclick="signInWithGoogle('teacher')">
-                                <div class="role-image-wrapper">
-                                    <img src="images/teacher_activity.png" alt="교사 활동" class="role-img">
-                                </div>
-                                <div class="role-title">선생님</div>
-                                <button class="role-btn">
-                                    <svg class="google-icon" viewBox="0 0 24 24">
-                                        <path fill="#fff"
-                                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                                        <path fill="#fff"
-                                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                                        <path fill="#fff"
-                                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                                        <path fill="#fff"
-                                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                                    </svg>
-                                    환경 구성하기
-                                </button>
-                            </div>
-                        </div>
+                    <div class="stat-item">
+                        <span class="stat-emoji">💌</span>
+                        <span class="stat-number" data-target="892">0</span>
+                        <span class="stat-label">칭찬 메시지</span>
                     </div>
-
-                    <!-- Loading State -->
-                    <div id="loadingSection" class="hidden loading">
-                        <div class="spinner"></div>
-                        <p>로그인 중...</p>
+                    <div class="stat-item">
+                        <span class="stat-emoji">🧠</span>
+                        <span class="stat-number" data-target="356">0</span>
+                        <span class="stat-label">성향 진단</span>
                     </div>
                 </div>
-
-                <footer class="footer">
-                    <a onclick="openTermsModal()">이용약관</a> |
-                    <a onclick="openPrivacyModal()">개인정보처리방침</a>
-                    <p>© 2026 GrowLoop. All rights reserved.</p>
-                    <p>개인정보책임자 김도현 | 문의: dohyun851208@gmail.com</p>
-                </footer>
+                <div class="hero-cta-group">
+                    <a href="app.html?demo=student" class="hero-cta-btn hero-cta-primary">
+                        🎮 체험해보기
+                    </a>
+                    <a href="#featuresSection" class="hero-cta-btn hero-cta-secondary"
+                       onclick="scrollToFeatures(); return false;">
+                        📋 기능 살펴보기
+                    </a>
+                </div>
             </div>
+            <button type="button" class="scroll-indicator" onclick="scrollToFeatures()" aria-label="아래로 스크롤">
+                <span>아래로 스크롤</span>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 4v12M4 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </section>
 
         <!-- Features Section -->
@@ -1158,15 +1159,15 @@
             <div class="demo-inner">
                 <div class="demo-emoji">🎮</div>
                 <h2 class="demo-title">먼저 체험해 보세요!</h2>
-                <p class="demo-subtitle">로그인 없이 GrowLoop의 주요 기능을 직접 경험해 보세요</p>
+                <p class="demo-subtitle">로그인 없이 배움로그(BaeumLog)의 주요 기능을 직접 경험해 보세요</p>
                 <div class="demo-buttons">
                     <a href="app.html?demo=student" class="demo-btn demo-student-btn fade-in-up">
-                        <span class="demo-btn-icon">🎒</span>
+                        <img src="images/student_activity.png" alt="학생용 체험" class="demo-btn-illustration">
                         <span class="demo-btn-title">학생용 체험</span>
-                        <span class="demo-btn-desc">성장 일기, 동료 평가, 칭찬 우체통</span>
+                        <span class="demo-btn-desc">성장 일기, 친구로 배움, 칭찬 우체통</span>
                     </a>
                     <a href="app.html?demo=teacher" class="demo-btn demo-teacher-btn fade-in-up">
-                        <span class="demo-btn-icon">👨‍🏫</span>
+                        <img src="images/teacher_activity.png" alt="교사용 체험" class="demo-btn-illustration">
                         <span class="demo-btn-title">교사용 체험</span>
                         <span class="demo-btn-desc">평가 현황, 기준 설정, 학급 관리</span>
                     </a>
@@ -1187,6 +1188,19 @@
                 </button>
             </div>
         </section>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="footer-links">
+                    <a onclick="openTermsModal()">이용약관</a>
+                    <span class="footer-divider">|</span>
+                    <a onclick="openPrivacyModal()">개인정보처리방침</a>
+                </div>
+                <p>&copy; 2026 BaeumLog. All rights reserved.</p>
+                <p>개인정보책임자 김도현 | 문의: dohyun851208@gmail.com</p>
+            </div>
+        </footer>
 
     </div>
 
@@ -1224,14 +1238,14 @@
 <div class="terms-content">
   <div class="terms-section">
     <h3 class="terms-article">제1조 (목적)</h3>
-    <p>본 약관은 김도현(이하 "운영자")이 제공하는 GrowLoop 서비스의 이용과 관련하여 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
+    <p>본 약관은 김도현(이하 "운영자")이 제공하는 배움로그(BaeumLog) 서비스의 이용과 관련하여 권리, 의무 및 책임사항을 규정함을 목적으로 합니다.</p>
   </div>
   <div class="terms-section">
     <h3 class="terms-article">제2조 (서비스 내용)</h3>
-    <p>GrowLoop는 학습 기록 및 동료 평가 기반 성장 관리 서비스입니다.</p>
+    <p>배움로그(BaeumLog)는 학습 기록 및 친구로 배움 기반 성장 관리 서비스입니다.</p>
     <ul class="terms-list">
       <li>Google 계정 로그인</li>
-      <li>동료 평가 및 피드백</li>
+      <li>친구로 배움 및 피드백</li>
       <li>성장 일기 및 프로젝트 기록</li>
       <li>AI 기반 요약 및 피드백</li>
     </ul>
@@ -1275,7 +1289,7 @@
 <div class="terms-content">
   <div class="terms-section">
     <h3 class="terms-article">1. 개인정보 처리 목적</h3>
-    <p>GrowLoop는 다음 목적을 위해 개인정보를 처리합니다.</p>
+    <p>배움로그(BaeumLog)는 다음 목적을 위해 개인정보를 처리합니다.</p>
     <ul class="terms-list">
       <li>사용자 인증 및 서비스 제공</li>
       <li>학급 및 학습 활동 관리</li>
@@ -1384,7 +1398,7 @@
             showModal({
                 type: 'alert',
                 icon: '📜',
-                title: 'GrowLoop 이용약관',
+                title: '배움로그 이용약관',
                 message: `<div class="terms-modal-body">${TERMS_HTML}</div>`
             });
         }
@@ -1393,7 +1407,7 @@
             showModal({
                 type: 'alert',
                 icon: '🔐',
-                title: 'GrowLoop 개인정보처리방침',
+                title: '배움로그 개인정보처리방침',
                 message: `<div class="terms-modal-body">${PRIVACY_HTML}</div>`
             });
         }
@@ -1457,6 +1471,12 @@
         }
         // checkSession();
 
+        function scrollToFeatures() {
+            const section = document.getElementById('featuresSection');
+            if (!section) return;
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
         // Scroll animation for feature cards
         document.addEventListener('DOMContentLoaded', function () {
             const observer = new IntersectionObserver(function (entries) {
@@ -1474,6 +1494,60 @@
             document.querySelectorAll('.fade-in-up').forEach(function (el) {
                 observer.observe(el);
             });
+
+            // ===== Typing Animation =====
+            const words = ['성향진단 중 🧠', '성장일기 쓰는 중 ✍️', 'AI 코칭 받는 중 🤖', '친구로 배움 하는 중 📊', '칭찬 우체통 확인 중 💌'];
+            const typedEl = document.getElementById('typedWord');
+            let wordIdx = 0, charIdx = 0, isDeleting = false;
+
+            function typeLoop() {
+                if (!typedEl) return;
+                const currentWord = words[wordIdx];
+                if (!isDeleting) {
+                    typedEl.textContent = currentWord.substring(0, charIdx + 1);
+                    charIdx++;
+                    if (charIdx === currentWord.length) {
+                        isDeleting = true;
+                        setTimeout(typeLoop, 1800);
+                        return;
+                    }
+                    setTimeout(typeLoop, 80);
+                } else {
+                    typedEl.textContent = currentWord.substring(0, charIdx - 1);
+                    charIdx--;
+                    if (charIdx === 0) {
+                        isDeleting = false;
+                        wordIdx = (wordIdx + 1) % words.length;
+                        setTimeout(typeLoop, 400);
+                        return;
+                    }
+                    setTimeout(typeLoop, 40);
+                }
+            }
+            setTimeout(typeLoop, 800);
+
+            // ===== Counter Animation =====
+            const counters = document.querySelectorAll('.stat-number[data-target]');
+            const counterObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    const el = entry.target;
+                    const target = parseInt(el.getAttribute('data-target'));
+                    const duration = 1500;
+                    const start = performance.now();
+                    function updateCount(now) {
+                        const elapsed = now - start;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const eased = 1 - Math.pow(1 - progress, 3);
+                        el.textContent = Math.floor(eased * target).toLocaleString();
+                        if (progress < 1) requestAnimationFrame(updateCount);
+                        else el.textContent = target.toLocaleString();
+                    }
+                    requestAnimationFrame(updateCount);
+                    counterObserver.unobserve(el);
+                });
+            }, { threshold: 0.5 });
+            counters.forEach(function(el) { counterObserver.observe(el); });
         });
     </script>
 </body>

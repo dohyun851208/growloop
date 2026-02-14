@@ -69,18 +69,49 @@ async function checkAuthAndRoute() {
     const urlParams = new URLSearchParams(window.location.search);
     const roleFromUrl = urlParams.get('role');
 
-    // roleFromUrl이 있으면 해당 역할의 프로필만 조회 (역할 전환 지원)
-    let profileQuery = db.from('user_profiles').select('*').eq('google_uid', session.user.id);
-    if (roleFromUrl) profileQuery = profileQuery.eq('role', roleFromUrl);
-    let { data: profile, error: profileError } = await profileQuery.maybeSingle();
-
-    // roleFromUrl 없이 프로필이 여러 개일 경우 대비 폴백
-    if (!profile && !roleFromUrl && !profileError) {
-      const { data: anyProfile } = await db.from('user_profiles').select('*').eq('google_uid', session.user.id).limit(1).maybeSingle();
-      profile = anyProfile;
+    async function findProfileBy(field, value, role) {
+      if (!value) return { profile: null, error: null };
+      let q = db.from('user_profiles').select('*').eq(field, value).limit(1);
+      if (role) q = q.eq('role', role);
+      const { data: found, error } = await q.maybeSingle();
+      return { profile: found, error };
     }
 
-    if (profileError) throw profileError;
+    let profile = null;
+    let profileError = null;
+    let matchedBy = null;
+
+    if (roleFromUrl) {
+      const byUidWithRole = await findProfileBy('google_uid', session.user.id, roleFromUrl);
+      profile = byUidWithRole.profile;
+      profileError = byUidWithRole.error;
+      if (profile) matchedBy = 'google_uid';
+      if (profileError) throw profileError;
+    }
+
+    if (!profile) {
+      const byUid = await findProfileBy('google_uid', session.user.id, null);
+      profile = byUid.profile;
+      profileError = byUid.error;
+      if (profile) matchedBy = 'google_uid';
+      if (profileError) throw profileError;
+    }
+
+    if (!profile && roleFromUrl) {
+      const byEmailWithRole = await findProfileBy('google_email', session.user.email, roleFromUrl);
+      profile = byEmailWithRole.profile;
+      profileError = byEmailWithRole.error;
+      if (profile) matchedBy = 'google_email';
+      if (profileError) throw profileError;
+    }
+
+    if (!profile) {
+      const byEmail = await findProfileBy('google_email', session.user.email, null);
+      profile = byEmail.profile;
+      profileError = byEmail.error;
+      if (profile) matchedBy = 'google_email';
+      if (profileError) throw profileError;
+    }
 
     if (!profile) {
       if (!roleFromUrl) {
@@ -98,6 +129,21 @@ async function checkAuthAndRoute() {
       return;
     }
 
+    if (matchedBy === 'google_email' && session.user.id && profile.google_uid !== session.user.id) {
+      try {
+        await db.from('user_profiles')
+          .update({ google_uid: session.user.id })
+          .eq('id', profile.id);
+      } catch (uidSyncError) {
+        console.warn('google_uid sync failed:', uidSyncError);
+      }
+    }
+
+    if (profile.role && roleFromUrl !== profile.role) {
+      const nextParams = new URLSearchParams(window.location.search);
+      nextParams.set('role', profile.role);
+      window.history.replaceState({}, '', 'app.html?' + nextParams.toString());
+    }
     if (profile.role === 'teacher') {
       currentClassCode = profile.class_code;
 

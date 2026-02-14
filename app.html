@@ -86,8 +86,8 @@
                 </div>
                 <!-- 기존 탭 내비게이션 (롤백용 주석 처리) -->
                 <!-- <div class="mini-tab-container">
-                    <button class="mini-tab-btn active-student" onclick="switchStudentMainTab('self')">💝 자기평가</button>
-                    <button class="mini-tab-btn" onclick="switchStudentMainTab('peer')">👥 동료평가</button>
+                    <button class="mini-tab-btn active-student" onclick="switchStudentMainTab('self')">💝 배움노트</button>
+                    <button class="mini-tab-btn" onclick="switchStudentMainTab('peer')">👥 친구로 배움</button>
                     <button class="mini-tab-btn" onclick="switchStudentMainTab('praise')">💌 칭찬 우체통</button>
                     <button class="mini-tab-btn" onclick="switchStudentMainTab('settings')">⚙️ 설정</button>
                 </div> -->
@@ -96,11 +96,11 @@
                 <nav class="bottom-nav">
                     <button class="nav-item active-nav" onclick="switchStudentMainTab('self')">
                         <span class="nav-icon">💝</span>
-                        <span class="nav-label">자기평가</span>
+                        <span class="nav-label">배움노트</span>
                     </button>
                     <button class="nav-item" onclick="switchStudentMainTab('peer')">
                         <span class="nav-icon">👥</span>
-                        <span class="nav-label">동료평가</span>
+                        <span class="nav-label">친구로 배움</span>
                     </button>
                     <button class="nav-item" onclick="switchStudentMainTab('praise')">
                         <span class="nav-icon">💌</span>
@@ -112,7 +112,7 @@
                     </button>
                 </nav>
 
-                <!-- 자기평가 섹션 -->
+                <!-- 배움노트 섹션 -->
                 <div id="selfEvaluationSection">
                     <!-- 성향 진단 화면 -->
                     <div id="personalityQuiz" class="hidden">
@@ -151,7 +151,7 @@
                         </div>
                     </div>
 
-                    <!-- 자기평가 메뉴 -->
+                    <!-- 배움노트 메뉴 -->
                     <div id="selfEvaluationMenu" class="hidden">
                         <div class="sub-tab-container">
                             <button class="sub-tab-btn active" onclick="switchSelfTab('daily')">📝 성장 일기</button>
@@ -390,7 +390,7 @@
                     </div>
                 </div>
 
-                <!-- 동료평가 섹션 -->
+                <!-- 친구로 배움 섹션 -->
                 <div id="peerEvaluationSection" class="hidden">
                     <div class="sub-tab-container">
                         <button class="sub-tab-btn active" onclick="switchPeerTab('submit')">📝 평가하기</button>
@@ -644,11 +644,11 @@
                 <nav class="bottom-nav" style="margin-bottom: 20px; border-radius: 20px !important;">
                     <button class="nav-item active-nav" onclick="switchMiniTab('diary')">
                         <span class="nav-icon">💝</span>
-                        <span class="nav-label">자기평가</span>
+                        <span class="nav-label">배움노트</span>
                     </button>
                     <button class="nav-item" onclick="switchMiniTab('review')">
                         <span class="nav-icon">📊</span>
-                        <span class="nav-label">동료평가</span>
+                        <span class="nav-label">친구로 배움</span>
                     </button>
                     <button class="nav-item" onclick="switchMiniTab('praise')">
                         <span class="nav-icon">💌</span>
@@ -659,7 +659,7 @@
                         <span class="nav-label">학급 관리</span>
                     </button>
                 </nav>
-                <!-- 동료평가 하위 탭 -->
+                <!-- 친구로 배움 하위 탭 -->
                 <div id="reviewSubTabArea" class="hidden">
                     <div class="sub-tab-container" style="margin-bottom:15px;">
                         <button class="sub-tab-btn active" onclick="switchReviewSubTab('ranking')">📊 평가 현황</button>
@@ -692,7 +692,7 @@
                 </div>
                 <div id="rankingMiniTab">
                     <div id="teacherDashboard" class="stats-summary" style="margin-bottom:20px;"></div>
-                    <h3>동료평가 현황 (내림차순)</h3>
+                    <h3>친구로 배움 현황 (내림차순)</h3>
                     <div class="ranking-table-wrapper" style="overflow-x:auto;">
                         <div id="rankingTable"></div>
                     </div>
@@ -704,7 +704,13 @@
                 </div>
                 <div id="diaryMiniTab" class="hidden">
                     <div class="accent-box box-violet">
-                        <span class="box-label">📊 자기평가 참여 현황</span>
+                        <span class="box-label">📊 배움노트 참여 현황</span>
+                        <div style="margin-top:12px; margin-bottom:10px;">
+                            <label style="display:block; margin-bottom:6px;">📅 조회 날짜</label>
+                            <input type="date" id="diaryViewDate"
+                                style="width:100%; font-family:'Jua', sans-serif !important; font-size:1.05rem;"
+                                onchange="loadTeacherDiaryData()">
+                        </div>
                         <div class="stats-summary" style="margin-top:15px;">
                             <div class="stat-card">
                                 <span class="stat-number" id="totalReflections">0</span>
@@ -713,6 +719,25 @@
                             <div class="stat-card blue">
                                 <span class="stat-number" id="todayReflections">0</span>
                                 <span class="stat-label">오늘 작성</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accent-box" style="border-left-color:#0ea5e9;">
+                        <span class="box-label">🧾 오늘 배움노트 확인</span>
+                        <div style="font-size:0.82rem; color:var(--text-sub); margin-top:6px; margin-bottom:10px;">
+                            초록: 제출 완료 / 빨강: 미제출
+                        </div>
+                        <div id="diaryCompletionSummary"
+                            style="font-size:0.9rem; color:var(--text-main); margin-bottom:10px;"></div>
+                        <div id="diaryCompletionList"
+                            style="display:grid; grid-template-columns:repeat(auto-fill, minmax(92px, 1fr)); gap:8px;"></div>
+                    </div>
+                    <div class="accent-box box-teal">
+                        <span class="box-label">👤 학생별 배움노트</span>
+                        <div id="diaryStudentDetail" style="margin-top:12px;">
+                            <div class="empty-state">
+                                <span class="empty-icon">📝</span>
+                                <div class="empty-desc">학생 번호를 누르면 해당 학생이 오늘 쓴 배움노트를 볼 수 있습니다.</div>
                             </div>
                         </div>
                     </div>
@@ -736,6 +761,13 @@
                     </div>
                 </div>
                 <div id="praiseMiniTab" class="hidden">
+                    <div class="sub-tab-container" style="margin-bottom:12px;">
+                        <button id="teacherPraiseManageBtn" class="sub-tab-btn active"
+                            onclick="switchTeacherPraiseSubTab('praise')">칭찬 관리</button>
+                        <button id="teacherLetterManageBtn" class="sub-tab-btn"
+                            onclick="switchTeacherPraiseSubTab('letter')">편지 관리</button>
+                    </div>
+                    <div id="teacherPraiseManagePanel">
                     <!-- 자동 승인 설정 -->
                     <div class="accent-box praise-approval-card"
                         style="margin-bottom:15px; padding:15px; display:flex; justify-content:space-between; align-items:center; border-color:var(--color-rose);">
@@ -796,7 +828,9 @@
                             </div>
                         </div>
                     </div>
-                    <!-- 학생 메시지 (자기평가에서 이전) -->
+                    </div>
+                    <div id="teacherLetterManagePanel" class="hidden">
+                    <!-- 학생 메시지 (배움노트에서 이전) -->
                     <div class="accent-box box-teal">
                         <span class="box-label">💬 학생 메시지</span>
                         <div style="margin-bottom:15px; padding:10px 0;">
@@ -813,6 +847,7 @@
                                 <div class="empty-desc">날짜를 선택하면<br>학생들의 메시지를 볼 수 있습니다.</div>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
                 <div id="criteriaMiniTab" class="hidden">

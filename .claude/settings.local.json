@@ -3,7 +3,22 @@
     "allow": [
       "Bash(python:*)",
       "WebFetch(domain:startling-semifreddo-73328f.netlify.app)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "WebFetch(domain:educhip.kr)",
+      "Bash(ls \"C:\\\\Users\\\\geunt\\\\OneDrive\\\\Desktop\\\\평가도우미 수정중\\\\images\"\" 2>/dev/null || dir \"C:UsersgeuntOneDriveDesktop평가도우미 수정중images\" /B 2>/dev/null || echo \"No images dir found \")",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: 랜딩 페이지 리디자인 - 주요 기능 섹션 및 CTA 추가\n\n스크롤 가능한 풀 랜딩 페이지로 변경:\n- 주요 기능 6개 카드 섹션 \\(성장일기, 대시보드, 칭찬우체통, 성향진단, 평가기준설정, 평가분석\\)\n- 하단 CTA \"지금 시작하기\" 버튼 \\(맨 위로 smooth scroll\\)\n- 스크롤 fade-in 애니메이션 \\(IntersectionObserver\\)\n- 반응형 그리드 \\(3열/2열/1열\\)\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: Footer를 히어로 카드 아래로 복원\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: 모바일 Google OAuth 오류 수정 - redirectTo URL 단순화\n\n동적 pathname 계산 로직을 origin + 고정 경로로 변경하여\n모바일/데스크탑 모두에서 일관된 redirect URI 생성\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: 학생용 대메뉴를 로그아웃 아래 인라인 배치로 변경\n\n하단 고정\\(position: fixed\\) → 교사용과 동일하게 로그아웃 버튼 아래\n인라인\\(position: relative\\) 배치로 변경\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: 나의 기록 날짜를 미니탭 아래로 이동 \\(너의 조언과 통일\\)\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "Bash(node:*)",
+      "Bash(npx vercel:*)",
+      "Bash(ls \"C:\\\\Users\\\\geunt\\\\OneDrive\\\\Desktop\\\\평가도우미 수정중\\\\images\"\" 2>/dev/null || echo \"No images directory \")",
+      "Bash(vercel:*)",
+      "Bash(git checkout:*)"
     ]
   }
 }
