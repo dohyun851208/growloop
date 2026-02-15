@@ -173,7 +173,7 @@
 body {
     font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     padding: 20px;
-    max-width: 800px;
+    max-width: 920px;
     margin: 0 auto;
     background-color: var(--bg-body);
     color: var(--text-main);
@@ -1547,7 +1547,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�기?��? (Self-Evaluation) 컴포?�트 */
+/* ?먭린?됯? (Self-Evaluation) 而댄룷?뚰듃 */
 /* ============================================ */
 .gratitude-tags {
     display: grid;
@@ -1697,7 +1697,7 @@ button:disabled {
     line-height: 1.6
 }
 /* ============================================ */
-/* 교사???�기?��? 관�?*/
+/* 援먯궗???먭린?됯? 愿由?*/
 /* ============================================ */
 .message-card {
     background: var(--bg-card);
@@ -1902,7 +1902,7 @@ button:disabled {
     background: var(--border-light)
 }
 /* ============================================ */
-/* ?�브 ??(?�료?��?/?�기?��? ?��?) */
+/* ?쒕툕 ??(?숇즺?됯?/?먭린?됯? ?대?) */
 /* ============================================ */
 .sub-tab-container {
     display: flex;
@@ -1938,7 +1938,7 @@ button:disabled {
     color: var(--color-teacher)
 }
 /* ============================================ */
-/* ?�향 진단 (Personality Quiz) */
+/* ?깊뼢 吏꾨떒 (Personality Quiz) */
 /* ============================================ */
 .quiz-question {
     background: var(--bg-card);
@@ -2053,7 +2053,7 @@ button:disabled {
     opacity: 1;
 }
 /* ============================================ */
-/* 과목/?�동 ?�그 */
+/* 怨쇰ぉ/?쒕룞 ?쒓렇 */
 /* ============================================ */
 .subject-tags {
     display: flex;
@@ -2061,12 +2061,12 @@ button:disabled {
     gap: 8px;
 }
 .subject-tag-btn {
-    padding: 6px 14px;
+    padding: 5px 11px;
     border: 2px solid var(--border);
     border-radius: 20px;
     background: var(--bg-soft);
     color: var(--text-sub);
-    font-size: 0.82rem;
+    font-size: 0.74rem;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
@@ -2078,11 +2078,13 @@ button:disabled {
     background: var(--color-blue);
     color: white;
     border-color: var(--color-blue);
+    font-size: 0.74rem;
+    font-weight: 500;
     box-shadow: 0 2px 8px rgba(79, 132, 199, 0.3);
 }
 
 /* ============================================ */
-/* 캘린??그리??*/
+/* 罹섎┛??洹몃━??*/
 /* ============================================ */
 .calendar-grid {
     display: grid;
@@ -2153,7 +2155,7 @@ button:disabled {
     animation: fadeIn 0.2s ease;
 }
 /* ============================================ */
-/* ?�드 ?�라?�드 */
+/* ?뚮뱶 ?대씪?곕뱶 */
 /* ============================================ */
 .word-cloud {
     display: flex;
@@ -2181,7 +2183,7 @@ button:disabled {
 .word-cloud-item.size-5 { font-size: 1.4rem; font-weight: 800; }
 
 /* ============================================ */
-/* 뱃�? */
+/* 諭껋? */
 /* ============================================ */
 .badge-item {
     display: flex;
@@ -2197,7 +2199,7 @@ button:disabled {
 }
 .badge-item:hover { transform: scale(1.1); }
 /* ============================================ */
-/* 과목�?차트 */
+/* 怨쇰ぉ蹂?李⑦듃 */
 /* ============================================ */
 .subject-chart { min-height: 80px; }
 .subject-bar-item {
@@ -2234,7 +2236,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* 감사 그래??*/
+/* 媛먯궗 洹몃옒??*/
 /* ============================================ */
 .gratitude-chart { min-height: 80px; }
 .gratitude-stat-row {
@@ -2264,7 +2266,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�장 ?�?�라??*/
+/* ?깆옣 ??꾨씪??*/
 /* ============================================ */
 .growth-timeline { min-height: 80px; }
 .timeline-item {
@@ -2312,7 +2314,7 @@ button:disabled {
 }
 
 /* ============================================ */
-/* ?�약 리포??버튼 */
+/* ?붿빟 由ы룷??踰꾪듉 */
 /* ============================================ */
 .summary-period-btn {
     padding: 10px;
@@ -2333,7 +2335,7 @@ button:disabled {
     border-color: var(--primary);
 }
 /* ============================================ */
-/* ?�용?��? / 개인?�보처리방침 모달 ?��???*/
+/* ?댁슜?쎄? / 媛쒖씤?뺣낫泥섎━諛⑹묠 紐⑤떖 ?ㅽ???*/
 /* ============================================ */
 .terms-modal-body {
     text-align: left;
@@ -2467,9 +2469,9 @@ button:disabled {
     background: var(--text-sub, #8A7F76);
 }
 
-/* ?�크모드 */
+/* ?ㅽ겕紐⑤뱶 */
 /* ============================================ */
-/* 추�? 기능 ?��???(�?�� ?�체?? 목표 관�??? */
+/* 異붽? 湲곕뒫 ?ㅽ???(移?갔 ?곗껜?? 紐⑺몴 愿由??? */
 /* ============================================ */
 .target-grid {
     display: grid;
@@ -2527,7 +2529,7 @@ button:disabled {
     border: 1px dashed var(--border);
     font-size: 0.85rem;
 }
-/* �ϴ� ������̼� �� ��Ÿ�� (Glassmorphism) */
+/* 하단 내비게이션 바 스타일 (Glassmorphism) */
 .bottom-nav {
     position: fixed;
     bottom: 20px;
@@ -2591,12 +2593,12 @@ button:disabled {
     transform: scale(1.1);
 }
 
-/* �ϴ� ������̼� ���� Ȯ�� */
+/* 하단 내비게이션 공간 확보 */
 #studentTab {
     padding-bottom: 90px;
 }
 
-/* ��ũ ��� ���� */
+/* 다크 모드 대응 */
 
 
 

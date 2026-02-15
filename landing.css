@@ -17,17 +17,7 @@ body {
     color: #2D2424;
 }
 
-/* Subtle noise texture overlay */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    opacity: 0.018;
-    mix-blend-mode: multiply;
-}
+/* Noise texture removed for performance */
 
 /* Glow Blobs - Pastel */
 .glow-blob {
@@ -261,16 +251,7 @@ body::before {
     overflow: hidden;
 }
 
-.nav-login-btn::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent);
-    animation: shimmer 3s ease-in-out infinite;
-}
+/* Shimmer removed from nav buttons for performance */
 
 .nav-login-btn.student-login {
     background: linear-gradient(135deg, #fb7185, #f43f5e);
@@ -530,14 +511,12 @@ body::before {
 }
 
 .stat-item {
-    background: rgba(255, 255, 255, .70);
+    background: rgba(255, 255, 255, .85);
     border: 1px solid rgba(0, 0, 0, .04);
     border-radius: 16px;
     padding: 14px 10px;
     text-align: center;
     transition: all .3s ease;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
     position: relative;
     overflow: hidden;
     box-shadow: 0 1px 8px rgba(0, 0, 0, .03);
@@ -613,11 +592,29 @@ body::before {
 }
 
 .stat-label {
-    font-size: .7rem;
-    color: #6B5B5B;
+    font-size: .78rem;
+    color: #57534e;
     margin-top: 2px;
     display: block;
     letter-spacing: .3px;
+}
+
+/* Demo title row: icon + title side by side */
+.demo-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 12px;
+}
+
+/* Pointer icon in demo section */
+.demo-pointer-icon {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    flex-shrink: 0;
+    margin-top: -10px;
 }
 
 /* Hero CTA Buttons (compact) */
@@ -866,7 +863,7 @@ body::before {
 .feature-card:nth-child(1):hover {
     border-color: rgba(244, 63, 94, .20);
     box-shadow: 0 20px 50px rgba(244, 63, 94, .12), 0 4px 16px rgba(0, 0, 0, .04);
-    transform: translateY(-10px) rotate(1deg);
+    transform: translateY(-8px);
 }
 
 /* Card 2 - 성장 대시보드: Teal */
@@ -876,7 +873,7 @@ body::before {
 .feature-card:nth-child(2):hover {
     border-color: rgba(20, 184, 166, .20);
     box-shadow: 0 20px 50px rgba(20, 184, 166, .12), 0 4px 16px rgba(0, 0, 0, .04);
-    transform: translateY(-10px) scale(1.03);
+    transform: translateY(-8px);
 }
 
 /* Card 3 - 칭찬 우체통: Amber */
@@ -896,7 +893,7 @@ body::before {
 .feature-card:nth-child(4):hover {
     border-color: rgba(139, 92, 246, .20);
     box-shadow: 0 20px 50px rgba(139, 92, 246, .12), 0 4px 16px rgba(0, 0, 0, .04);
-    transform: translateY(-10px) rotate(-1deg);
+    transform: translateY(-8px);
 }
 
 /* Card 5 - 평가 기준 설정: Indigo */
@@ -906,7 +903,7 @@ body::before {
 .feature-card:nth-child(5):hover {
     border-color: rgba(99, 102, 241, .20);
     box-shadow: 0 20px 50px rgba(99, 102, 241, .12), 0 4px 16px rgba(0, 0, 0, .04);
-    transform: translateY(-10px) scale(1.03);
+    transform: translateY(-8px);
 }
 
 /* Card 6 - 평가 분석: Sky Blue */
@@ -1151,8 +1148,8 @@ body::before {
 }
 
 .demo-btn-illustration {
-    width: 100px;
-    height: 100px;
+    width: 156px;
+    height: 156px;
     object-fit: contain;
     margin-bottom: 14px;
     border-radius: 22px;
@@ -1228,19 +1225,17 @@ body::before {
     margin: 0 auto;
     position: relative;
     z-index: 1;
-    background: linear-gradient(145deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .78));
-    border: 1px solid rgba(245, 158, 11, .15);
-    border-radius: 30px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
     padding: 52px 40px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow:
-        0 12px 34px rgba(68, 64, 60, .08),
-        0 1px 0 rgba(255, 255, 255, .85) inset;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
 }
 
 .cta-inner::before {
-    content: '';
+    content: none;
     position: absolute;
     top: 0;
     left: 14%;
@@ -1701,15 +1696,15 @@ body::before {
     }
 
     .nav-login-btn {
-        padding: 7px 8px;
-        font-size: 10px;
-        gap: 3px;
-        min-height: 34px;
+        padding: 8px 12px;
+        font-size: 12px;
+        gap: 4px;
+        min-height: 44px;
     }
 
     .google-icon-sm {
-        width: 10px;
-        height: 10px;
+        width: 14px;
+        height: 14px;
     }
 
     .features-grid {
@@ -1855,8 +1850,8 @@ body::before {
     }
 
     .demo-btn-illustration {
-        width: 78px;
-        height: 78px;
+        width: 121px;
+        height: 121px;
     }
 
     .site-footer {
@@ -1964,5 +1959,262 @@ body::before {
 
     .section-title, .cta-title, .demo-title {
         font-size: 2.8rem;
+    }
+}
+
+/* ===== SKIP LINK (Accessibility) ===== */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 16px;
+    z-index: 9999;
+    padding: 12px 24px;
+    background: #f43f5e;
+    color: white;
+    border-radius: 0 0 12px 12px;
+    font-family: 'Jua', sans-serif;
+    font-size: .95rem;
+    text-decoration: none;
+    transition: top .2s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* ===== FOCUS VISIBLE (Accessibility) ===== */
+:focus-visible {
+    outline: 2px solid #f43f5e;
+    outline-offset: 2px;
+}
+
+/* ===== HIGHLIGHT PULSE (CTA → Login) ===== */
+@keyframes highlightPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+    25% { transform: scale(1.08); box-shadow: 0 0 20px 8px rgba(244, 63, 94, .4); }
+    50% { transform: scale(1); box-shadow: 0 0 10px 4px rgba(244, 63, 94, .2); }
+    75% { transform: scale(1.06); box-shadow: 0 0 16px 6px rgba(244, 63, 94, .35); }
+}
+
+@keyframes highlightPulseIndigo {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    25% { transform: scale(1.08); box-shadow: 0 0 20px 8px rgba(99, 102, 241, .4); }
+    50% { transform: scale(1); box-shadow: 0 0 10px 4px rgba(99, 102, 241, .2); }
+    75% { transform: scale(1.06); box-shadow: 0 0 16px 6px rgba(99, 102, 241, .35); }
+}
+
+.nav-login-btn.student-login.highlight-pulse {
+    animation: highlightPulse 1s ease-in-out 3;
+}
+
+.nav-login-btn.teacher-login.highlight-pulse {
+    animation: highlightPulseIndigo 1s ease-in-out 3;
+}
+
+/* ===== HOW IT WORKS SECTION ===== */
+.how-it-works-section {
+    width: 100%;
+    padding: 100px 20px;
+    background: linear-gradient(180deg, #FFF9F0 0%, #FEF3C7 30%, #FFFBEB 70%, #FFF9F0 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.how-it-works-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.steps-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.step-card {
+    background: rgba(255, 255, 255, .85);
+    border: 1px solid rgba(0, 0, 0, .04);
+    border-radius: 24px;
+    padding: 36px 24px 30px;
+    text-align: center;
+    flex: 1;
+    max-width: 280px;
+    transition: all .3s ease;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, .04);
+    position: relative;
+}
+
+.step-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(245, 158, 11, .12);
+}
+
+.step-number {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .9rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, .25);
+}
+
+.step-icon {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+}
+
+.step-title {
+    font-size: 1.1rem;
+    color: #2D2424;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.step-desc {
+    font-size: .85rem;
+    color: #6B5B5B;
+    line-height: 1.6;
+}
+
+.step-arrow {
+    font-size: 2rem;
+    color: #d97706;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* ===== TESTIMONIALS SECTION ===== */
+.testimonials-section {
+    width: 100%;
+    padding: 100px 20px;
+    background: linear-gradient(180deg, #F0FDFA 0%, #ECFDF5 30%, #F0FDF4 70%, #F0FDFA 100%);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.testimonials-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    margin-top: 10px;
+}
+
+.testimonial-card {
+    background: rgba(255, 255, 255, .90);
+    border: 1px solid rgba(20, 184, 166, .10);
+    border-radius: 20px;
+    padding: 30px 24px;
+    text-align: left;
+    transition: all .3s ease;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, .03);
+    position: relative;
+}
+
+.testimonial-card::before {
+    content: '"';
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    font-size: 3rem;
+    color: rgba(20, 184, 166, .15);
+    font-family: Georgia, serif;
+    line-height: 1;
+}
+
+.testimonial-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(20, 184, 166, .10);
+    border-color: rgba(20, 184, 166, .20);
+}
+
+.testimonial-quote {
+    font-size: .95rem;
+    color: #3D3030;
+    line-height: 1.7;
+    margin-bottom: 16px;
+    padding-top: 10px;
+}
+
+.testimonial-author {
+    font-size: .82rem;
+    color: #6B5B5B;
+    font-weight: 500;
+}
+
+/* ===== RESPONSIVE: How It Works & Testimonials ===== */
+@media (max-width:768px) {
+    .how-it-works-section,
+    .testimonials-section {
+        padding: 70px 16px;
+    }
+
+    .steps-grid {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .step-card {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .step-arrow {
+        transform: rotate(90deg);
+        font-size: 1.5rem;
+    }
+
+    .testimonials-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+@media (max-width:480px) {
+    .how-it-works-section,
+    .testimonials-section {
+        padding: 50px 16px;
+    }
+
+    .step-card {
+        padding: 28px 18px 24px;
+    }
+
+    .step-icon {
+        font-size: 2rem;
+    }
+
+    .step-title {
+        font-size: 1rem;
+    }
+}
+
+/* ===== PREFERS REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }

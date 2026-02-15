@@ -5,8 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BaeumLog - 우리 반 성장 파트너</title>
+    <meta name="description" content="배움로그 - 학생과 선생님을 위한 성장 기록 플랫폼. 성장일기, 칭찬 우체통, AI 코칭으로 매일 성장해요.">
+    <meta property="og:title" content="배움로그 - 우리 반 성장 파트너">
+    <meta property="og:description" content="쓰고, 나누고, 성장하는 우리 반 플랫폼">
+    <meta property="og:type" content="website">
 
-    <!-- Google Fonts - Jua -->
+    <!-- Google Fonts - Preconnect + Jua -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
 
     <!-- Supabase SDK -->
@@ -645,385 +651,22 @@
         .terms-appendix .terms-article::before {
             background: #8A7F76;
         }
-
-        /* ===== Landing Page Layout ===== */
-        .landing-wrapper {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
-        .hero-section {
-            width: 100%;
-            min-height: 100vh;
-            min-height: 100dvh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px 0;
-        }
-
-        /* ===== Features Section ===== */
-        .features-section {
-            width: 100%;
-            padding: 80px 20px;
-            background: white;
-            border-top: 1px solid #f5f5f4;
-        }
-
-        .features-inner {
-            max-width: 900px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            color: #292524;
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
-
-        .section-subtitle {
-            font-size: 1rem;
-            color: #78716c;
-            margin-bottom: 50px;
-            font-weight: 500;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-
-        .feature-card {
-            background: white;
-            border: 2px solid #f5f5f4;
-            border-radius: 24px;
-            padding: 35px 25px;
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
-            border-color: #fecdd3;
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 16px;
-            display: block;
-        }
-
-        .feature-title {
-            font-size: 1.25rem;
-            color: #292524;
-            margin-bottom: 10px;
-        }
-
-        .feature-desc {
-            font-size: 0.9rem;
-            color: #78716c;
-            line-height: 1.6;
-            margin-bottom: 16px;
-        }
-
-        .feature-badge {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 3px 12px;
-            border-radius: 20px;
-        }
-
-        .student-badge {
-            background: #FFF1F2;
-            color: #f43f5e;
-        }
-
-        .teacher-badge {
-            background: #EEF2FF;
-            color: #6366f1;
-        }
-
-        /* ===== Scroll Fade-In Animation ===== */
-        .fade-in-up {
-            opacity: 0;
-            transform: translateY(40px);
-            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-        }
-
-        .fade-in-up.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .feature-card:nth-child(1) {
-            transition-delay: 0s;
-        }
-
-        .feature-card:nth-child(2) {
-            transition-delay: 0.1s;
-        }
-
-        .feature-card:nth-child(3) {
-            transition-delay: 0.2s;
-        }
-
-        .feature-card:nth-child(4) {
-            transition-delay: 0.3s;
-        }
-
-        .feature-card:nth-child(5) {
-            transition-delay: 0.4s;
-        }
-
-        .feature-card:nth-child(6) {
-            transition-delay: 0.5s;
-        }
-
-        /* ===== CTA Section ===== */
-        .cta-section {
-            width: 100%;
-            padding: 80px 20px;
-            background: linear-gradient(180deg, #FFFBEB 0%, #FFF7ED 40%, #FFF1F2 76%, #FFFBEB 100%);
-            text-align: center;
-        }
-
-        .cta-inner {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .cta-emoji {
-            font-size: 3.5rem;
-            margin-bottom: 16px;
-            display: inline-block;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        .cta-title {
-            font-size: 2rem;
-            color: #292524;
-            margin-bottom: 12px;
-        }
-
-        .cta-subtitle {
-            font-size: 1rem;
-            color: #78716c;
-            margin-bottom: 30px;
-        }
-
-        .cta-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 16px 48px;
-            background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-family: 'Jua', sans-serif;
-            font-size: 1.15rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(244, 63, 94, 0.3);
-        }
-
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(244, 63, 94, 0.4);
-            filter: brightness(1.05);
-        }
-
-        .cta-button:active {
-            transform: scale(0.97);
-        }
-
-        /* ===== Demo Section ===== */
-        .demo-section {
-            width: 100%;
-            padding: 80px 20px;
-            background: linear-gradient(180deg, #F0FDFA 0%, #E8FAF6 30%, #EDE9FE 70%, #F0FDFA 100%);
-            text-align: center;
-            border-top: 1px solid #e0e7ff;
-        }
-
-        .demo-inner {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .demo-emoji {
-            font-size: 3.5rem;
-            margin-bottom: 16px;
-            display: inline-block;
-            animation: float 4s ease-in-out infinite;
-        }
-
-        .demo-title {
-            font-size: 2rem;
-            color: #292524;
-            margin-bottom: 10px;
-        }
-
-        .demo-subtitle {
-            font-size: 1rem;
-            color: #78716c;
-            margin-bottom: 40px;
-        }
-
-        .demo-buttons {
-            display: flex;
-            gap: 24px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .demo-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 30px 36px;
-            border-radius: 20px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            min-width: 240px;
-            border: 2px solid transparent;
-            background: white;
-        }
-
-        .demo-student-btn {
-            border-color: #fecdd3;
-            color: #292524;
-        }
-
-        .demo-student-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(244, 63, 94, 0.15);
-        }
-
-        .demo-teacher-btn {
-            border-color: #c7d2fe;
-            color: #292524;
-        }
-
-        .demo-teacher-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(99, 102, 241, 0.15);
-        }
-
-        .demo-btn-icon {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-        }
-
-        .demo-btn-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .demo-btn-desc {
-            font-size: 0.85rem;
-            color: #78716c;
-        }
-
-        .demo-notice {
-            margin-top: 30px;
-            font-size: 0.85rem;
-            color: #a8a29e;
-        }
-
-        /* ===== Responsive: Tablet ===== */
-        @media (max-width: 768px) {
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
-            }
-
-            .section-title,
-            .cta-title {
-                font-size: 1.6rem;
-            }
-
-            .features-section,
-            .cta-section,
-            .demo-section {
-                padding: 60px 16px;
-            }
-
-            .demo-title,
-            .section-title,
-            .cta-title {
-                font-size: 1.6rem;
-            }
-
-            .hero-section {
-                min-height: auto;
-                padding: 60px 0 40px;
-            }
-        }
-
-        /* ===== Responsive: Mobile ===== */
-        @media (max-width: 480px) {
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 14px;
-            }
-
-            .feature-card {
-                padding: 25px 20px;
-                border-radius: 20px;
-            }
-
-            .section-title,
-            .cta-title,
-            .demo-title {
-                font-size: 1.4rem;
-            }
-
-            .section-subtitle,
-            .cta-subtitle,
-            .demo-subtitle {
-                font-size: 0.9rem;
-            }
-
-            .cta-button {
-                padding: 14px 36px;
-                font-size: 1rem;
-            }
-
-            .hero-section {
-                min-height: auto;
-                padding: 40px 0 20px;
-            }
-
-            .demo-buttons {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .demo-btn {
-                min-width: 90%;
-            }
-        }
     </style>
     <link rel="stylesheet" href="landing.css">
-    <!-- Noto Sans KR for Modals -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Noto Sans KR for Modals (lazy loaded) -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
 </head>
 
 <body>
-    <!-- Glow Blob Decorations -->
+    <!-- Skip Navigation -->
+    <a href="#featuresSection" class="skip-link">콘텐츠로 건너뛰기</a>
+
+    <!-- Glow Blob Decorations (2 blobs for performance) -->
     <div class="glow-blob glow-blob-1"></div>
     <div class="glow-blob glow-blob-2"></div>
-    <div class="glow-blob glow-blob-3"></div>
-    <div class="glow-blob glow-blob-4"></div>
 
     <div class="landing-wrapper">
 
@@ -1091,8 +734,9 @@
                     </div>
                 </div>
                 <div class="hero-cta-group">
-                    <a href="app.html?demo=student" class="hero-cta-btn hero-cta-primary">
-                        &#x1F5B1; 체험해보기
+                    <a href="#demoSection" class="hero-cta-btn hero-cta-primary"
+                       onclick="scrollToDemo(); return false;">
+                        🖱️ 체험해보기
                     </a>
                     <a href="#featuresSection" class="hero-cta-btn hero-cta-secondary"
                        onclick="scrollToFeatures(); return false;">
@@ -1116,7 +760,7 @@
                 <div class="features-grid">
                     <div class="feature-card fade-in-up">
                         <div class="feature-icon">📝</div>
-                        <h3 class="feature-title">성장 일기</h3>
+                        <h3 class="feature-title">배움 노트</h3>
                         <p class="feature-desc">매일 감사와 배움을 기록하고<br>AI 피드백을 받아요</p>
                         <span class="feature-badge student-badge">학생</span>
                     </div>
@@ -1154,17 +798,49 @@
             </div>
         </section>
 
+        <!-- How It Works Section -->
+        <section class="how-it-works-section" id="howItWorksSection">
+            <div class="how-it-works-inner">
+                <h2 class="section-title">이렇게 사용해요</h2>
+                <p class="section-subtitle">3단계로 간단하게 시작하세요</p>
+                <div class="steps-grid">
+                    <div class="step-card fade-in-up">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">👩‍🏫</div>
+                        <h3 class="step-title">선생님이 클래스를 만들어요</h3>
+                        <p class="step-desc">Google 로그인 후 학급 코드를 생성하고 평가 기준을 설정해요</p>
+                    </div>
+                    <div class="step-arrow fade-in-up">→</div>
+                    <div class="step-card fade-in-up">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">🙋</div>
+                        <h3 class="step-title">학생이 코드로 참여해요</h3>
+                        <p class="step-desc">선생님이 알려준 학급 코드를 입력하면 바로 참여 완료!</p>
+                    </div>
+                    <div class="step-arrow fade-in-up">→</div>
+                    <div class="step-card fade-in-up">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">🌱</div>
+                        <h3 class="step-title">매일 성장을 기록해요</h3>
+                        <p class="step-desc">성장일기를 쓰고, 친구를 칭찬하고, AI 코칭을 받아요</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Demo Section -->
         <section class="demo-section" id="demoSection">
             <div class="demo-inner">
-                <div class="demo-emoji">&#x1F5B1;</div>
-                <h2 class="demo-title">먼저 체험해 보세요!</h2>
+                <div class="demo-title-row">
+                    <img src="images/free-icon-pointer.png" alt="포인터" class="demo-pointer-icon">
+                    <h2 class="demo-title">먼저 체험해 보세요!</h2>
+                </div>
                 <p class="demo-subtitle">로그인 없이 배움로그(BaeumLog)의 주요 기능을 직접 경험해 보세요</p>
                 <div class="demo-buttons">
                     <a href="app.html?demo=student" class="demo-btn demo-student-btn fade-in-up">
                         <img src="images/student_activity.png" alt="학생용 체험" class="demo-btn-illustration">
                         <span class="demo-btn-title">학생용 체험</span>
-                        <span class="demo-btn-desc">성장 일기, 친구로 배움, 칭찬 우체통</span>
+                        <span class="demo-btn-desc">배움 노트, 친구로 배움, 칭찬 우체통</span>
                     </a>
                     <a href="app.html?demo=teacher" class="demo-btn demo-teacher-btn fade-in-up">
                         <img src="images/teacher_activity.png" alt="교사용 체험" class="demo-btn-illustration">
@@ -1176,14 +852,35 @@
             </div>
         </section>
 
+        <!-- Social Proof Section -->
+        <section class="testimonials-section">
+            <div class="testimonials-inner">
+                <h2 class="section-title">선생님들의 이야기</h2>
+                <p class="section-subtitle">배움로그를 사용하고 계신 선생님들의 후기</p>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card fade-in-up">
+                        <p class="testimonial-quote">"학생들이 매일 성장일기를 쓰면서 자기 표현력이 눈에 띄게 좋아졌어요."</p>
+                        <p class="testimonial-author">-- 초등학교 5학년 담임 선생님</p>
+                    </div>
+                    <div class="testimonial-card fade-in-up">
+                        <p class="testimonial-quote">"칭찬 우체통 덕분에 학급 분위기가 훨씬 따뜻해졌습니다."</p>
+                        <p class="testimonial-author">-- 초등학교 3학년 담임 선생님</p>
+                    </div>
+                    <div class="testimonial-card fade-in-up">
+                        <p class="testimonial-quote">"성향 진단 결과를 바탕으로 개별 맞춤 피드백을 줄 수 있어서 좋아요."</p>
+                        <p class="testimonial-author">-- 중학교 1학년 담임 선생님</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- CTA Section -->
         <section class="cta-section">
             <div class="cta-inner">
                 <div class="cta-emoji">🚀</div>
                 <h2 class="cta-title">지금 바로 시작하세요!</h2>
                 <p class="cta-subtitle">Google 계정 하나로 쉽고 빠르게</p>
-                <button class="cta-button"
-                    onclick="document.getElementById('heroSection').scrollIntoView({behavior:'smooth'})">
+                <button class="cta-button" onclick="scrollToTopAndHighlight()">
                     지금 시작하기
                 </button>
             </div>
@@ -1193,9 +890,9 @@
         <footer class="site-footer">
             <div class="footer-inner">
                 <div class="footer-links">
-                    <a onclick="openTermsModal()">이용약관</a>
+                    <a href="javascript:void(0)" role="button" onclick="openTermsModal()" onkeydown="if(event.key==='Enter')openTermsModal()">이용약관</a>
                     <span class="footer-divider">|</span>
-                    <a onclick="openPrivacyModal()">개인정보처리방침</a>
+                    <a href="javascript:void(0)" role="button" onclick="openPrivacyModal()" onkeydown="if(event.key==='Enter')openPrivacyModal()">개인정보처리방침</a>
                 </div>
                 <p>&copy; 2026 BaeumLog. All rights reserved.</p>
                 <p>개인정보책임자 김도현 | 문의: dohyun851208@gmail.com</p>
@@ -1246,7 +943,7 @@
     <ul class="terms-list">
       <li>Google 계정 로그인</li>
       <li>친구로 배움 및 피드백</li>
-      <li>성장 일기 및 프로젝트 기록</li>
+      <li>배움 노트 및 프로젝트 기록</li>
       <li>AI 기반 요약 및 피드백</li>
     </ul>
   </div>
@@ -1457,8 +1154,56 @@
             section.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        function scrollToDemo() {
+            const section = document.getElementById('demoSection');
+            if (!section) return;
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // CTA 버튼 → 스크롤 후 로그인 버튼 하이라이트
+        function scrollToTopAndHighlight() {
+            const btns = document.querySelectorAll('.nav-login-btn');
+            btns.forEach(function(btn) {
+                btn.classList.add('highlight-pulse');
+            });
+            setTimeout(function() {
+                btns.forEach(function(btn) {
+                    btn.classList.remove('highlight-pulse');
+                });
+            }, 3000);
+        }
+
+        // ===== DB에서 실제 통계 수치 로드 =====
+        async function loadRealStats() {
+            try {
+                const [diaryRes, praiseRes, personalityRes] = await Promise.all([
+                    db.from('daily_reflections').select('*', { count: 'exact', head: true }),
+                    db.from('praise_messages').select('*', { count: 'exact', head: true }),
+                    db.from('student_personality').select('*', { count: 'exact', head: true })
+                ]);
+
+                const stats = [
+                    { count: diaryRes.count || 0 },
+                    { count: praiseRes.count || 0 },
+                    { count: personalityRes.count || 0 }
+                ];
+
+                const statEls = document.querySelectorAll('.stat-number[data-target]');
+                statEls.forEach(function(el, i) {
+                    if (stats[i]) {
+                        el.setAttribute('data-target', stats[i].count);
+                    }
+                });
+            } catch (e) {
+                console.warn('통계 로드 실패, 기본값 사용:', e);
+            }
+        }
+
         // Scroll animation for feature cards
         document.addEventListener('DOMContentLoaded', function () {
+            // 실제 통계 로드
+            loadRealStats();
+
             const observer = new IntersectionObserver(function (entries) {
                 entries.forEach(function (entry) {
                     if (entry.isIntersecting) {
@@ -1476,7 +1221,7 @@
             });
 
             // ===== Typing Animation =====
-            const words = ['성향진단 중 🧠', '성장일기 쓰는 중 ✍️', 'AI 코칭 받는 중 🤖', '친구로 배움 하는 중 📊', '칭찬 우체통 확인 중 💌'];
+            const words = ['서로를 응원하고 있어요 💌', '오늘의 배움을 기록하고 있어요 ✍️', '나만의 학습 스타일을 찾고 있어요 🧠', '함께 성장하고 있어요 🌱', '배움을 나누고 있어요 📊'];
             const typedEl = document.getElementById('typedWord');
             let wordIdx = 0, charIdx = 0, isDeleting = false;
 
