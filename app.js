@@ -19,6 +19,14 @@ let ratingCriteria = [];
 let currentStudent = null;
 let currentClassCode = '';
 
+// 교사용(스스로배움) - 교과세특 생성 상태
+let teacherDiarySelectedStudentId = null;
+let teacherSubjectCommentSemester = 1;
+let teacherSubjectCommentSelectedSubject = '';
+let teacherSubjectCommentLastGenerated = null; // { text, noteCount, key }
+let teacherSubjectCommentSettingsSaveTimer = null;
+let teacherSubjectCommentLastSettings = null; // cached class settings
+
 // 자기평가 전역 변수
 let selectedSubjectTags = [];
 let currentMessageMode = null; // 'anonymous' or 'named'
@@ -1442,7 +1450,9 @@ async function switchMiniTab(mode) {
     mainTabBtns[0].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('diaryMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
-    initDiaryDate(); loadTeacherDiaryData();
+    initDiaryDate();
+    initTeacherSubjectCommentUI();
+    loadTeacherDiaryData();
   } else if (mode === 'praise') {
     mainTabBtns[2].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
@@ -1455,6 +1465,811 @@ async function switchMiniTab(mode) {
     const el = document.getElementById('settingsMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     loadClassSettingsUI(); loadStudentMappingData();
   }
+}
+
+function normalizeSchoolLevel(v) {
+  const s = String(v || '').trim();
+  if (!s) return '';
+  if (s === '초' || s === '중' || s === '고') return s;
+  if (s.includes('초')) return '초';
+  if (s.includes('중')) return '중';
+  if (s.includes('고')) return '고';
+  return '';
+}
+
+function getTeacherSubjectCommentKey({ classCode, studentId, semester, subject }) {
+  return [String(classCode || ''), String(studentId || ''), String(semester || ''), String(subject || '')].join('|');
+}
+
+function initTeacherSubjectCommentUI() {
+  const sec = document.getElementById('teacherSubjectCommentSection');
+  if (!sec) return;
+  if (sec.dataset.bound === '1') return;
+  sec.dataset.bound = '1';
+
+  const sl = document.getElementById('teacherSubjectCommentSchoolLevel');
+  const startEl = document.getElementById('teacherSubjectCommentStart');
+  const endEl = document.getElementById('teacherSubjectCommentEnd');
+
+  sl?.addEventListener('change', () => {
+    queueSaveTeacherSubjectCommentSettings();
+    refreshTeacherSubjectCommentActions();
+    loadTeacherSavedSubjectComment();
+  });
+  startEl?.addEventListener('change', () => {
+    queueSaveTeacherSubjectCommentSettings();
+    refreshTeacherSubjectCommentSubjects();
+    refreshTeacherSubjectCommentActions();
+    loadTeacherSavedSubjectComment();
+  });
+  endEl?.addEventListener('change', () => {
+    queueSaveTeacherSubjectCommentSettings();
+    refreshTeacherSubjectCommentSubjects();
+    refreshTeacherSubjectCommentActions();
+    loadTeacherSavedSubjectComment();
+  });
+
+  setTeacherSubjectCommentSemester(1);
+  renderTeacherSubjectCommentSubjectTags(PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG));
+  refreshTeacherSubjectCommentActions();
+
+  setTimeout(() => { loadTeacherSubjectCommentSettings(); }, 0);
+}
+
+function setTeacherSubjectCommentSemester(n) {
+  teacherSubjectCommentSemester = (Number(n) === 2) ? 2 : 1;
+  const b1 = document.getElementById('teacherSubjectCommentSemester1');
+  const b2 = document.getElementById('teacherSubjectCommentSemester2');
+  b1?.classList.toggle('active', teacherSubjectCommentSemester === 1);
+  b2?.classList.toggle('active', teacherSubjectCommentSemester === 2);
+
+  applyTeacherSemesterDatesFromCache();
+  queueSaveTeacherSubjectCommentSettings();
+  refreshTeacherSubjectCommentSubjects();
+  refreshTeacherSubjectCommentActions();
+  loadTeacherSavedSubjectComment();
+}
+
+function applyTeacherSemesterDatesFromCache() {
+  if (!teacherSubjectCommentLastSettings) return;
+  const startEl = document.getElementById('teacherSubjectCommentStart');
+  const endEl = document.getElementById('teacherSubjectCommentEnd');
+  if (!startEl || !endEl) return;
+
+  const start = teacherSubjectCommentSemester === 1 ? teacherSubjectCommentLastSettings.semester1_start : teacherSubjectCommentLastSettings.semester2_start;
+  const end = teacherSubjectCommentSemester === 1 ? teacherSubjectCommentLastSettings.semester1_end : teacherSubjectCommentLastSettings.semester2_end;
+  if (start && !startEl.value) startEl.value = start;
+  if (end && !endEl.value) endEl.value = end;
+}
+
+async function loadTeacherSubjectCommentSettings() {
+  const sl = document.getElementById('teacherSubjectCommentSchoolLevel');
+  if (!sl) return;
+
+  try {
+    const info = await getClassInfo();
+    if (!info) return;
+    teacherSubjectCommentLastSettings = info;
+
+    const mapped = normalizeSchoolLevel(info.school_level || '');
+    if (mapped && !sl.value) sl.value = mapped;
+
+    applyTeacherSemesterDatesFromCache();
+    refreshTeacherSubjectCommentSubjects();
+    refreshTeacherSubjectCommentActions();
+  } catch (err) {
+    console.warn('Failed to load teacher subject comment settings:', err);
+  }
+}
+
+function queueSaveTeacherSubjectCommentSettings() {
+  if (isDemoMode) return;
+  if (!currentClassCode) return;
+
+  const sl = document.getElementById('teacherSubjectCommentSchoolLevel');
+  const startEl = document.getElementById('teacherSubjectCommentStart');
+  const endEl = document.getElementById('teacherSubjectCommentEnd');
+  if (!sl || !startEl || !endEl) return;
+
+  const schoolLevel = normalizeSchoolLevel(sl.value);
+  const start = startEl.value || null;
+  const end = endEl.value || null;
+
+  clearTimeout(teacherSubjectCommentSettingsSaveTimer);
+  teacherSubjectCommentSettingsSaveTimer = setTimeout(async () => {
+    const patch = {};
+    if (schoolLevel) patch.school_level = schoolLevel;
+    if (teacherSubjectCommentSemester === 1) {
+      if (start) patch.semester1_start = start;
+      if (end) patch.semester1_end = end;
+    } else {
+      if (start) patch.semester2_start = start;
+      if (end) patch.semester2_end = end;
+    }
+    if (Object.keys(patch).length === 0) return;
+
+    try {
+      const { error } = await db.from('classes').update(patch).eq('class_code', currentClassCode);
+      if (error) throw error;
+      if (teacherSubjectCommentLastSettings) teacherSubjectCommentLastSettings = { ...teacherSubjectCommentLastSettings, ...patch };
+    } catch (err) {
+      console.warn('Failed to save teacher subject comment settings:', err);
+      showModal({
+        type: 'alert',
+        icon: '⚠️',
+        title: '설정 저장 실패',
+        message: '학교급/학기 기간을 저장할 수 없습니다. Supabase에 스키마 업데이트(컬럼 추가)가 필요합니다.<br><br><small>classes.school_level / semester1_start / semester1_end / semester2_start / semester2_end</small>'
+      });
+    }
+  }, 600);
+}
+
+function setTeacherSubjectCommentSelectedStudent(studentId) {
+  teacherDiarySelectedStudentId = String(studentId || '').trim() || null;
+  const pill = document.getElementById('teacherSubjectCommentStudent');
+  if (pill) pill.textContent = teacherDiarySelectedStudentId ? (teacherDiarySelectedStudentId + '번') : '미선택';
+
+  teacherSubjectCommentLastGenerated = null;
+  setTeacherSubjectCommentStatus('');
+  setTeacherSubjectCommentResult(null, { resetEmpty: true });
+
+  refreshTeacherSubjectCommentSubjects();
+  refreshTeacherSubjectCommentActions();
+  loadTeacherSavedSubjectComment();
+}
+
+function getTeacherSubjectCommentUIValues() {
+  const sl = document.getElementById('teacherSubjectCommentSchoolLevel');
+  const startEl = document.getElementById('teacherSubjectCommentStart');
+  const endEl = document.getElementById('teacherSubjectCommentEnd');
+  const schoolLevel = normalizeSchoolLevel(sl?.value || '');
+  const start = String(startEl?.value || '').trim();
+  const end = String(endEl?.value || '').trim();
+  const subject = String(teacherSubjectCommentSelectedSubject || '').trim();
+  const studentId = String(teacherDiarySelectedStudentId || '').trim();
+  return { schoolLevel, start, end, subject, studentId, semester: teacherSubjectCommentSemester };
+}
+
+function refreshTeacherSubjectCommentActions() {
+  const genBtn = document.getElementById('teacherSubjectCommentGenerateBtn');
+  const regenBtn = document.getElementById('teacherSubjectCommentRegenerateBtn');
+  const copyBtn = document.getElementById('teacherSubjectCommentCopyBtn');
+  const saveBtn = document.getElementById('teacherSubjectCommentSaveBtn');
+  const exportBtn = document.getElementById('teacherSubjectCommentExportBtn');
+
+  const { schoolLevel, start, end, subject, studentId } = getTeacherSubjectCommentUIValues();
+  const ready = !!(schoolLevel && start && end && subject && studentId);
+
+  if (genBtn) genBtn.disabled = !ready;
+  if (regenBtn) regenBtn.disabled = !ready;
+  if (copyBtn) copyBtn.disabled = !(teacherSubjectCommentLastGenerated && teacherSubjectCommentLastGenerated.text);
+  if (saveBtn) saveBtn.disabled = !(teacherSubjectCommentLastGenerated && teacherSubjectCommentLastGenerated.text);
+  if (exportBtn) exportBtn.disabled = !currentClassCode;
+}
+
+function renderTeacherSubjectCommentSubjectTags(subjects) {
+  const wrap = document.getElementById('teacherSubjectCommentSubjectTags');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  (subjects || []).forEach(tag => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'subject-tag-btn';
+    btn.textContent = String(tag);
+    btn.onclick = () => {
+      teacherSubjectCommentSelectedSubject = String(tag);
+      wrap.querySelectorAll('.subject-tag-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      refreshTeacherSubjectCommentActions();
+      loadTeacherSavedSubjectComment();
+    };
+    wrap.appendChild(btn);
+  });
+}
+
+async function refreshTeacherSubjectCommentSubjects() {
+  const { start, end, studentId } = getTeacherSubjectCommentUIValues();
+  if (!start || !end || !studentId || !currentClassCode) return;
+
+  try {
+    const records = await fetchTeacherLearningNotes({ studentId, start, end });
+    const set = new Set();
+    records.forEach(r => {
+      const tags = Array.isArray(r.subject_tags) ? r.subject_tags : [];
+      tags.forEach(t => { if (t) set.add(String(t)); });
+    });
+
+    const fallback = PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG);
+    const subjects = Array.from(set);
+    const chosen = subjects.length > 0 ? subjects : fallback;
+
+    renderTeacherSubjectCommentSubjectTags(chosen);
+
+    if (teacherSubjectCommentSelectedSubject && chosen.includes(teacherSubjectCommentSelectedSubject)) {
+      const wrap = document.getElementById('teacherSubjectCommentSubjectTags');
+      const btn = Array.from(wrap?.querySelectorAll('.subject-tag-btn') || []).find(b => b.textContent === teacherSubjectCommentSelectedSubject);
+      if (btn) btn.classList.add('selected');
+    } else {
+      teacherSubjectCommentSelectedSubject = '';
+      refreshTeacherSubjectCommentActions();
+    }
+  } catch (err) {
+    console.warn('Failed to refresh subject tags:', err);
+  }
+}
+
+async function fetchTeacherLearningNotes({ studentId, start, end }) {
+  if (isDemoMode) {
+    const all = Array.isArray(DEMO_FALLBACK_DATA.daily_reflections) ? DEMO_FALLBACK_DATA.daily_reflections : [];
+    return all
+      .filter(r => String(r.class_code) === String(currentClassCode))
+      .filter(r => String(r.student_id) === String(studentId))
+      .filter(r => String(r.reflection_date) >= String(start) && String(r.reflection_date) <= String(end));
+  }
+
+  const { data, error } = await db.from('daily_reflections')
+    .select('reflection_date, learning_text, subject_tags')
+    .eq('class_code', currentClassCode)
+    .eq('student_id', String(studentId))
+    .gte('reflection_date', start)
+    .lte('reflection_date', end)
+    .order('reflection_date', { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
+function setTeacherSubjectCommentStatus(text) {
+  const el = document.getElementById('teacherSubjectCommentStatus');
+  if (!el) return;
+  el.textContent = text || '';
+}
+
+function setTeacherSubjectCommentResult(text, { resetEmpty = false } = {}) {
+  const empty = document.getElementById('teacherSubjectCommentEmpty');
+  const pre = document.getElementById('teacherSubjectCommentResult');
+  const err = document.getElementById('teacherSubjectCommentError');
+  const retry = document.getElementById('teacherSubjectCommentRetry');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  if (retry) retry.classList.add('hidden');
+
+  if (!pre || !empty) return;
+  if (!text) {
+    pre.classList.add('hidden');
+    if (resetEmpty) empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  pre.classList.remove('hidden');
+  pre.textContent = String(text);
+}
+
+function setTeacherSubjectCommentError(message, { showRetry = true } = {}) {
+  const err = document.getElementById('teacherSubjectCommentError');
+  const retry = document.getElementById('teacherSubjectCommentRetry');
+  if (err) {
+    err.textContent = String(message || '');
+    err.style.display = 'block';
+  }
+  if (retry) retry.classList.toggle('hidden', !showRetry);
+}
+
+function validateSubjectCommentOutput(text, schoolLevel) {
+  const t = String(text || '').trim();
+  if (!t) return { ok: false, reasons: ['empty'] };
+
+  const lines = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  const lvl = normalizeSchoolLevel(schoolLevel);
+  const range = (lvl === '초') ? [2, 4] : (lvl === '중') ? [3, 5] : [4, 6];
+
+  const reasons = [];
+  if (lines.length < range[0] || lines.length > range[1]) reasons.push('sentence_count');
+
+  const firstPersonRe = /(나|저|제가|나는|저는|내가|내\s|제\s|우리|저의|우리의)/;
+  const endingRe = /(함|임|음|됨)\s*$/;
+
+  const competencyKeywords = [
+    '자기주도', '탐구', '비판', '비판적', '정보', '정보활용', '논리', '표현', '호기심', '성실', '책임감', '협력', '성찰', '문제해결', '의사소통'
+  ];
+  const foundCompetencies = new Set();
+
+  for (const l of lines) {
+    const line = l.replace(/[.。]\s*$/, '').trim();
+    if (!endingRe.test(line)) reasons.push('ending');
+    if (firstPersonRe.test(line)) reasons.push('first_person');
+    competencyKeywords.forEach(k => { if (line.includes(k)) foundCompetencies.add(k); });
+  }
+  if (foundCompetencies.size < 2) reasons.push('competency');
+
+  return { ok: reasons.length === 0, reasons: Array.from(new Set(reasons)) };
+}
+
+function buildSubjectCommentPromptBase({ schoolLevel, subject, noteCount, start, end }) {
+  const lvl = normalizeSchoolLevel(schoolLevel);
+  const sentences = (lvl === '초') ? '2~4문장' : (lvl === '중') ? '3~5문장' : '4~6문장';
+
+  return (
+    '역할: 교사가 생활기록부 교과 세부 특기 사항(평어)을 작성하는 상황임.\n' +
+    '목표: 아래 배움노트 기록을 근거로 ' + subject + ' 과목 교과세특 문장을 생성함.\n\n' +
+    '[입력 정보]\n' +
+    '- 학교급: ' + lvl + '\n' +
+    '- 과목: ' + subject + '\n' +
+    '- 기간: ' + start + ' ~ ' + end + '\n' +
+    '- 배움노트_건수(과목 필터 적용): ' + noteCount + '건\n\n' +
+    '[출력 규칙(반드시 준수)]\n' +
+    '1) 교사의 관찰 기반 문장으로 작성함. 학생 자기서술/1인칭(나/저/우리/제가 등) 사용 금지함.\n' +
+    '2) 주어 노출 최소화함(“학생은/OO는” 같은 주어 반복 지양함).\n' +
+    '3) 모든 문장은 반드시 “~함/~임/~음/~됨”으로 종결함.\n' +
+    '4) 생활기록부 톤을 유지함(과장/홍보 문구 지양함).\n' +
+    '5) 반드시 포함함:\n' +
+    '   - 주제/개념(무엇을 탐구/학습했는지) 1개 이상 포함함.\n' +
+    '   - 학습 과정(어려움 해결/이해 확장/적용) 흐름이 드러나야 함.\n' +
+    '   - 역량/태도 2개 이상 포함함(예: 자기주도성/탐구/비판적 사고/정보 활용/논리적 표현/호기심/성실/책임감 등).\n' +
+    '   - 배움노트 기반 구체 근거 1개 이상 포함함(기록에 나온 활동/전략/오류 수정 등).\n' +
+    '6) 문장 수: ' + sentences + ' 범위로 작성함.\n' +
+    '7) 출력 형식: 번호/불릿/마크다운 없이 문장만 줄바꿈으로 나열함.\n'
+  );
+}
+
+function buildSubjectCommentPromptStyle(schoolLevel) {
+  const lvl = normalizeSchoolLevel(schoolLevel);
+  if (lvl === '초') {
+    return (
+      '\n[STYLE - 초]\n' +
+      '- 쉬운 어휘를 사용함.\n' +
+      '- 과정과 태도 중심으로 작성함.\n' +
+      '- 2~4문장으로 간결히 작성함.\n'
+    );
+  }
+  if (lvl === '중') {
+    return (
+      '\n[STYLE - 중]\n' +
+      '- 교과 용어를 적당히 사용함.\n' +
+      '- 학습 방법과 성장 내용을 균형 있게 작성함.\n' +
+      '- 3~5문장으로 작성함.\n'
+    );
+  }
+  return (
+    '\n[STYLE - 고]\n' +
+    '- 심화/논증 어휘 사용을 허용함.\n' +
+    '- 근거의 구체성과 역량을 강조함.\n' +
+    '- 4~6문장으로 작성함.\n'
+  );
+}
+
+function truncateText(s, n) {
+  const t = String(s || '').replace(/\s+/g, ' ').trim();
+  if (t.length <= n) return t;
+  return t.slice(0, n - 1) + '…';
+}
+
+async function generateTeacherSubjectComment(forceRegenerate) {
+  const genBtn = document.getElementById('teacherSubjectCommentGenerateBtn');
+  const regenBtn = document.getElementById('teacherSubjectCommentRegenerateBtn');
+  const btn = forceRegenerate ? regenBtn : genBtn;
+  if (!btn) return;
+
+  const { schoolLevel, start, end, subject, studentId, semester } = getTeacherSubjectCommentUIValues();
+  if (!studentId) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '먼저 학생을 선택해 주세요.' }); return; }
+  if (!schoolLevel) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '학교급을 선택해 주세요.' }); return; }
+  if (!start || !end) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '기간(시작일/종료일)을 선택해 주세요.' }); return; }
+  if (start > end) { showModal({ type: 'alert', icon: '⚠️', title: '기간 오류', message: '시작일이 종료일보다 늦습니다. 기간을 확인해 주세요.' }); return; }
+  if (!subject) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '과목 태그를 1개 선택해 주세요.' }); return; }
+
+  setTeacherSubjectCommentStatus('');
+  setTeacherSubjectCommentResult(null, { resetEmpty: false });
+  const noteCountEl = document.getElementById('teacherSubjectCommentNoteCount');
+  if (noteCountEl) noteCountEl.textContent = '-';
+
+  setLoading(true, btn, '생성 중...');
+
+  try {
+    const records = await fetchTeacherLearningNotes({ studentId, start, end });
+    const filtered = (records || []).filter(r => {
+      const tags = Array.isArray(r.subject_tags) ? r.subject_tags.map(String) : [];
+      return tags.includes(String(subject)) && String(r.learning_text || '').trim().length > 0;
+    });
+
+    const noteCount = filtered.length;
+    if (noteCountEl) noteCountEl.textContent = String(noteCount);
+
+    if (noteCount === 0) {
+      setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+      setTeacherSubjectCommentResult(null, { resetEmpty: true });
+      setTeacherSubjectCommentError('선택한 기간에 해당 과목 배움노트가 없어 생성할 수 없음. 기간을 조정해 주세요.', { showRetry: false });
+      refreshTeacherSubjectCommentActions();
+      return;
+    }
+
+    const evidence = filtered.slice(0, 12).map(r => {
+      const d = String(r.reflection_date || '').slice(0, 10);
+      const lt = truncateText(r.learning_text, 160);
+      return d + ': ' + lt;
+    });
+
+    const base = buildSubjectCommentPromptBase({ schoolLevel, subject, noteCount, start, end });
+    const style = buildSubjectCommentPromptStyle(schoolLevel);
+    const prompt =
+      base +
+      style +
+      '\n[배움노트 근거]\n' +
+      evidence.join('\n') +
+      '\n\n[출력]\n';
+
+    let result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 700 } });
+    if (!result.ok) throw new Error(result.error || 'AI 생성 실패');
+
+    let out = String(result.text || '').trim();
+    out = out.replace(/^\s*[-*•]\s*/gm, '').replace(/^\s*\d+[.)]\s*/gm, '').trim();
+
+    let validation = validateSubjectCommentOutput(out, schoolLevel);
+    let tries = 0;
+
+    while (!validation.ok && tries < 2) {
+      tries++;
+      const reasons = validation.reasons.join(', ');
+      const fixPrompt =
+        '다음 문장을 규칙에 맞게 다시 작성함.\n\n' +
+        '[규칙 요약]\n' +
+        '- 1인칭 금지, 주어 최소화함.\n' +
+        '- 모든 문장 “~함/~임/~음/~됨” 종결함.\n' +
+        '- 학교급 문장 수 범위 준수함.\n' +
+        '- 역량/태도 2개 이상 포함함.\n' +
+        '- 배움노트 근거 1개 이상 포함함.\n' +
+        '- 번호/불릿 없이 문장만 줄바꿈 출력함.\n\n' +
+        '[학교급]\n' + normalizeSchoolLevel(schoolLevel) + '\n\n' +
+        '[위반 항목]\n' + reasons + '\n\n' +
+        '[원문]\n' + out + '\n\n' +
+        '[수정본 출력]\n';
+
+      const retry = await callGemini(fixPrompt, { generationConfig: { temperature: 0.2, maxOutputTokens: 700 } });
+      if (!retry.ok) break;
+      out = String(retry.text || '').trim().replace(/^\s*[-*•]\s*/gm, '').replace(/^\s*\d+[.)]\s*/gm, '').trim();
+      validation = validateSubjectCommentOutput(out, schoolLevel);
+    }
+
+    if (!validation.ok) {
+      setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+      setTeacherSubjectCommentResult(out, { resetEmpty: false });
+      setTeacherSubjectCommentError('출력 규칙을 완전히 만족하지 못했습니다. [재시도]를 눌러 다시 생성해 주세요.', { showRetry: true });
+      refreshTeacherSubjectCommentActions();
+      return;
+    }
+
+    teacherSubjectCommentLastGenerated = {
+      text: out,
+      noteCount,
+      key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject })
+    };
+
+    setTeacherSubjectCommentResult(out, { resetEmpty: false });
+    setTeacherSubjectCommentStatus('미저장');
+
+    setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+    refreshTeacherSubjectCommentActions();
+  } catch (err) {
+    console.error('subject comment generate error:', err);
+    setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+    setTeacherSubjectCommentError('생성 중 오류가 발생했습니다: ' + (err.message || String(err)), { showRetry: true });
+    refreshTeacherSubjectCommentActions();
+  }
+}
+
+async function loadTeacherSavedSubjectComment() {
+  const { studentId, semester, subject } = getTeacherSubjectCommentUIValues();
+  if (!studentId || !subject || !currentClassCode) return;
+  if (isDemoMode) return;
+
+  try {
+    const { data, error } = await db.from('subject_comments')
+      .select('generated_text, note_count')
+      .eq('class_code', currentClassCode)
+      .eq('student_id', String(studentId))
+      .eq('semester', Number(semester))
+      .eq('subject', String(subject))
+      .maybeSingle();
+    if (error) throw error;
+
+    if (!data) {
+      setTeacherSubjectCommentStatus('');
+      return;
+    }
+
+    setTeacherSubjectCommentResult(data.generated_text, { resetEmpty: false });
+    const noteCountEl = document.getElementById('teacherSubjectCommentNoteCount');
+    if (noteCountEl && typeof data.note_count === 'number') noteCountEl.textContent = String(data.note_count);
+    setTeacherSubjectCommentStatus('저장됨');
+
+    teacherSubjectCommentLastGenerated = {
+      text: data.generated_text,
+      noteCount: data.note_count || 0,
+      key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject })
+    };
+
+    refreshTeacherSubjectCommentActions();
+  } catch (err) {
+    console.warn('Failed to load saved subject comment:', err);
+  }
+}
+
+async function saveTeacherSubjectComment(btn) {
+  if (isDemoMode) { showDemoBlockModal(); return; }
+  if (!teacherSubjectCommentLastGenerated || !teacherSubjectCommentLastGenerated.text) return;
+
+  const { schoolLevel, start, end, subject, studentId, semester } = getTeacherSubjectCommentUIValues();
+  if (!schoolLevel || !start || !end || !subject || !studentId) {
+    showModal({ type: 'alert', icon: '⚠️', title: '저장 불가', message: '학생/학교급/학기/기간/과목을 모두 선택해 주세요.' });
+    return;
+  }
+
+  setLoading(true, btn, '저장 중...');
+
+  try {
+    const { data: session } = await db.auth.getSession();
+    const uid = session?.session?.user?.id || null;
+
+    const payload = {
+      class_code: currentClassCode,
+      student_id: String(studentId),
+      semester: Number(semester),
+      subject: String(subject),
+      school_level: normalizeSchoolLevel(schoolLevel),
+      period_start: start,
+      period_end: end,
+      note_count: Number(teacherSubjectCommentLastGenerated.noteCount || 0),
+      generated_text: String(teacherSubjectCommentLastGenerated.text),
+      created_by: uid
+    };
+
+    const { error } = await db.from('subject_comments').upsert(payload, { onConflict: 'class_code,student_id,semester,subject' });
+    if (error) throw error;
+
+    setTeacherSubjectCommentStatus('저장됨');
+    setLoading(false, btn, '저장');
+    showModal({ type: 'alert', icon: '✅', title: '저장 완료', message: '생성 평어가 저장되었습니다.' });
+  } catch (err) {
+    console.error('save subject comment error:', err);
+    setLoading(false, btn, '저장');
+    showModal({
+      type: 'alert',
+      icon: '⚠️',
+      title: '저장 실패',
+      message: '저장 중 오류가 발생했습니다. Supabase에 테이블/정책 설정이 필요할 수 있습니다.<br><br><small>subject_comments</small>'
+    });
+  }
+}
+
+async function copyTeacherSubjectComment() {
+  const pre = document.getElementById('teacherSubjectCommentResult');
+  const text = pre && !pre.classList.contains('hidden') ? pre.textContent : '';
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    showModal({ type: 'alert', icon: '📋', title: '복사 완료', message: '클립보드에 복사되었습니다.' });
+  } catch (err) {
+    showModal({ type: 'alert', icon: '⚠️', title: '복사 실패', message: '복사에 실패했습니다: ' + (err.message || String(err)) });
+  }
+}
+
+function openTeacherSubjectCommentExportModal() {
+  const modal = document.getElementById('teacherSubjectCommentExportModal');
+  if (!modal) return;
+
+  const subjSel = document.getElementById('teacherSubjectCommentExportSubject');
+  if (subjSel) {
+    const options = PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG);
+    subjSel.innerHTML = '<option value="all" selected>전체</option>' + options.map(s => '<option value="' + String(s).replace(/"/g, '&quot;') + '">' + s + '</option>').join('');
+  }
+
+  const tgtSel = document.getElementById('teacherSubjectCommentExportTarget');
+  const area = document.getElementById('teacherSubjectCommentExportSelectedArea');
+  const grid = document.getElementById('teacherSubjectCommentExportStudentGrid');
+  if (tgtSel && area && grid) {
+    const sync = async () => {
+      const v = tgtSel.value;
+      area.classList.toggle('hidden', v !== 'selected');
+      if (v !== 'selected') return;
+
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-sub); padding:6px 0;">불러오는 중...</div>';
+      try {
+        const info = await getClassInfo();
+        const cnt = info && info.student_count ? Number(info.student_count) : 30;
+        grid.innerHTML = '';
+        for (let i = 1; i <= cnt; i++) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'subject-tag-btn';
+          b.textContent = String(i) + '번';
+          b.dataset.sid = String(i);
+          b.onclick = () => { b.classList.toggle('selected'); };
+          grid.appendChild(b);
+        }
+      } catch (e) {
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--text-sub); padding:6px 0;">학생 목록을 불러올 수 없습니다.</div>';
+      }
+    };
+    tgtSel.onchange = sync;
+    sync();
+  }
+
+  setExportMsg('', 'error');
+  modal.classList.remove('hidden');
+}
+
+function closeTeacherSubjectCommentExportModal() {
+  const modal = document.getElementById('teacherSubjectCommentExportModal');
+  modal?.classList.add('hidden');
+}
+
+function setExportMsg(text, type = 'error') {
+  const el = document.getElementById('teacherSubjectCommentExportMsg');
+  if (!el) return;
+  el.textContent = String(text || '');
+  el.className = 'message ' + type;
+  el.style.display = text ? 'block' : 'none';
+}
+
+function parseClassMeta(className) {
+  const name = String(className || '');
+  const gradeMatch = name.match(/(\d+)\s*학년/);
+  const classMatch = name.match(/(\d+)\s*반/);
+  return {
+    grade: gradeMatch ? (gradeMatch[1] + '학년') : '',
+    class: classMatch ? (classMatch[1] + '반') : ''
+  };
+}
+
+async function downloadTeacherSubjectCommentXlsx() {
+  setExportMsg('', 'error');
+
+  if (typeof XLSX === 'undefined' || !XLSX?.utils) {
+    setExportMsg('엑셀 라이브러리를 불러오지 못했습니다. 네트워크/스크립트 로드를 확인해 주세요.', 'error');
+    return;
+  }
+  if (!currentClassCode) {
+    setExportMsg('클래스 정보를 확인할 수 없습니다.', 'error');
+    return;
+  }
+
+  const semEl = document.getElementById('teacherSubjectCommentExportSemester');
+  const subjEl = document.getElementById('teacherSubjectCommentExportSubject');
+  const tgtEl = document.getElementById('teacherSubjectCommentExportTarget');
+  const slEl = document.getElementById('teacherSubjectCommentExportSchoolLevel');
+
+  const semV = semEl?.value || 'all';
+  const subjV = subjEl?.value || 'all';
+  const tgtV = tgtEl?.value || 'all';
+  const overrideSchoolLevel = normalizeSchoolLevel(slEl?.value || '');
+
+  const semesters = semV === 'all' ? [1, 2] : [Number(semV)];
+  const subjects = subjV === 'all'
+    ? PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG)
+    : [String(subjV)];
+
+  const info = await getClassInfo();
+  const studentCount = info && info.student_count ? Number(info.student_count) : 30;
+  const className = info?.class_name || '';
+  const meta = parseClassMeta(className);
+  const schoolLevel = overrideSchoolLevel || normalizeSchoolLevel(info?.school_level || '');
+
+  let studentIds = [];
+  if (tgtV === 'current') {
+    if (!teacherDiarySelectedStudentId) { setExportMsg('현재 학생이 선택되어 있지 않습니다.', 'error'); return; }
+    studentIds = [String(teacherDiarySelectedStudentId)];
+  } else if (tgtV === 'selected') {
+    const grid = document.getElementById('teacherSubjectCommentExportStudentGrid');
+    const selected = Array.from(grid?.querySelectorAll('.subject-tag-btn.selected') || []).map(b => b.dataset.sid).filter(Boolean);
+    if (selected.length === 0) { setExportMsg('선택 학생을 1명 이상 고르세요.', 'error'); return; }
+    studentIds = selected.map(String);
+  } else {
+    for (let i = 1; i <= studentCount; i++) studentIds.push(String(i));
+  }
+
+  let savedRows = [];
+  try {
+    let q = db.from('subject_comments').select('student_id, semester, subject, generated_text, note_count, period_start, period_end, school_level');
+    q = q.eq('class_code', currentClassCode);
+    q = q.in('semester', semesters);
+    q = q.in('subject', subjects);
+    q = q.in('student_id', studentIds);
+    const { data, error } = await q;
+    if (error) throw error;
+    savedRows = data || [];
+  } catch (err) {
+    console.warn('subject_comments fetch failed:', err);
+    savedRows = [];
+  }
+
+  const savedMap = new Map();
+  savedRows.forEach(r => {
+    const k = getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId: r.student_id, semester: r.semester, subject: r.subject });
+    savedMap.set(k, r);
+  });
+
+  const periodBySemester = {
+    1: { start: info?.semester1_start || '', end: info?.semester1_end || '' },
+    2: { start: info?.semester2_start || '', end: info?.semester2_end || '' }
+  };
+  const requestedPeriods = semesters.map(s => periodBySemester[s]).filter(p => p && p.start && p.end);
+  const minStart = requestedPeriods.length > 0 ? requestedPeriods.map(p => p.start).sort()[0] : '';
+  const maxEnd = requestedPeriods.length > 0 ? requestedPeriods.map(p => p.end).sort().slice(-1)[0] : '';
+
+  let allNotes = [];
+  if (minStart && maxEnd) {
+    try {
+      const { data, error } = await db.from('daily_reflections')
+        .select('student_id, reflection_date, subject_tags, learning_text')
+        .eq('class_code', currentClassCode)
+        .in('student_id', studentIds)
+        .gte('reflection_date', minStart)
+        .lte('reflection_date', maxEnd);
+      if (error) throw error;
+      allNotes = data || [];
+    } catch (err) {
+      console.warn('daily_reflections export fetch failed:', err);
+      allNotes = [];
+    }
+  }
+
+  const countMap = new Map();
+  function incCount(studentId, semester, subject) {
+    const k = getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject });
+    countMap.set(k, (countMap.get(k) || 0) + 1);
+  }
+  allNotes.forEach(n => {
+    const sid = String(n.student_id || '').trim();
+    if (!sid) return;
+    const d = String(n.reflection_date || '').slice(0, 10);
+    if (!d) return;
+    const tags = Array.isArray(n.subject_tags) ? n.subject_tags.map(String) : [];
+    const hasText = String(n.learning_text || '').trim().length > 0;
+    if (!hasText) return;
+
+    semesters.forEach(s => {
+      const p = periodBySemester[s];
+      if (!p || !p.start || !p.end) return;
+      if (d < p.start || d > p.end) return;
+      tags.forEach(t => { if (subjects.includes(t)) incCount(sid, s, t); });
+    });
+  });
+
+  const rows = [];
+  for (const sid of studentIds) {
+    for (const sem of semesters) {
+      const p = periodBySemester[sem] || { start: '', end: '' };
+      for (const subj of subjects) {
+        const k = getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId: sid, semester: sem, subject: subj });
+        const saved = savedMap.get(k) || null;
+        const usedSchool = normalizeSchoolLevel(saved?.school_level || '') || schoolLevel;
+        const usedStart = String(saved?.period_start || p.start || '');
+        const usedEnd = String(saved?.period_end || p.end || '');
+        const noteCount = (typeof saved?.note_count === 'number') ? saved.note_count : (countMap.get(k) || 0);
+        const text = saved?.generated_text ? String(saved.generated_text) : '미생성';
+
+        rows.push({
+          '학생번호': sid,
+          '학생명': sid + '번',
+          '학년': meta.grade,
+          '반': meta.class,
+          '학교급(초/중/고)': usedSchool,
+          '학기(1/2)': sem,
+          '과목': subj,
+          '기간_시작일': usedStart,
+          '기간_종료일': usedEnd,
+          '배움노트_건수': noteCount,
+          '생성평어(교과세특)': text
+        });
+      }
+    }
+  }
+
+  const ws = XLSX.utils.json_to_sheet(rows, { skipHeader: false });
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '교과세특');
+
+  const fname = '교과세특_' + String(currentClassCode || 'class') + '_' + getKstTodayStr() + '.xlsx';
+  XLSX.writeFile(wb, fname);
+  closeTeacherSubjectCommentExportModal();
 }
 
 async function switchReviewSubTab(mode) {
@@ -2829,6 +3644,10 @@ function renderDiaryCompletionStatus(todayReflections, totalStudents, selectedDa
     btn.onclick = () => {
       listEl.querySelectorAll('button').forEach(b => b.style.outline = 'none');
       btn.style.outline = '2px solid ' + (isSubmitted ? '#22c55e' : '#ef4444');
+      // 교과세특(평어) 생성 섹션과 학생 선택을 연동
+      if (typeof setTeacherSubjectCommentSelectedStudent === 'function') {
+        setTeacherSubjectCommentSelectedStudent(sid);
+      }
       renderDiaryStudentDetail(reflection, sid, selectedDate, isSubmitted);
     };
 

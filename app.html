@@ -697,6 +697,76 @@
                         </p>
                         <div id="emotionAlertList"></div>
                     </div>
+
+                    <!-- 교과세특(평어) 생성: 배움노트 기반 -->
+                    <div id="teacherSubjectCommentSection" class="accent-box box-blue" style="margin-top:18px;">
+                        <span class="box-label">🧑‍🏫 배움노트 기반 교과세특 (평어) 생성</span>
+                        <p style="font-size:0.82rem; color:var(--text-sub); margin-top:8px; margin-bottom:12px;">
+                            학생이 한 학기 동안 쓴 배움노트를 근거로, 생활기록부 속 교과 세부 특기 사항 문장을 생성합니다.
+                        </p>
+
+                        <div class="teacher-subject-comment-grid">
+                            <div>
+                                <label style="font-size:0.8rem;">현재 선택 학생</label>
+                                <div id="teacherSubjectCommentStudent" class="teacher-subject-comment-pill">미선택</div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem;">학교급</label>
+                                <select id="teacherSubjectCommentSchoolLevel" class="class-tone-input" style="margin-bottom:0;">
+                                    <option value="">선택하세요</option>
+                                    <option value="초">초</option>
+                                    <option value="중">중</option>
+                                    <option value="고">고</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem;">학기</label>
+                                <div class="teacher-subject-comment-seg">
+                                    <button type="button" id="teacherSubjectCommentSemester1" class="seg-btn active" onclick="setTeacherSubjectCommentSemester(1)">1학기</button>
+                                    <button type="button" id="teacherSubjectCommentSemester2" class="seg-btn" onclick="setTeacherSubjectCommentSemester(2)">2학기</button>
+                                </div>
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem;">기간 시작일</label>
+                                <input type="date" id="teacherSubjectCommentStart" class="class-tone-input" style="margin-bottom:0;">
+                            </div>
+                            <div>
+                                <label style="font-size:0.8rem;">기간 종료일</label>
+                                <input type="date" id="teacherSubjectCommentEnd" class="class-tone-input" style="margin-bottom:0;">
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <label style="font-size:0.8rem; display:block; margin-bottom:8px;">과목 태그 (1개 선택)</label>
+                            <div id="teacherSubjectCommentSubjectTags" class="subject-tags"></div>
+                        </div>
+
+                        <div class="teacher-subject-comment-actions">
+                            <button type="button" id="teacherSubjectCommentGenerateBtn" onclick="generateTeacherSubjectComment(false)" style="background:var(--color-teacher);">생성하기</button>
+                            <button type="button" id="teacherSubjectCommentRegenerateBtn" onclick="generateTeacherSubjectComment(true)" style="background:var(--color-blue);">재생성</button>
+                            <button type="button" id="teacherSubjectCommentCopyBtn" onclick="copyTeacherSubjectComment()" style="background:var(--border); color:var(--text-main);">복사</button>
+                            <button type="button" id="teacherSubjectCommentSaveBtn" onclick="saveTeacherSubjectComment(this)" style="background:var(--color-result);">저장</button>
+                            <button type="button" id="teacherSubjectCommentExportBtn" onclick="openTeacherSubjectCommentExportModal()" style="background:linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);">.xlsx 다운로드</button>
+                        </div>
+
+                        <div class="teacher-subject-comment-meta">
+                            <div>배움노트: <strong id="teacherSubjectCommentNoteCount">-</strong>건</div>
+                            <div id="teacherSubjectCommentStatus" class="teacher-subject-comment-status"></div>
+                        </div>
+
+                        <div id="teacherSubjectCommentResultWrap" class="teacher-subject-comment-result-wrap">
+                            <div id="teacherSubjectCommentEmpty" class="empty-state" style="margin:0;">
+                                <span class="empty-icon">📄</span>
+                                <div class="empty-title">설정 후 생성해 보세요</div>
+                                <div class="empty-desc">학생/학기/기간/과목/학교급을 선택한 후 생성하기를 눌러주세요.</div>
+                            </div>
+                            <pre id="teacherSubjectCommentResult" class="teacher-subject-comment-result hidden"></pre>
+                            <div id="teacherSubjectCommentError" class="message error" style="display:none;"></div>
+                            <div id="teacherSubjectCommentRetry" class="hidden" style="margin-top:10px;">
+                                <button type="button" onclick="generateTeacherSubjectComment(true)" style="background:var(--color-blue); width:100%;">다시 시도</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="praiseMiniTab" class="hidden">
                     <div class="sub-tab-container" style="margin-bottom:12px;">
@@ -962,6 +1032,62 @@
             </div>
         </div>
     </div>
+    <!-- 교과세특 엑셀 다운로드 모달 -->
+    <div id="teacherSubjectCommentExportModal" class="modal-overlay hidden">
+        <div class="modal-box" style="max-width:520px;">
+            <span class="modal-icon">📊</span>
+            <div class="modal-title">교과세특(.xlsx) 다운로드</div>
+            <div class="modal-text" style="text-align:left;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px;">
+                    <div>
+                        <label style="font-size:0.8rem;">학기</label>
+                        <select id="teacherSubjectCommentExportSemester" class="class-tone-input" style="margin-bottom:0;">
+                            <option value="all" selected>전체</option>
+                            <option value="1">1학기</option>
+                            <option value="2">2학기</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;">과목</label>
+                        <select id="teacherSubjectCommentExportSubject" class="class-tone-input" style="margin-bottom:0;">
+                            <option value="all" selected>전체</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;">대상</label>
+                        <select id="teacherSubjectCommentExportTarget" class="class-tone-input" style="margin-bottom:0;">
+                            <option value="all" selected>전체 학생</option>
+                            <option value="selected">선택 학생</option>
+                            <option value="current">현재 학생</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:0.8rem;">학교급</label>
+                        <select id="teacherSubjectCommentExportSchoolLevel" class="class-tone-input" style="margin-bottom:0;">
+                            <option value="">(설정 사용)</option>
+                            <option value="초">초</option>
+                            <option value="중">중</option>
+                            <option value="고">고</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="teacherSubjectCommentExportSelectedArea" class="hidden" style="margin-top:12px;">
+                    <div style="font-size:0.8rem; margin-bottom:8px; color:var(--text-sub);">선택 학생(번호)</div>
+                    <div id="teacherSubjectCommentExportStudentGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(78px, 1fr)); gap:8px;"></div>
+                </div>
+
+                <div id="teacherSubjectCommentExportMsg" class="message" style="display:none; margin-top:12px;"></div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" type="button" onclick="closeTeacherSubjectCommentExportModal()">취소</button>
+                <button class="modal-btn confirm" type="button" onclick="downloadTeacherSubjectCommentXlsx()">다운로드</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SheetJS (xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="app.js?v=20260215-auth-debug-1"></script>
 </body>
 
