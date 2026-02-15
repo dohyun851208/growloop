@@ -184,6 +184,26 @@ button[onclick*="logout"]:hover {
     background: #e7e5e4 !important;
 }
 
+/* student praise mailbox send button contrast fix */
+#praiseSendBtn {
+    background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3) !important;
+    font-weight: 700 !important;
+}
+
+#praiseSendBtn:hover:not(:disabled) {
+    box-shadow: 0 6px 18px rgba(244, 63, 94, 0.4) !important;
+    filter: brightness(1.05);
+    transform: translateY(-2px);
+}
+
+#praiseSendBtn:disabled {
+    background: #c8c1b8 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+}
 /* ── 7. 액센트 박스 ──────────────────────── */
 .accent-box {
     background: white !important;
@@ -673,19 +693,19 @@ input:checked+.switch-slider:before {
 }
 
 .subject-tag-btn:hover {
-    background: #fdf2f8 !important;
-    /* 루비 컬러 배경 살짝 */
-    border-color: var(--primary) !important;
+    background: #eefaf7 !important;
+    border-color: var(--color-teal) !important;
+    color: var(--color-teal) !important;
     transform: translateY(-2px) !important;
 }
 
 .subject-tag-btn.selected {
-    background: var(--primary) !important;
-    border-color: var(--primary) !important;
+    background: linear-gradient(135deg, var(--color-teal), var(--color-blue)) !important;
+    border-color: var(--color-teal) !important;
     color: white !important;
     font-weight: 700 !important;
     transform: translateY(-3px) scale(1.05) !important;
-    box-shadow: 0 6px 15px rgba(244, 63, 94, 0.4) !important;
+    box-shadow: 0 6px 15px rgba(90, 158, 143, 0.35) !important;
     outline: 2px solid white !important;
     outline-offset: -4px !important;
 }

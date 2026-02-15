@@ -31,6 +31,17 @@ let studentPersonality = null; // 학생 성향 정보
 // 체험 모드 전역 변수
 let isDemoMode = false;
 let demoRole = null;
+const DEMO_FIXED_QUERY_DATE = '2026-03-01';
+
+function getKstTodayStr() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+  return kst.toISOString().split('T')[0];
+}
+
+function getDefaultQueryDate() {
+  return isDemoMode ? DEMO_FIXED_QUERY_DATE : getKstTodayStr();
+}
 
 function showRoleSelectInApp() {
   const loadingSec = document.getElementById('authLoadingSection');
@@ -433,6 +444,7 @@ function showDemoBlockModal() {
 function initDemoMode(role) {
   // DB 프록시 설치
   installDemoDbProxy();
+  syncAllDates(DEMO_FIXED_QUERY_DATE);
 
   // 기본 전역 변수 설정
   currentClassCode = '체험용';
@@ -628,16 +640,9 @@ document.querySelectorAll('input[name="onboardType"]').forEach(radio => {
 });
 
 
-const today = new Date();
-const krDate = new Date(today.getTime() + (9 * 60 * 60 * 1000));
-const todayStr = krDate.toISOString().split('T')[0];
+syncAllDates(getDefaultQueryDate());
 
-['reviewDate', 'viewDate', 'teacherDate', 'settingDate'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.value = todayStr;
-});
-
-// fetchCriteria(todayStr) and fetchRatingCriteria(todayStr) removed 
+// Initial criteria fetch is deferred until class_code is available.
 // as they are handled inside checkAuthAndRoute after class_code is retrieved
 
 document.getElementById('reviewDate').addEventListener('change', function () {
@@ -789,7 +794,7 @@ async function switchTypeAndLogout(newType) {
 }
 
 function syncAllDates(dateStr) {
-  const dateInputs = ['reviewDate', 'viewDate', 'teacherDate', 'settingDate', 'selfDate'];
+  const dateInputs = ['reviewDate', 'viewDate', 'teacherDate', 'settingDate', 'selfDate', 'diaryViewDate', 'messageViewDate'];
   dateInputs.forEach(id => { const el = document.getElementById(id); if (el) el.value = dateStr; });
 }
 
@@ -1446,7 +1451,7 @@ async function renderTeacherDashboard(data, totalStudents) {
     // 오늘 성장 일기 작성률 및 메시지 수 조회
     let diaryCount = 0, msgCount = 0;
     try {
-      const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const today = getDefaultQueryDate();
       const [diaryRes, msgRes] = await Promise.allSettled([
         db.from('daily_reflections').select('student_id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('reflection_date', today),
         db.from('teacher_messages').select('id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('has_reply', false)
@@ -1845,8 +1850,7 @@ async function loadDailyReflection() {
 
   let targetDate = document.getElementById('selfDate').value;
   if (!targetDate) {
-    const kr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
-    targetDate = kr.toISOString().split('T')[0];
+    targetDate = getDefaultQueryDate();
     document.getElementById('selfDate').value = targetDate;
   }
 
@@ -2064,8 +2068,7 @@ async function generateProjectAnalysis(stars) {
 
 // 성장 일기 날짜 초기화
 function initDiaryDate() {
-  const kr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
-  const today = kr.toISOString().split('T')[0];
+  const today = getDefaultQueryDate();
   document.getElementById('diaryViewDate').value = today;
 }
 
@@ -2117,8 +2120,7 @@ async function loadTeacherDiaryData() {
 
 // 학생 메시지 날짜 초기화
 function initMessageDate() {
-  const kr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
-  const today = kr.toISOString().split('T')[0];
+  const today = getDefaultQueryDate();
   document.getElementById('messageViewDate').value = today;
 }
 
@@ -2537,8 +2539,7 @@ async function initSelfEvaluation() {
   // 날짜 초기화 (오늘)
   const selfDateInput = document.getElementById('selfDate');
   if (selfDateInput && !selfDateInput.value) {
-    const kr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
-    selfDateInput.value = kr.toISOString().split('T')[0];
+    selfDateInput.value = getDefaultQueryDate();
   }
 
   // 체험 모드: 퀴즈를 ABABABAB으로 미리 세팅
@@ -2552,7 +2553,9 @@ async function initSelfEvaluation() {
       if (questionEl) {
         questionEl.classList.add('answered');
         const selectedIndex = answer === 'A' ? 0 : 1;
-        questionEl.querySelectorAll('.quiz-option')[selectedIndex].classList.add('selected');
+        const options = questionEl.querySelectorAll('.quiz-option');
+        options.forEach(opt => opt.classList.remove('selected', 'selected-a', 'selected-b'));
+        options[selectedIndex].classList.add('selected', answer === 'A' ? 'selected-a' : 'selected-b');
       }
     });
     // 분석 완료 버튼 바로 표시
@@ -2616,11 +2619,11 @@ function showPersonalityQuiz() {
         <div class="quiz-question-number">Q${q.id}. ${q.category}</div>
         <div class="quiz-question-text">${q.question}</div>
         <div class="quiz-options">
-          <div class="quiz-option" onclick="selectQuizOption(${q.id}, 'A')">
+          <div class="quiz-option option-a" onclick="selectQuizOption(${q.id}, 'A')">
             <div class="quiz-option-label">${q.optionA.label}</div>
             <div class="quiz-option-text">${q.optionA.text}</div>
           </div>
-          <div class="quiz-option" onclick="selectQuizOption(${q.id}, 'B')">
+          <div class="quiz-option option-b" onclick="selectQuizOption(${q.id}, 'B')">
             <div class="quiz-option-label">${q.optionB.label}</div>
             <div class="quiz-option-text">${q.optionB.text}</div>
           </div>
@@ -2644,11 +2647,11 @@ function selectQuizOption(questionId, answer) {
   const questionEl = document.getElementById(`question${questionId}`);
   questionEl.classList.add('answered');
   questionEl.querySelectorAll('.quiz-option').forEach(opt => {
-    opt.classList.remove('selected');
+    opt.classList.remove('selected', 'selected-a', 'selected-b');
   });
 
   const selectedIndex = answer === 'A' ? 0 : 1;
-  questionEl.querySelectorAll('.quiz-option')[selectedIndex].classList.add('selected');
+  questionEl.querySelectorAll('.quiz-option')[selectedIndex].classList.add('selected', answer === 'A' ? 'selected-a' : 'selected-b');
 
   if (Object.keys(quizAnswers).length === personalityQuestions.length) {
     document.getElementById('submitQuizBtn').classList.remove('hidden');

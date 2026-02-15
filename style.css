@@ -21,203 +21,6 @@
     --border: #E8E2DA;
     --border-light: #F0EBE4
 }
-
-
-
-[data-theme="dark"] .card {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3)
-}
-
-[data-theme="dark"] input,
-[data-theme="dark"] textarea,
-[data-theme="dark"] select {
-    background: var(--bg-soft);
-    color: var(--text-main);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] input:focus,
-[data-theme="dark"] textarea:focus {
-    background: #353230;
-    border-color: var(--primary)
-}
-
-[data-theme="dark"] .accent-box {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .tab-btn {
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .tab-btn.active {
-    background: var(--bg-soft);
-    color: var(--primary)
-}
-
-[data-theme="dark"] .stat-card {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .stat-card .stat-number {
-    color: var(--color-eval)
-}
-
-[data-theme="dark"] .stat-card.blue .stat-number {
-    color: var(--color-blue)
-}
-
-[data-theme="dark"] .chart-container {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .bar-track {
-    background: #3D3835
-}
-
-[data-theme="dark"] .rating-btn {
-    background: var(--bg-soft);
-    border-color: var(--border);
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .rating-btn:hover:not(.selected) {
-    background: #353230
-}
-
-[data-theme="dark"] .mini-tab-btn {
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .mini-tab-container {
-    background: var(--border)
-}
-
-[data-theme="dark"] .tab-container {
-    background: var(--border)
-}
-
-[data-theme="dark"] .student-btn {
-    background: var(--bg-soft);
-    border-color: var(--border);
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .student-btn:hover {
-    border-color: var(--color-teacher)
-}
-
-[data-theme="dark"] .ranking-table {
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .ranking-table th {
-    background: var(--bg-soft);
-    border-color: var(--border);
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .ranking-table td {
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .ranking-table tr:hover td {
-    background: var(--bg-soft)
-}
-
-[data-theme="dark"] .ranking-table tr.rank-1 td {
-    background: linear-gradient(135deg, #3D3520 0%, #4A4025 100%)
-}
-
-[data-theme="dark"] .ranking-table tr.rank-2 td {
-    background: linear-gradient(135deg, #333 0%, #3D3D3D 100%)
-}
-
-[data-theme="dark"] .ranking-table tr.rank-3 td {
-    background: linear-gradient(135deg, #3D2D28 0%, #4A3530 100%)
-}
-
-[data-theme="dark"] .review-card {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .modal-overlay {
-    background: rgba(0, 0, 0, 0.6)
-}
-
-[data-theme="dark"] .modal-box {
-    background: var(--bg-card)
-}
-
-[data-theme="dark"] .modal-title {
-    color: var(--text-main)
-}
-
-[data-theme="dark"] .modal-btn.cancel {
-    background: var(--bg-soft);
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] #modalInput {
-    background: var(--bg-soft);
-    color: var(--text-main);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .student-auth-item {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .message.success {
-    background: linear-gradient(135deg, #1E3323 0%, #253D28 100%);
-    color: #81B29A;
-    border-color: #3D5A40
-}
-
-[data-theme="dark"] .message.error {
-    background: linear-gradient(135deg, #3D2525 0%, #4A2D2D 100%);
-    color: #E07A7A;
-    border-color: #5A3535
-}
-
-[data-theme="dark"] .empty-state {
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .empty-state .empty-title {
-    color: var(--text-main)
-}
-
-[data-theme="dark"] #mySummary h1,
-[data-theme="dark"] #mySummary h2,
-[data-theme="dark"] #mySummary h3,
-[data-theme="dark"] #mySummary h4 {
-    background: var(--color-teacher-bg);
-    color: var(--color-teacher)
-}
-
-[data-theme="dark"] .type-selector label {
-    background: var(--bg-soft);
-    border-color: var(--border);
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] .type-selector label:has(input:checked) {
-    background: var(--color-eval-bg);
-    border-color: var(--primary);
-    color: var(--primary)
-}
-
-[data-theme="dark"] .theme-toggle {
-    background: var(--bg-soft);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4)
-}
-
 .save-basic-btn {
     background: linear-gradient(135deg, #5B7FA5 0%, #4A6580 100%);
     margin-top: 10px;
@@ -328,16 +131,6 @@
     cursor: not-allowed;
     text-decoration: line-through
 }
-
-[data-theme="dark"] .target-btn {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .target-btn.done {
-    background: var(--color-result-bg)
-}
-
 .template-btn {
     padding: 6px 12px;
     font-size: 0.78rem;
@@ -354,10 +147,6 @@
     color: var(--color-result);
     background: var(--color-result-bg);
 }
-[data-theme="dark"] .template-btn {
-    background: var(--bg-soft);
-}
-
 .progress-bar-container {
     background: var(--bg-soft);
     border-radius: 10px;
@@ -568,12 +357,6 @@ h5 {
     border-color: #E8D0D0;
     border-left-color: var(--color-danger)
 }
-
-[data-theme="dark"] .box-red {
-    border-color: #5A3535;
-    background: #3D2525
-}
-
 .box-label {
     display: block;
     font-size: 1.1rem;
@@ -1611,47 +1394,6 @@ button:disabled {
     border-color: var(--color-teacher);
     color: white
 }
-
-[data-theme="dark"] #rankStudentArea .type-selector label {
-    background: var(--bg-soft);
-    border-color: var(--border);
-    color: var(--text-sub)
-}
-
-[data-theme="dark"] #rankStudentArea .type-selector label:has(input:checked) {
-    background: var(--color-teacher);
-    border-color: var(--color-teacher);
-    color: white
-}
-
-.theme-toggle {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
-    background: var(--bg-card);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    cursor: pointer;
-    font-size: 1.4rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 1000
-}
-
-.theme-toggle:hover {
-    transform: scale(1.1) rotate(15deg);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2)
-}
-
-.theme-toggle:active {
-    transform: scale(0.95)
-}
-
 @media(max-width:600px) {
     body {
         padding: 15px
@@ -1778,16 +1520,7 @@ button:disabled {
     #rankStudentArea .type-selector label:last-child {
         border-radius: 0 10px 10px 0
     }
-
-    .theme-toggle {
-        bottom: 15px;
-        right: 15px;
-        width: 45px;
-        height: 45px;
-        font-size: 1.2rem
-    }
-
-    .gratitude-tags {
+.gratitude-tags {
         grid-template-columns: repeat(auto-fill, minmax(80px, 1fr))
     }
 
@@ -1852,17 +1585,6 @@ button:disabled {
 .tag-btn.selected .tag-icon {
     transform: scale(1.2)
 }
-
-[data-theme="dark"] .tag-btn {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .tag-btn.selected {
-    background: var(--color-eval);
-    border-color: var(--color-eval)
-}
-
 .message-mode-selector {
     display: flex;
     gap: 10px;
@@ -1896,17 +1618,6 @@ button:disabled {
     color: white;
     box-shadow: 0 3px 10px rgba(90, 158, 143, 0.3)
 }
-
-[data-theme="dark"] .mode-btn {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .mode-btn.active {
-    background: var(--color-teal);
-    border-color: var(--color-teal)
-}
-
 .star-rating {
     display: flex;
     gap: 8px;
@@ -1951,16 +1662,6 @@ button:disabled {
         transform: scale(1)
     }
 }
-
-[data-theme="dark"] .star-btn {
-    color: var(--border)
-}
-
-[data-theme="dark"] .star-btn:hover,
-[data-theme="dark"] .star-btn.selected {
-    color: #FFB800
-}
-
 .ai-encouragement {
     background: linear-gradient(135deg, #F3E5F5 0%, #E1BEE7 100%);
     border: 2px solid #CE93D8;
@@ -1984,17 +1685,6 @@ button:disabled {
     color: var(--text-main);
     line-height: 1.6
 }
-
-[data-theme="dark"] .ai-encouragement {
-    background: linear-gradient(135deg, #2D2533 0%, #3D2D43 100%);
-    border-color: #7E57C2
-}
-
-[data-theme="dark"] #aiEncouragementText,
-[data-theme="dark"] #projectAIText {
-    color: var(--text-main)
-}
-
 /* ============================================ */
 /* ÍµêÏÇ¨???êÍ∏∞?âÍ? Í¥ÄÎ¶?*/
 /* ============================================ */
@@ -2083,26 +1773,6 @@ button:disabled {
     font-size: 0.75rem;
     font-weight: 600
 }
-
-[data-theme="dark"] .message-card {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .message-card-content {
-    background: rgba(255, 255, 255, 0.05)
-}
-
-[data-theme="dark"] .badge-anonymous {
-    background: rgba(46, 125, 50, 0.2);
-    color: #81C784
-}
-
-[data-theme="dark"] .badge-named {
-    background: rgba(21, 101, 192, 0.2);
-    color: #64B5F6
-}
-
 .keyword-cloud {
     display: flex;
     flex-wrap: wrap;
@@ -2134,12 +1804,6 @@ button:disabled {
     border-radius: 10px;
     font-size: 0.8rem
 }
-
-[data-theme="dark"] .keyword-item {
-    background: rgba(194, 101, 74, 0.2);
-    border-color: var(--color-eval)
-}
-
 .reply-modal-overlay {
     position: fixed;
     top: 0;
@@ -2226,18 +1890,6 @@ button:disabled {
 .reply-cancel-btn:hover {
     background: var(--border-light)
 }
-
-[data-theme="dark"] .reply-modal {
-    background: var(--bg-soft);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5)
-}
-
-[data-theme="dark"] .reply-textarea {
-    background: var(--bg-card);
-    color: var(--text-main);
-    border-color: var(--border)
-}
-
 /* ============================================ */
 /* ?úÎ∏å ??(?ôÎ£å?âÍ?/?êÍ∏∞?âÍ? ?¥Î?) */
 /* ============================================ */
@@ -2274,16 +1926,6 @@ button:disabled {
     background: rgba(108, 99, 255, 0.1);
     color: var(--color-teacher)
 }
-
-[data-theme="dark"] .sub-tab-container {
-    background: rgba(255, 255, 255, 0.05)
-}
-
-[data-theme="dark"] .sub-tab-btn.active {
-    background: var(--bg-card);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3)
-}
-
 /* ============================================ */
 /* ?±Ìñ• ÏßÑÎã® (Personality Quiz) */
 /* ============================================ */
@@ -2341,10 +1983,20 @@ button:disabled {
 }
 
 .quiz-option.selected {
-    border-color: var(--color-teacher);
-    background: var(--color-teacher);
     color: white;
-    box-shadow: 0 4px 12px rgba(108, 99, 255, 0.3)
+    transform: translateY(-2px)
+}
+
+.quiz-option.selected-a {
+    border-color: #4F84C7;
+    background: linear-gradient(135deg, #4F84C7 0%, #6CA5E0 100%);
+    box-shadow: 0 4px 12px rgba(79, 132, 199, 0.35)
+}
+
+.quiz-option.selected-b {
+    border-color: #5A9E8F;
+    background: linear-gradient(135deg, #5A9E8F 0%, #7BC1B1 100%);
+    box-shadow: 0 4px 12px rgba(90, 158, 143, 0.35)
 }
 
 .quiz-option-label {
@@ -2356,39 +2008,15 @@ button:disabled {
     font-size: 0.85rem;
     line-height: 1.4
 }
-
-[data-theme="dark"] .quiz-question {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .quiz-question.answered {
-    background: rgba(108, 99, 255, 0.1)
-}
-
-[data-theme="dark"] .quiz-option {
-    background: var(--bg-soft);
-    border-color: var(--border)
-}
-
-[data-theme="dark"] .quiz-option.selected {
-    background: var(--color-teacher);
-    border-color: var(--color-teacher)
-}
-
 .personality-result-card {
     background: linear-gradient(135deg, var(--color-teacher-bg) 0%, var(--color-eval-bg) 100%);
     border: 2px solid var(--color-teacher);
     border-radius: 16px;
     padding: 25px;
     text-align: center;
-    animation: scaleIn 0.5s
+    animation: scaleIn 0.5s forwards;
+    opacity: 1;
 }
-
-[data-theme="dark"] .personality-result-card {
-    background: linear-gradient(135deg, rgba(108, 99, 255, 0.2) 0%, rgba(194, 101, 74, 0.2) 100%)
-}
-
 /* ============================================ */
 /* Í≥ºÎ™©/?úÎèô ?úÍ∑∏ */
 /* ============================================ */
@@ -2489,10 +2117,6 @@ button:disabled {
     color: var(--text-main);
     animation: fadeIn 0.2s ease;
 }
-[data-theme="dark"] .calendar-preview {
-    background: var(--bg-soft);
-}
-
 /* ============================================ */
 /* ?åÎìú ?¥Îùº?∞Îìú */
 /* ============================================ */
@@ -2537,8 +2161,6 @@ button:disabled {
     transition: transform 0.2s;
 }
 .badge-item:hover { transform: scale(1.1); }
-[data-theme="dark"] .badge-item { background: var(--bg-soft); }
-
 /* ============================================ */
 /* Í≥ºÎ™©Î≥?Ï∞®Ìä∏ */
 /* ============================================ */
@@ -2675,15 +2297,6 @@ button:disabled {
     color: white;
     border-color: var(--primary);
 }
-[data-theme="dark"] .summary-period-btn {
-    background: var(--bg-soft);
-    border-color: var(--border);
-}
-[data-theme="dark"] .summary-period-btn.active {
-    background: var(--primary);
-    color: white;
-}
-
 /* ============================================ */
 /* ?¥Ïö©?ΩÍ? / Í∞úÏù∏?ïÎ≥¥Ï≤òÎ¶¨Î∞©Ïπ® Î™®Îã¨ ?§Ì???*/
 /* ============================================ */
@@ -2820,16 +2433,6 @@ button:disabled {
 }
 
 /* ?§ÌÅ¨Î™®Îìú */
-[data-theme="dark"] .terms-modal-body {
-    color: var(--text-main);
-}
-[data-theme="dark"] .terms-section {
-    border-bottom-color: rgba(255,255,255,0.08);
-}
-[data-theme="dark"] .terms-appendix {
-    background: var(--bg-soft);
-}
-
 /* ============================================ */
 /* Ï∂îÍ? Í∏∞Îä• ?§Ì???(Ïπ?∞¨ ?∞Ï≤¥?? Î™©Ìëú Í¥ÄÎ¶??? */
 /* ============================================ */
@@ -2959,4 +2562,7 @@ button:disabled {
 }
 
 /* ¥Ÿ≈© ∏µÂ ¥Î¿¿ */
+
+
+
 
