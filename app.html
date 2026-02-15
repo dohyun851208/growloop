@@ -664,6 +664,13 @@
                     <div id="studentReviews"></div>
                 </div>
                 <div id="diaryMiniTab" class="hidden">
+                    <div class="sub-tab-container" style="margin-bottom:15px;">
+                        <button type="button" class="sub-tab-btn active" onclick="switchTeacherDiarySubTab(&quot;overview&quot;)">📊 참여현황</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab(&quot;student&quot;)">📝 학생노트</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab(&quot;comment&quot;)">🧑‍🏫 교과세특</button>
+                    </div>
+
+                    <div id="teacherDiaryOverviewTab">
                     <div class="accent-box box-violet">
                         <span class="box-label">📊 배움노트 참여 현황</span>
                         <div style="margin-top:12px; margin-bottom:10px;">
@@ -693,6 +700,9 @@
                                 style="display:grid; grid-template-columns:repeat(auto-fill, minmax(92px, 1fr)); gap:8px;"></div>
                         </div>
                     </div>
+                    </div>
+
+                    <div id="teacherDiaryStudentTab" class="hidden">
                     <div class="accent-box box-teal">
                         <span class="box-label">👤 학생별 배움노트</span>
                         <div id="diaryStudentDetail" style="margin-top:12px;">
@@ -711,6 +721,9 @@
                     </div>
 
                     <!-- 교과세특(평어) 생성: 배움노트 기반 -->
+                    </div>
+
+                    <div id="teacherDiaryCommentTab" class="hidden">
                     <div id="teacherSubjectCommentSection" class="accent-box box-blue" style="margin-top:18px;">
                         <span class="box-label">🧑‍🏫 배움노트 기반 교과세특 (평어) 생성</span>
                         <p style="font-size:0.82rem; color:var(--text-sub); margin-top:8px; margin-bottom:12px;">
@@ -778,6 +791,7 @@
                                 <button type="button" onclick="generateTeacherSubjectComment(true)" style="background:var(--color-blue); width:100%;">다시 시도</button>
                             </div>
                         </div>
+                    </div>
                     </div>
                 </div>
                 <div id="praiseMiniTab" class="hidden">

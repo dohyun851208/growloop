@@ -1247,3 +1247,52 @@ input:checked+.switch-slider:before {
 #teacherDashboard .stat-card[style*="--color-teacher"] {
     display: none !important;
 }
+
+/* ===============================
+   Teacher Diary UI Cleanup
+   - Match student self-learning tone
+   =============================== */
+#teacherMain #diaryMiniTab .accent-box {
+    background: #ffffff !important;
+    border: 2px solid #e7e5e4 !important;
+    border-radius: 20px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Teacher self-learning (diary) should follow the student self-learning neutral cards. */
+#teacherMain #diaryMiniTab .accent-box.box-violet,
+#teacherMain #diaryMiniTab .accent-box.box-teal,
+#teacherMain #diaryMiniTab .accent-box.box-blue {
+    background: #ffffff !important;
+    border-color: #e7e5e4 !important;
+}
+
+#teacherMain #diaryMiniTab .box-label {
+    color: var(--text-main) !important;
+}
+
+#teacherMain #diaryMiniTab .sub-tab-btn.active {
+    color: var(--primary) !important;
+}
+
+/* Teacher diary: subject-comment action buttons should not be rainbow. */
+#teacherMain #diaryMiniTab #teacherSubjectCommentGenerateBtn {
+    background: var(--primary) !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSaveBtn {
+    background: #292524 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentRegenerateBtn,
+#teacherMain #diaryMiniTab #teacherSubjectCommentCopyBtn,
+#teacherMain #diaryMiniTab #teacherSubjectCommentExportBtn {
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    border: 1.5px solid #e7e5e4 !important;
+    box-shadow: none !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentRetry button {
+    background: var(--primary) !important;
+}

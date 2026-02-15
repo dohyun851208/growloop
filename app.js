@@ -22,6 +22,7 @@ let studentPartner = null; // 16-type growth partner (derived from student_perso
 
 // 교사용(스스로배움) - 교과세특 생성 상태
 let teacherDiarySelectedStudentId = null;
+let currentTeacherDiarySubTab = 'overview'; // overview | student | comment
 let teacherSubjectCommentSemester = 1;
 let teacherSubjectCommentSelectedSubject = '';
 let teacherSubjectCommentLastGenerated = null; // { text, noteCount, key }
@@ -1510,6 +1511,32 @@ function switchSelfTab(mode) {
     loadDashboardData();
   }
 }
+
+function switchTeacherDiarySubTab(tab) {
+  const t = String(tab || '').trim();
+  const map = {
+    overview: 'teacherDiaryOverviewTab',
+    student: 'teacherDiaryStudentTab',
+    comment: 'teacherDiaryCommentTab'
+  };
+
+  Object.values(map).forEach((id) => document.getElementById(id)?.classList.add('hidden'));
+  const selId = map[t] || map.overview;
+  document.getElementById(selId)?.classList.remove('hidden');
+
+  const btns = document.querySelectorAll('#diaryMiniTab .sub-tab-btn');
+  btns.forEach(b => b.classList.remove('active'));
+  const idx = t === "student" ? 1 : (t === "comment" ? 2 : 0);
+  if (btns[idx]) btns[idx].classList.add('active');
+
+  currentTeacherDiarySubTab = (map[t] ? t : 'overview');
+
+  // Lazy-init the heavy section.
+  if (currentTeacherDiarySubTab === "comment") {
+    refreshTeacherSubjectCommentActions?.();
+  }
+}
+
 async function switchMiniTab(mode) {
   // 모든 컨텐츠 탭 숨기기
   ['ranking', 'student', 'criteria', 'diary', 'praise', 'settings'].forEach(t => document.getElementById(t + 'MiniTab').classList.add('hidden'));
@@ -1534,8 +1561,8 @@ async function switchMiniTab(mode) {
     mainTabBtns[0].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('diaryMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
+    switchTeacherDiarySubTab('overview');
     initDiaryDate();
-    initTeacherSubjectCommentUI();
     loadTeacherDiaryData();
   } else if (mode === 'praise') {
     mainTabBtns[2].classList.add('active-nav');
@@ -4171,6 +4198,10 @@ function extractUnresolvedDifficultySnippets(text) {
 function focusTeacherDiaryStudent(studentId) {
   const sid = String(studentId || '').trim();
   if (!sid) return;
+
+  // Ensure the target panel is visible.
+  try { switchTeacherDiarySubTab('student'); } catch (_) {}
+
   try {
     const listEl = document.getElementById('diaryCompletionList');
     if (listEl) {
