@@ -38,7 +38,7 @@ const DEMO_FIXED_QUERY_DATE = '2026-03-01';
 const DEMO_PERSONALITY_STORAGE_KEY = 'demo_student_personality_v1';
 const DEMO_FALLBACK_DATA = {
   daily_reflections: [
-    { id: 'demo-dr-1', class_code: '체험용', student_id: '1', reflection_date: '2026-03-01', learning_text: '오늘은 세계사 시간에 산업혁명 이후 사회 변화 흐름을 정리했다. 원인과 결과를 연결해서 설명하니 더 잘 이해됐다.', subject_tags: ['사회', '세계사', '토론'], gratitude_text: '발표할 때 친구들이 끝까지 들어줘서 고마웠다.' },
+    { id: 'demo-dr-1', class_code: '체험용', student_id: '1', reflection_date: '2026-03-01', learning_text: '오늘은 세계사 시간에 산업혁명 이후 사회 변화 흐름을 정리했다. 원인과 결과를 연결해서 설명하니 더 잘 이해됐다.', subject_tags: ['국어', '수학', '사회', '과학', '영어', '음악', '미술', '체육', '도덕', '실과', '토론', '발표', '모둠활동', '기타', '세계사'], gratitude_text: '발표할 때 친구들이 끝까지 들어줘서 고마웠다.' },
     { id: 'demo-dr-2', class_code: '체험용', student_id: '1', reflection_date: '2026-02-28', learning_text: '수학에서 비례식 문제를 단계별로 풀어보며 실수를 줄였다. 중간 계산을 메모하니 정확도가 올라갔다.', subject_tags: ['수학'] },
     { id: 'demo-dr-3', class_code: '체험용', student_id: '1', reflection_date: '2026-02-27', learning_text: '국어 시간에 설명문 구조를 분석하고 핵심 문장을 찾아 요약했다. 문단별 중심 생각을 구분하는 연습이 도움이 됐다.', subject_tags: ['국어'] },
     { id: 'demo-dr-4', class_code: '체험용', student_id: '1', reflection_date: '2026-02-26', learning_text: '과학 실험에서 증발 속도 차이를 관찰했다. 변인을 하나씩 통제해야 결과를 비교할 수 있다는 점을 이해했다.', subject_tags: ['과학', '실험'] },
