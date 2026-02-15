@@ -31,6 +31,23 @@ let studentPersonality = null; // 학생 성향 정보
 let isDemoMode = false;
 let demoRole = null;
 const DEMO_FIXED_QUERY_DATE = '2026-03-01';
+const DEMO_PERSONALITY_STORAGE_KEY = 'demo_student_personality_v1';
+
+function loadDemoPersonalityFromStorage() {
+  try {
+    const raw = sessionStorage.getItem(DEMO_PERSONALITY_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.personality_type ? parsed : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function saveDemoPersonalityToStorage(personality) {
+  if (!personality || !personality.personality_type) return;
+  try { sessionStorage.setItem(DEMO_PERSONALITY_STORAGE_KEY, JSON.stringify(personality)); } catch (error) { }
+}
 
 function getKstTodayStr() {
   const now = new Date();
@@ -454,7 +471,7 @@ function initDemoMode(role) {
   if (role === 'student') {
     // 학생 전역 변수 설정
     currentStudent = { id: '1', type: 'individual', name: '1' };
-    studentPersonality = null;
+    studentPersonality = loadDemoPersonalityFromStorage();
 
     // 학생 UI 표시
     document.getElementById('studentTab').classList.remove('hidden');
@@ -1248,10 +1265,17 @@ function clearRatingSelectionUI() {
 }
 function applyExistingRatings(scores) {
   clearRatingSelectionUI();
+  if (!scores) return;
+  if (typeof scores === 'string') {
+    try { scores = JSON.parse(scores); } catch (e) { return; }
+  }
+  if (scores && typeof scores === 'object' && scores.scores && typeof scores.scores === 'object') {
+    scores = scores.scores;
+  }
   if (!scores || typeof scores !== 'object') return;
   const rows = document.querySelectorAll('#ratingItems .rating-buttons');
   rows.forEach((row, idx) => {
-    const raw = scores[String(idx)] ?? scores[idx];
+    const raw = scores[String(idx)] ?? scores[idx] ?? scores[String(idx + 1)] ?? scores[idx + 1];
     const score = parseInt(raw, 10);
     if (score < 1 || score > 5) return;
     const btn = row.querySelectorAll('.rating-btn')[score - 1];
@@ -1316,9 +1340,42 @@ async function selectTarget(id, button) {
   if (!currentStudent) return;
   try {
     const date = document.getElementById('reviewDate').value;
-    const { data: existing } = await db.from('reviews').select('scores_json').eq('class_code', currentClassCode).eq('review_date', date).eq('reviewer_id', String(currentStudent.id)).eq('target_id', String(id)).eq('review_type', currentStudent.type).maybeSingle();
+    const { data: typedRows } = await db.from('reviews')
+      .select('scores_json')
+      .eq('class_code', currentClassCode)
+      .eq('review_date', date)
+      .eq('reviewer_id', String(currentStudent.id))
+      .eq('target_id', String(id))
+      .eq('review_type', currentStudent.type)
+      .limit(1);
+
+    let existing = (typedRows && typedRows.length > 0) ? typedRows[0] : null;
+
+    // Legacy fallback: old rows may not have review_type.
+    if (!existing) {
+      const { data: legacyRows } = await db.from('reviews')
+        .select('scores_json')
+        .eq('class_code', currentClassCode)
+        .eq('review_date', date)
+        .eq('reviewer_id', String(currentStudent.id))
+        .eq('target_id', String(id))
+        .limit(1);
+      existing = (legacyRows && legacyRows.length > 0) ? legacyRows[0] : null;
+    }
+
+    // Final fallback: class_code mismatch in old demo data.
+    if (!existing) {
+      const { data: looseRows } = await db.from('reviews')
+        .select('scores_json')
+        .eq('review_date', date)
+        .eq('reviewer_id', String(currentStudent.id))
+        .eq('target_id', String(id))
+        .limit(1);
+      existing = (looseRows && looseRows.length > 0) ? looseRows[0] : null;
+    }
+
     if (requestSeq !== targetSelectionRequestSeq) return;
-    if (existing && existing.scores_json && existing.scores_json.scores) applyExistingRatings(existing.scores_json.scores);
+    if (existing && existing.scores_json) applyExistingRatings(existing.scores_json);
   } catch (error) {
     console.warn('Failed to load saved scores for target:', error);
   }
@@ -2554,6 +2611,17 @@ async function initSelfEvaluation() {
 
   // 체험 모드: 퀴즈를 ABABABAB으로 미리 세팅
   if (isDemoMode) {
+    if (!studentPersonality) studentPersonality = loadDemoPersonalityFromStorage();
+    if (studentPersonality && studentPersonality.personality_type) {
+      document.getElementById('personalityQuiz').classList.add('hidden');
+      if (document.getElementById('personalityResult').classList.contains('hidden')) {
+        document.getElementById('selfEvaluationMenu').classList.remove('hidden');
+        switchSelfTab('daily');
+      } else {
+        document.getElementById('selfEvaluationMenu').classList.add('hidden');
+      }
+      return;
+    }
     showPersonalityQuiz();
     // 미리 ABABABAB 답변 세팅 + UI 표시
     personalityQuestions.forEach(q => {
@@ -2696,6 +2764,7 @@ async function submitPersonalityQuiz() {
     }
 
     studentPersonality = { personality_type: personalityType, question_responses: quizAnswers };
+    if (isDemoMode) saveDemoPersonalityToStorage(studentPersonality);
     showPersonalityResult(personalityType);
 
     document.getElementById('personalityQuiz').classList.add('hidden');
