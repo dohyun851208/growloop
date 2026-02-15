@@ -1,4 +1,4 @@
-
+﻿
 // ============================================
 // Supabase 설정
 // ============================================
@@ -1547,6 +1547,50 @@ async function viewMyResult() {
 // ============================================
 // Gemini AI
 // ============================================
+function repairMojibakeText(text) {
+  if (!text || typeof text !== 'string') return text;
+
+  let hasSuspicious = false;
+  let allLatin1 = true;
+  let nonAsciiCount = 0;
+
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code > 127) nonAsciiCount++;
+    if (code > 255) {
+      allLatin1 = false;
+      break;
+    }
+    if ((code >= 0x00C0 && code <= 0x00FF) || code === 0x20AC || code === 0x2122 || code === 0x0153) {
+      hasSuspicious = true;
+    }
+  }
+
+  if (!hasSuspicious || !allLatin1 || nonAsciiCount === 0) return text;
+
+  try {
+    const bytes = new Uint8Array(text.length);
+    for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i);
+    const fixed = new TextDecoder('utf-8').decode(bytes);
+
+    const hangulCount = s => (s.match(/[가-힣]/g) || []).length;
+    const latinNoiseCount = s => {
+      let n = 0;
+      for (let i = 0; i < s.length; i++) {
+        const c = s.charCodeAt(i);
+        if (c >= 0x00C0 && c <= 0x00FF) n++;
+      }
+      return n;
+    };
+
+    if (hangulCount(fixed) >= hangulCount(text) && latinNoiseCount(fixed) <= latinNoiseCount(text)) {
+      return fixed;
+    }
+  } catch (e) {}
+
+  return text;
+}
+
 async function callGemini(promptText, config = {}) {
   try {
     const res = await fetch('/api/gemini', {
@@ -1558,16 +1602,18 @@ async function callGemini(promptText, config = {}) {
       })
     });
     const data = await res.json().catch(() => null);
+    const apiError = repairMojibakeText(data?.error || '');
+    const apiText = repairMojibakeText(data?.text || '');
 
     if (!res.ok || !data?.ok) {
       const code = data?.code || 'provider_error';
-      if (code === 'auth_error') return { ok: false, code, error: 'AI 인증 오류: API 키 설정을 확인해 주세요.' };
+      if (code === 'auth_error') return { ok: false, code, error: apiError || 'AI authentication error.' };
       if (code === 'quota_exceeded') return { ok: false, code, error: 'AI 사용량 초과: 잠시 후 다시 시도해 주세요.' };
       if (code === 'network_error') return { ok: false, code, error: '네트워크 오류: 연결 상태를 확인해 주세요.' };
-      return { ok: false, code, error: data?.error || ('HTTP ' + res.status) };
+      return { ok: false, code, error: apiError || ('HTTP ' + res.status) };
     }
 
-    const text = data?.text;
+    const text = apiText;
     return text ? { ok: true, text } : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
   } catch (e) {
     return { ok: false, code: 'network_error', error: '네트워크 오류: 연결 상태를 확인해 주세요.' };
@@ -1577,7 +1623,7 @@ async function generateSummary(reviews) {
   if (!reviews || reviews.length === 0) return '요약할 리뷰 데이터가 없습니다.';
   const prompt = '역할: 객관적이고 명확한 피드백을 주는 선생님\n목표: 동료 평가 데이터(주관식 피드백)를 분석하여 핵심만 간결하게 전달하기\n\n중요: 아래 리뷰 데이터는 친구들이 작성한 주관식 피드백입니다. 점수와 관련된 내용은 절대 언급하지 마세요.\n\n요구사항:\n1. 편지글 형식이나 인삿말 절대 금지. 바로 본론으로 시작할 것.\n2. 오직 아래 두 가지 헤더로만 구성할 것.\n   ## 칭찬해 주고 싶은 점\n   ## 앞으로를 위한 조언\n3. 칭찬해 주고 싶은 점: 긍정적인 피드백을 요약하여 바로 첫 줄부터 내용을 작성.\n4. 앞으로를 위한 조언: 아쉬운 점을 부드럽고 건설적인 문장(해요체)으로 순화하여 바로 첫 줄부터 내용을 작성.\n5. 점수나 수치와 관련된 내용은 절대 포함하지 말 것.\n6. 각 헤더 바로 다음 줄에 빈 줄 없이 내용을 시작할 것. 7. 응답 맨 첫 줄에 빈 줄이나 공백 없이 바로 내용을 시작할 것.\n\n--- 리뷰 데이터 ---\n' + reviews.join('\n');
   const result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 2048 } });
-  return result.ok ? result.text : 'AI 요약 실패: 잠시 후 다시 시도해주세요.';
+  return result.ok ? result.text : 'AI summary failed [' + (result.code || 'unknown') + ']: ' + (result.error || 'No details');
 }
 
 // ============================================
@@ -1681,18 +1727,18 @@ function renderScoreDistribution(ranking, type) {
 
   const maxBin = Math.max(...bins, 1);
   const colorPairs = [
-    ['#c779d0', '#e2a6e8'],
-    ['#6f86d6', '#9fb0ea'],
-    ['#5f9ea0', '#8bbdc0'],
-    ['#6fa98f', '#98c3b1'],
-    ['#7b8bbd', '#a2aed2']
+    ['#C96D6D', '#E29A7D'],
+    ['#C78B4A', '#E4BF79'],
+    ['#5FA584', '#8CCDA9'],
+    ['#4B88B7', '#79B4DC'],
+    ['#7566C9', '#A191E5']
   ];
 
   let h = '<div class="chart-container" style="border-left-color:var(--color-blue);margin-top:20px;"><h4 style="color:var(--color-blue);">' + (type === 'group' ? '\uBAA8\uB46C' : '\uAC1C\uC778') + ' \uD3C9\uADE0 \uC810\uC218 \uBD84\uD3EC</h4><div class="bar-chart">';
   binLabels.forEach((label, i) => {
     const pct = (bins[i] / maxBin) * 100;
     const pair = colorPairs[i] || colorPairs[0];
-    h += '<div class="bar-item"><div class="bar-label">' + label + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + pair[0] + ' 0%,' + pair[1] + ' 100%) !important;"></div></div><div class="bar-value">' + bins[i] + '\uBA85</div></div>';
+    h += '<div class="bar-item"><div class="bar-label">' + label + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + pair[0] + ' 0%,' + pair[1] + ' 100%);"></div></div><div class="bar-value">' + bins[i] + '\uBA85</div></div>';
   });
   h += '</div></div>';
   document.getElementById('rankingTable').insertAdjacentHTML('afterend', h);
@@ -1896,28 +1942,180 @@ function updateGradeOptions() {
   const gs = document.getElementById('autoGradeSelect');
   gs.innerHTML = sl === '초등학교' ? '<option value="1학년">1학년</option><option value="2학년">2학년</option><option value="3학년">3학년</option><option value="4학년">4학년</option><option value="5학년" selected>5학년</option><option value="6학년">6학년</option>' : '<option value="1학년" selected>1학년</option><option value="2학년">2학년</option><option value="3학년">3학년</option>';
 }
+function parseCriteriaFromAiText(rawText) {
+  if (!rawText || typeof rawText !== 'string') return null;
+
+  const base = rawText.trim();
+  if (!base) return null;
+
+  const candidates = [base];
+  const fenced = base.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenced && fenced[1]) candidates.push(fenced[1].trim());
+
+  const start = base.indexOf('{');
+  const end = base.lastIndexOf('}');
+  if (start !== -1 && end !== -1 && end > start) {
+    candidates.push(base.substring(start, end + 1).trim());
+  }
+
+  const arrMatch = base.match(/"criteria"\s*:\s*\[([\s\S]*?)\]/i);
+  if (arrMatch && arrMatch[1]) {
+    candidates.push('{"criteria":[' + arrMatch[1] + ']}');
+  }
+
+  for (const c of candidates) {
+    try {
+      const parsed = JSON.parse(c);
+      if (parsed && Array.isArray(parsed.criteria) && parsed.criteria.length >= 6) {
+        return parsed.criteria.map(v => String(v || '').trim()).filter(Boolean).slice(0, 6);
+      }
+      if (parsed && typeof parsed === 'object') {
+        const keyed = [];
+        for (let i = 1; i <= 6; i++) {
+          const v = parsed['criteria_' + i] ?? parsed['criteria' + i] ?? parsed['criterion_' + i] ?? parsed['criterion' + i];
+          if (typeof v === 'string' && v.trim()) keyed.push(v.trim());
+        }
+        if (keyed.length >= 6) return keyed.slice(0, 6);
+      }
+      if (Array.isArray(parsed) && parsed.length >= 6) {
+        return parsed.map(v => String(v || '').trim()).filter(Boolean).slice(0, 6);
+      }
+    } catch (e) {}
+  }
+
+  const lineQuestions = base
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .map(l => l.replace(/^[-*0-9.)\s]+/, ''))
+    .filter(l => l && /[?]$/.test(l));
+
+  if (lineQuestions.length >= 6) return lineQuestions.slice(0, 6);
+
+  const lineItems = base
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .map(l => l.replace(/^[-*0-9.)\s]+/, ''))
+    .filter(l => l && l.length >= 4 && !l.startsWith('{') && !l.startsWith('['));
+  if (lineItems.length >= 6) return lineItems.slice(0, 6);
+
+  const quoted = [];
+  const re = /"([^"\n]{4,})"/g;
+  let m;
+  while ((m = re.exec(base)) !== null) {
+    const v = (m[1] || '').trim();
+    if (v) quoted.push(v);
+  }
+  if (quoted.length >= 6) return quoted.slice(0, 6);
+
+  const sentenceLike = base
+    .split(/[.\n]/)
+    .map(s => s.trim())
+    .map(s => s.replace(/^[-*0-9.)\s]+/, ''))
+    .filter(s => s.length >= 4)
+    .filter(s => !s.startsWith('{') && !s.startsWith('[') && !s.includes('```'));
+  if (sentenceLike.length >= 6) return sentenceLike.slice(0, 6);
+
+  return null;
+}
+
 async function generateCriteriaAI(btn) {
   const date = document.getElementById('settingDate').value;
   const grade = document.getElementById('autoSchoolLevel').value + ' ' + document.getElementById('autoGradeSelect').value;
   const evalTarget = document.getElementById('autoTargetSelect').value;
   const objTask = await getObjectiveAndTask(date);
-  if (!objTask.objective && !objTask.task) { showModal({ type: 'alert', icon: '❌', title: '오류', message: "저장된 학습목표나 과제가 없습니다.<br><br>먼저 '기본 정보 저장' 버튼을 눌러주세요." }); return; }
-  setLoading(true, btn, '🤖 AI 생성 중...');
-  const targetText = evalTarget === 'group' ? '모둠' : '개인';
-  const prompt = '당신은 초중고 교사를 위한 동료평가 기준 생성 전문가입니다.\n\n[입력 정보]\n- 학년: ' + grade + '\n- 평가 대상: ' + targetText + ' 평가\n- 학습목표: ' + (objTask.objective || '(미입력)') + '\n- 평가과제: ' + (objTask.task || '(미입력)') + '\n\n[출력 규칙]\n1. 반드시 3개 영역, 각 영역 2문항씩 총 6개 문항을 생성.\n2. 모든 문항은 "~했나요?", "~되었나요?" 형태의 질문.\n3. 학생이 이해할 수 있는 쉬운 표현 사용.\n4. \'또래\' 대신 \'친구\' 표현 사용.\n\n[영역별 기준]\n① 지식·이해 영역\n- 문항1: 내용 정확성\n- 문항2: 정보 다양성/근거\n② 과정·기능 영역\n- 문항1: 구성/디자인/가독성\n- 문항2: 전달력/발표/자료활용\n③ 가치·태도 영역\n- 문항1: 집중/책임감\n- 문항2: 협력/역할수행 (' + targetText + ' 특성 반영)\n\n[출력 형식]\n반드시 아래 JSON 형식으로만 응답. 다른 말 절대 금지.\n{"criteria": ["지식이해1", "지식이해2", "과정기능1", "과정기능2", "가치태도1", "가치태도2"]}';
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.2, maxOutputTokens: 512 } });
-  setLoading(false, btn, '🤖 2단계: AI로 기준 자동 생성하기');
-  if (!result.ok) { showModal({ type: 'alert', icon: '❌', title: '생성 실패', message: result.error }); return; }
+
+  if (!objTask.objective && !objTask.task) {
+    showModal({
+      type: 'alert',
+      icon: '\u274C',
+      title: '\uC624\uB958',
+      message: "\uC800\uC7A5\uB41C \uD559\uC2B5\uBAA9\uD45C\uB098 \uACFC\uC81C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.<br><br>\uBA3C\uC800 '\uAE30\uBCF8 \uC815\uBCF4 \uC800\uC7A5' \uBC84\uD2BC\uC744 \uB20C\uB7EC\uC8FC\uC138\uC694."
+    });
+    return;
+  }
+
+  setLoading(true, btn, '\uD83E\uDD16 AI \uC0DD\uC131 \uC911...');
+  const targetText = evalTarget === 'group' ? '\uBAA8\uB460' : '\uAC1C\uC778';
+
+  const prompt =
+    'You are an expert teacher assistant generating peer-evaluation criteria in Korean.\n\n' +
+    'Input:\n' +
+    '- Grade: ' + grade + '\n' +
+    '- Evaluation target: ' + targetText + '\n' +
+    '- Learning objective: ' + (objTask.objective || '(none)') + '\n' +
+    '- Task: ' + (objTask.task || '(none)') + '\n\n' +
+    'Rules:\n' +
+    '1) Return exactly 6 criteria.\n' +
+    '2) Keep each criterion as a short Korean question sentence.\n' +
+    '3) Cover three groups with 2 items each: knowledge/understanding, process/skills, values/attitude.\n' +
+    '4) Use easy Korean expressions for students.\n' +
+    '5) Use the wording "friend" consistently.\\n\\n' +
+    'Output format (strict JSON only, no markdown, no explanation):\n' +
+    '{"criteria":["...","...","...","...","...","..."]}';
+
+  const generationConfig = {
+    temperature: 0.1,
+    maxOutputTokens: 1024,
+    responseMimeType: 'application/json'
+  };
+
+  const result = await callGemini(prompt, { generationConfig });
+  setLoading(false, btn, '\uD83E\uDD16 2\uB2E8\uACC4: AI\uB85C \uAE30\uC900 \uC790\uB3D9 \uC0DD\uC131\uD558\uAE30');
+
+  if (!result.ok) {
+    showModal({ type: 'alert', icon: '\u274C', title: '\uC0DD\uC131 \uC2E4\uD328', message: result.error });
+    return;
+  }
+
   try {
-    let text = result.text.replace(/```json/gi, '').replace(/```/g, '').trim();
-    const start = text.indexOf('{'); const end = text.lastIndexOf('}');
-    if (start !== -1 && end !== -1) text = text.substring(start, end + 1);
-    const parsed = JSON.parse(text);
-    if (parsed.criteria && parsed.criteria.length === 6) {
-      for (let i = 0; i < 6; i++) { const input = document.getElementById('autoRate' + (i + 1)); input.value = parsed.criteria[i] || ''; input.removeAttribute('readonly'); input.removeAttribute('disabled'); }
-      showModal({ type: 'alert', icon: '✨', title: 'AI 생성 완료', message: '평가기준이 생성되었습니다.<br>내용을 확인하고 <strong>3단계 최종 저장</strong>을 눌러주세요.' });
-    } else throw new Error('criteria 6개 불일치');
-  } catch (e) { showModal({ type: 'alert', icon: '❌', title: '파싱 실패', message: 'AI 응답을 파싱할 수 없습니다. 다시 시도해주세요.' }); }
+    let criteria = parseCriteriaFromAiText(result.text);
+    let retryResult = null;
+
+    if (!criteria || criteria.length !== 6) {
+      const retryPrompt = prompt + '\n\n[VERY IMPORTANT]\nReturn ONLY strict JSON with exactly 6 items.\n{"criteria":["...","...","...","...","...","..."]}\nNo explanation.';
+      retryResult = await callGemini(retryPrompt, { generationConfig });
+      if (retryResult.ok) {
+        criteria = parseCriteriaFromAiText(retryResult.text);
+      }
+    }
+
+    if (!criteria || criteria.length !== 6) {
+      const rawPreview = String((retryResult && retryResult.ok ? retryResult.text : result.text) || '')
+        .slice(0, 900)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      showModal({
+        type: 'alert',
+        icon: '\u274C',
+        title: '\uD30C\uC2F1 \uC2E4\uD328',
+        message: 'AI \uC751\uB2F5\uC744 \uD30C\uC2F1\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.<br><br><small>AI raw response (preview)</small><pre style="max-height:220px;overflow:auto;white-space:pre-wrap;background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:8px;text-align:left;">' + rawPreview + '</pre>'
+      });
+      return;
+    }
+
+    for (let i = 0; i < 6; i++) {
+      const input = document.getElementById('autoRate' + (i + 1));
+      input.value = criteria[i] || '';
+      input.removeAttribute('readonly');
+      input.removeAttribute('disabled');
+    }
+
+    showModal({
+      type: 'alert',
+      icon: '\u2728',
+      title: 'AI \uC0DD\uC131 \uC644\uB8CC',
+      message: '\uD3C9\uAC00\uAE30\uC900\uC774 \uC0DD\uC131\uB418\uC5C8\uC2B5\uB2C8\uB2E4.<br>\uB0B4\uC6A9\uC744 \uD655\uC778\uD558\uACE0 <strong>3\uB2E8\uACC4 \uCD5C\uC885 \uC800\uC7A5</strong>\uC744 \uB20C\uB7EC\uC8FC\uC138\uC694.'
+    });
+  } catch (e) {
+    showModal({
+      type: 'alert',
+      icon: '\u274C',
+      title: '\uD30C\uC2F1 \uC2E4\uD328',
+      message: 'AI \uC751\uB2F5\uC744 \uD30C\uC2F1\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4. \uB2E4\uC2DC \uC2DC\uB3C4\uD574\uC8FC\uC138\uC694.'
+    });
+  }
 }
 function resetAllReviewData(btn) {
   if (isDemoMode) { showDemoBlockModal(); return; }

@@ -1,4 +1,18 @@
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3-flash-preview';
+const DEFAULT_MODEL = normalizeModelName(process.env.GEMINI_MODEL);
+
+function normalizeModelName(rawModel) {
+  const fallback = 'gemini-flash-latest';
+  if (!rawModel || typeof rawModel !== 'string') return fallback;
+
+  let model = rawModel.trim();
+  if (!model) return fallback;
+
+  // Accept values like "models/gemini-flash-latest" as well.
+  if (model.startsWith('models/')) {
+    model = model.slice('models/'.length).trim();
+  }
+  return model || fallback;
+}
 
 function safeJsonParse(raw) {
   if (!raw) return null;
@@ -11,7 +25,9 @@ function safeJsonParse(raw) {
 
 function mapProviderError(status, providerMessage) {
   if (status === 400) return { code: 'bad_request', error: providerMessage || 'Invalid Gemini request.' };
-  if (status === 401 || status === 403) return { code: 'auth_error', error: 'Gemini authentication failed.' };
+  if (status === 401 || status === 403) {
+    return { code: 'auth_error', error: providerMessage || 'Gemini authentication failed.' };
+  }
   if (status === 429) return { code: 'quota_exceeded', error: 'Gemini quota exceeded.' };
   if (status >= 500) return { code: 'provider_unavailable', error: 'Gemini service unavailable.' };
   return { code: 'provider_error', error: providerMessage || `Gemini request failed (${status}).` };
