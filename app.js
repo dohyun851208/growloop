@@ -1824,6 +1824,14 @@ function switchTeacherPraiseSubTab(mode) {
 }
 
 async function callGemini(promptText, config = {}) {
+  // When opened directly as a local file (file://), serverless API routes (/api/*) do not exist.
+  if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
+    return {
+      ok: false,
+      code: 'local_file_mode',
+      error: 'AI 기능은 배포 사이트 또는 로컬 서버(vercel dev)에서만 사용할 수 있어요.'
+    };
+  }
   try {
     const res = await fetch('/api/gemini', {
       method: 'POST',
