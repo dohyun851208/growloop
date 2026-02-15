@@ -21,7 +21,6 @@ let currentStudent = null;
 let currentClassCode = '';
 
 // 자기평가 전역 변수
-let selectedGratitudeTags = [];
 let selectedSubjectTags = [];
 let currentMessageMode = null; // 'anonymous' or 'named'
 
@@ -399,7 +398,7 @@ function installDemoDbProxy() {
     }
 
     return {
-      select: function () { return createDemoSelectChain(); },
+      select: function (...args) { return originalFrom(tableName).select(...args); },
       insert: function () { showDemoBlockModal(); return createFakeWriteChain(); },
       update: function () { showDemoBlockModal(); return createFakeWriteChain(); },
       upsert: function () { showDemoBlockModal(); return createFakeWriteChain(); },
@@ -1170,12 +1169,12 @@ async function switchMiniTab(mode) {
   if (mode === 'review') {
     // 전체 현황 - 하위 탭 표시 후 기본으로 전체 현황
     document.getElementById('reviewSubTabArea').classList.remove('hidden');
-    mainTabBtns[0].classList.add('active-nav');
+    mainTabBtns[1].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'block';
     const el = document.getElementById('rankingMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     await switchReviewSubTab('ranking');
   } else if (mode === 'diary') {
-    mainTabBtns[1].classList.add('active-nav');
+    mainTabBtns[0].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('diaryMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
     initDiaryDate(); loadTeacherDiaryData();
@@ -1774,28 +1773,6 @@ function resetAllReviewData(btn) {
 // 자기평가 (Self-Evaluation) 기능
 // ============================================
 
-// 감사 태그 토글
-function toggleGratitudeTag(tag) {
-  const btnList = document.querySelectorAll('.tag-btn');
-  const tagBtn = Array.from(btnList).find(btn => btn.innerText.includes(tag));
-
-  if (!tagBtn) return;
-
-  if (selectedGratitudeTags.includes(tag)) {
-    selectedGratitudeTags = selectedGratitudeTags.filter(t => t !== tag);
-    tagBtn.classList.remove('selected');
-  } else {
-    if (selectedGratitudeTags.length >= 2) {
-      showModal({ type: 'alert', icon: '⚠️', title: '알림', message: '감사 태그는 최대 2개까지 선택할 수 있어요!' });
-      return;
-    }
-    selectedGratitudeTags.push(tag);
-    tagBtn.classList.add('selected');
-  }
-
-  if (navigator.vibrate) navigator.vibrate(10);
-}
-
 // 메시지 모드 토글 (익명/실명)
 function toggleMessageMode(mode) {
   const anonymousBtn = document.getElementById('anonymousBtn');
@@ -1863,24 +1840,13 @@ async function loadDailyReflection() {
     .maybeSingle();
 
   if (reflection) {
-    document.getElementById('gratitudeText').value = reflection.gratitude_text || '';
     document.getElementById('learningText').value = reflection.learning_text || '';
-    selectedGratitudeTags = reflection.gratitude_tags || [];
     selectedSubjectTags = reflection.subject_tags || [];
   } else {
     // 기록이 없으면 폼 초기화
-    document.getElementById('gratitudeText').value = '';
     document.getElementById('learningText').value = '';
-    selectedGratitudeTags = [];
     selectedSubjectTags = [];
   }
-
-  // 감사 태그 버튼 활성화
-  document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('selected'));
-  selectedGratitudeTags.forEach(tag => {
-    const tagBtn = Array.from(document.querySelectorAll('.tag-btn')).find(btn => btn.innerText.includes(tag));
-    if (tagBtn) tagBtn.classList.add('selected');
-  });
 
   // 과목 태그 버튼 활성화
   document.querySelectorAll('.subject-tag-btn').forEach(btn => btn.classList.remove('selected'));
@@ -1900,11 +1866,10 @@ async function submitDailyReflection() {
     return;
   }
 
-  const gratitudeText = document.getElementById('gratitudeText').value.trim();
   const learningText = document.getElementById('learningText').value.trim();
 
-  if (!gratitudeText && !learningText) {
-    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '감사한 것이나 배운 것 중 하나는 써주세요.' });
+  if (!learningText) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '오늘의 배움을 작성해주세요.' });
     return;
   }
 
@@ -1919,8 +1884,6 @@ async function submitDailyReflection() {
       class_code: currentClassCode,
       student_id: String(currentStudent.id),
       reflection_date: targetDate,
-      gratitude_text: gratitudeText || null,
-      gratitude_tags: selectedGratitudeTags.length > 0 ? selectedGratitudeTags : null,
       learning_text: learningText || null,
       subject_tags: selectedSubjectTags.length > 0 ? selectedSubjectTags : null
     };
@@ -1934,7 +1897,7 @@ async function submitDailyReflection() {
     showMsg(msg, '성공적으로 저장되었습니다! 🎉', 'success');
 
     // AI 맞춤 피드백 생성
-    generateAiFeedback(gratitudeText, learningText, selectedSubjectTags);
+    generateAiFeedback(learningText, selectedSubjectTags);
 
   } catch (err) {
     console.error('일기 저장 오류:', err);
@@ -1945,7 +1908,7 @@ async function submitDailyReflection() {
 
 
 // AI 맞춤 피드백 생성 (감사+배움 글에 대해)
-async function generateAiFeedback(gratitude, learning, subjects) {
+async function generateAiFeedback(learning, subjects) {
   const feedbackSection = document.getElementById('aiFeedbackSection');
   const feedbackText = document.getElementById('aiFeedbackText');
   feedbackSection.classList.remove('hidden');
@@ -1954,7 +1917,7 @@ async function generateAiFeedback(gratitude, learning, subjects) {
   const subjectInfo = subjects.length > 0 ? '과목/활동: ' + subjects.join(', ') : '';
   const personalityInfo = studentPersonality ? '학생 성향: ' + studentPersonality.personality_type : '';
 
-  const prompt = '당신은 초등학생의 성장 일기에 따뜻한 맞춤 피드백을 주는 담임선생님입니다.\n\n[학생 기록]\n감사한 것: ' + (gratitude || '(미작성)') + '\n배운 것: ' + (learning || '(미작성)') + '\n' + subjectInfo + '\n' + personalityInfo + '\n\n[피드백 규칙]\n1. 해요체로 부드럽게 3~4문장 이내로 작성\n2. 학생이 쓴 내용을 구체적으로 언급하며 칭찬\n3. 배운 것에 대해 "다음에 이렇게 해보면 더 좋겠다"는 조언 한 가지\n4. 따뜻하고 응원하는 어조\n5. 이모지 적절히 사용\n6. 절대 5문장을 넘기지 말것';
+  const prompt = '당신은 초등학생의 성장 일기에 따뜻한 맞춤 피드백을 주는 담임선생님입니다.\n\n[학생 기록]\n배운 것: ' + (learning || '(미작성)') + '\n' + subjectInfo + '\n' + personalityInfo + '\n\n[피드백 규칙]\n1. 해요체로 부드럽게 3~4문장 이내로 작성\n2. 학생이 쓴 내용을 구체적으로 언급하며 칭찬\n3. 배운 것에 대해 "다음에 이렇게 해보면 더 좋겠다"는 조언 한 가지\n4. 따뜻하고 응원하는 어조\n5. 이모지 적절히 사용\n6. 절대 5문장을 넘기지 말것';
 
   const result = await callGemini(prompt, { generationConfig: { temperature: 0.7, maxOutputTokens: 300 } });
 
@@ -2096,21 +2059,6 @@ async function loadTeacherDiaryData() {
 
     // 감정 키워드 알림 감지
     renderEmotionAlerts(todayReflections || []);
-
-    // 감사 키워드 통계
-    if (todayReflections && todayReflections.length > 0) {
-      const tagCounts = {};
-      todayReflections.forEach(r => {
-        if (r.gratitude_tags && Array.isArray(r.gratitude_tags)) {
-          r.gratitude_tags.forEach(tag => {
-            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-          });
-        }
-      });
-      renderKeywordStats(tagCounts);
-    } else {
-      document.getElementById('gratitudeStats').innerHTML = '<div class="empty-state"><span class="empty-icon">📊</span><div class="empty-desc">이 날짜에 감사 키워드가 없습니다</div></div>';
-    }
 
   } catch (error) {
     console.error('Error loading diary data:', error);
@@ -2392,7 +2340,7 @@ function renderEmotionAlerts(reflections) {
   const keywords = ['힘들', '슬프', '슬퍼', '외로', '무서', '불안', '걱정', '싫어', '짜증', '화가', '울고', '울었', '죽고', '포기', '미워', '괴롭', '아프', '속상', '우울', '두려'];
   const alerts = [];
   reflections.forEach(r => {
-    const texts = [r.gratitude_text || '', r.learning_text || ''].join(' ');
+    const texts = [r.learning_text || ''].join(' ');
     const found = keywords.filter(k => texts.includes(k));
     if (found.length > 0) alerts.push({ studentId: r.student_id, keywords: found, text: texts.substring(0, 80) });
   });
@@ -2444,6 +2392,7 @@ function escapeHtml(text) {
 // 키워드 통계 렌더링
 function renderKeywordStats(tagCounts) {
   const container = document.getElementById('gratitudeStats');
+  if (!container) return;
 
   if (Object.keys(tagCounts).length === 0) {
     container.innerHTML = '<div class="empty-state"><span class="empty-icon">📊</span><div class="empty-desc">감사 키워드가 없습니다</div></div>';
@@ -2783,7 +2732,6 @@ async function loadDashboardData() {
 
     renderLearningWordCloud(allRecords);
     renderSubjectChart(allRecords);
-    renderGratitudeStats(allRecords);
     renderGrowthTimeline(allRecords);
   } catch (error) {
     console.error('대시보드 로드 오류:', error);
@@ -2902,9 +2850,7 @@ function renderStreakAndBadges(records) {
   // 뱃지 계산
   const totalDays = uniqueDates.length;
   const subjectSet = new Set();
-  let gratitudeCount = 0;
   records.forEach(r => {
-    if (r.gratitude_text) gratitudeCount++;
     if (r.subject_tags && Array.isArray(r.subject_tags)) r.subject_tags.forEach(t => subjectSet.add(t));
   });
   const badges = [];
@@ -2913,7 +2859,6 @@ function renderStreakAndBadges(records) {
   if (totalDays >= 30) badges.push({ icon: '🌳', label: '30일 달성', desc: '30일 이상 기록' });
   if (streak >= 3) badges.push({ icon: '🔥', label: '3일 연속', desc: '3일 연속 기록' });
   if (streak >= 7) badges.push({ icon: '💎', label: '7일 연속', desc: '7일 연속 기록' });
-  if (gratitudeCount >= 5) badges.push({ icon: '💝', label: '감사 마스터', desc: '감사 기록 5회 이상' });
   if (subjectSet.size >= 5) badges.push({ icon: '📚', label: '다재다능', desc: '5개 이상 과목 기록' });
 
   const badgeEl = document.getElementById('badgeContainer');
@@ -2998,6 +2943,7 @@ function renderSubjectChart(records) {
 // ④ 감사 기록 현황
 function renderGratitudeStats(records) {
   const container = document.getElementById('gratitudeChart');
+  if (!container) return;
 
   const totalGratitude = records.filter(r => r.gratitude_text).length;
   const totalLearning = records.filter(r => r.learning_text).length;
@@ -3038,7 +2984,7 @@ function renderGrowthTimeline(records) {
   let html = '';
   recent.forEach(r => {
     const date = r.reflection_date.substring(5); // MM-DD
-    const text = (r.learning_text || r.gratitude_text || '').substring(0, 60);
+    const text = (r.learning_text || '').substring(0, 60);
     const tags = r.subject_tags || [];
 
     html += '<div class="timeline-item">';
@@ -3089,12 +3035,11 @@ async function generateSummaryReport(period) {
     }
 
     const periodLabel = period === 'week' ? '이번 주' : '이번 달';
-    const gratitudeTexts = records.filter(r => r.gratitude_text).map(r => r.gratitude_text);
     const learningTexts = records.filter(r => r.learning_text).map(r => r.learning_text);
     const allSubjects = [];
     records.forEach(r => { if (r.subject_tags) allSubjects.push(...r.subject_tags); });
 
-    const prompt = '당신은 초등학생의 성장 기록을 요약해주는 따뜻한 담임선생님입니다.\n\n[기간] ' + periodLabel + ' (' + startStr + ' ~ ' + endDate + ')\n[기록 수] ' + records.length + '일\n[감사 기록]\n' + gratitudeTexts.join('\n') + '\n[배움 기록]\n' + learningTexts.join('\n') + '\n[과목/활동] ' + [...new Set(allSubjects)].join(', ') + '\n\n[요약 규칙]\n1. 해요체로 3~5문장 이내\n2. 이 기간 동안의 핵심 성장 포인트 정리\n3. 자주 등장한 과목이나 키워드 언급\n4. 다음 기간에 도전해볼 것 한 가지 제안\n5. 따뜻하고 구체적인 칭찬 포함\n6. 이모지 적절히 사용';
+    const prompt = '당신은 초등학생의 성장 기록을 요약해주는 따뜻한 담임선생님입니다.\n\n[기간] ' + periodLabel + ' (' + startStr + ' ~ ' + endDate + ')\n[기록 수] ' + records.length + '일\n[배움 기록]\n' + learningTexts.join('\n') + '\n[과목/활동] ' + [...new Set(allSubjects)].join(', ') + '\n\n[요약 규칙]\n1. 해요체로 3~5문장 이내\n2. 이 기간 동안의 핵심 성장 포인트 정리\n3. 자주 등장한 과목이나 키워드 언급\n4. 다음 기간에 도전해볼 것 한 가지 제안\n5. 따뜻하고 구체적인 칭찬 포함\n6. 이모지 적절히 사용';
 
     const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 500 } });
 
@@ -3136,12 +3081,10 @@ async function generateGrowthReport() {
     const lastDate = records[records.length - 1].reflection_date;
     const allSubjects = [];
     const allLearning = [];
-    const allGratitude = [];
 
     records.forEach(r => {
       if (r.subject_tags) allSubjects.push(...r.subject_tags);
       if (r.learning_text) allLearning.push(r.reflection_date + ': ' + r.learning_text);
-      if (r.gratitude_text) allGratitude.push(r.gratitude_text);
     });
 
     const subjectCounts = {};

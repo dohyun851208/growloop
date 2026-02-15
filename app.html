@@ -167,37 +167,6 @@
 
                         <!-- 성장 일기 탭 -->
                         <div id="dailyReflectionTab">
-                            <div class="accent-box box-violet">
-                                <span class="box-label">💝 오늘의 감사</span>
-                                <label style="margin-bottom:8px;">감사 유형 (최대 2개 선택)</label>
-                                <div class="gratitude-tags"
-                                    style="display:flex; gap:6px; margin-bottom: 8px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; padding: 2px;">
-                                    <button type="button" class="tag-btn" onclick="toggleGratitudeTag('사람')">👥
-                                        사람</button>
-                                    <button type="button" class="tag-btn" onclick="toggleGratitudeTag('학교생활')">🏫
-                                        학교생활</button>
-                                    <button type="button" class="tag-btn" onclick="toggleGratitudeTag('집/일상')">🏠
-                                        집/일상</button>
-                                    <button type="button" class="tag-btn" onclick="toggleGratitudeTag('나 자신')">💪 나
-                                        자신</button>
-                                    <button type="button" class="tag-btn" onclick="toggleGratitudeTag('작은 행운')">🍀 작은
-                                        행운</button>
-                                </div>
-                                <label>오늘 감사한 것 하나</label>
-                                <div class="guide-buttons"
-                                    style="display:flex; gap:6px; margin-bottom:8px; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; flex-wrap: nowrap; padding: 2px;">
-                                    <button type="button" class="template-btn"
-                                        onclick="insertTemplate('🕰️ 고마웠던 순간/상황: \n', 'gratitudeText')">🕰️ 고마웠던
-                                        순간/상황</button>
-                                    <button type="button" class="template-btn"
-                                        onclick="insertTemplate('🎁 고마웠던 것: \n', 'gratitudeText')">🎁 고마웠던 것</button>
-                                    <button type="button" class="template-btn"
-                                        onclick="insertTemplate('🔁 내일 해보고 싶은 것: \n', 'gratitudeText')">🔁 내일 해보고 싶은
-                                        것</button>
-                                </div>
-                                <textarea id="gratitudeText" placeholder="예: 친구가 점심을 같이 먹어줘서 감사했어요"
-                                    style="min-height:124px; margin-bottom:10px;"></textarea>
-                            </div>
                             <div class="accent-box box-blue">
                                 <span class="box-label">📚 오늘의 배움</span>
                                 <label>오늘 배운 것이나 느낀 점</label>
@@ -299,15 +268,6 @@
                                 <div id="subjectChart" class="subject-chart">
                                     <div class="empty-state"><span class="empty-icon">📚</span>
                                         <div class="empty-desc">과목 태그를 선택하면 통계가 나타나요!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 감사 그래프 -->
-                            <div class="accent-box box-violet">
-                                <span class="box-label">💝 감사 기록 현황</span>
-                                <div id="gratitudeChart" class="gratitude-chart">
-                                    <div class="empty-state"><span class="empty-icon">💝</span>
-                                        <div class="empty-desc">감사 기록이 쌓이면 그래프가 나타나요!</div>
                                     </div>
                                 </div>
                             </div>
@@ -747,17 +707,6 @@
                             있습니다.
                         </p>
                         <div id="emotionAlertList"></div>
-                    </div>
-                    <div class="accent-box box-amber">
-                        <span class="box-label">🏷️ 감사 키워드 통계</span>
-                        <div id="gratitudeStats" style="margin-top:15px;">
-                            <div class="keyword-cloud">
-                                <div class="empty-state">
-                                    <span class="empty-icon">📊</span>
-                                    <div class="empty-desc">날짜를 선택하면 키워드 통계를 볼 수 있습니다</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 <div id="praiseMiniTab" class="hidden">

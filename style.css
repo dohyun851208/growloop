@@ -1931,7 +1931,7 @@ button:disabled {
 /* ============================================ */
 .quiz-question {
     background: var(--bg-card);
-    border: 2px solid var(--border);
+    border: 2px solid #e7e5e4;
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 15px;
@@ -1964,10 +1964,11 @@ button:disabled {
 }
 
 .quiz-option {
+
     flex: 1;
     padding: 15px;
     background: white;
-    border: 2px solid var(--border);
+    border: 2px solid #e7e5e4;
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
@@ -1976,6 +1977,25 @@ button:disabled {
     color: var(--text-sub)
 }
 
+.quiz-option.option-a {
+    border-color: #e7e5e4;
+    background: white;
+}
+
+.quiz-option.option-b {
+    border-color: #e7e5e4;
+    background: white;
+}
+
+.quiz-option.option-a:hover:not(.selected) {
+    border-color: #e7e5e4;
+    background: #fafafa;
+}
+
+.quiz-option.option-b:hover:not(.selected) {
+    border-color: #e7e5e4;
+    background: #fafafa;
+}
 .quiz-option:hover {
     border-color: var(--color-teacher);
     background: var(--color-teacher-bg);
@@ -1988,14 +2008,18 @@ button:disabled {
 }
 
 .quiz-option.selected-a {
-    border-color: #4F84C7;
-    background: linear-gradient(135deg, #4F84C7 0%, #6CA5E0 100%);
+    border: 2px solid transparent;
+    background:
+        linear-gradient(135deg, #4F84C7 0%, #6CA5E0 100%) padding-box,
+        linear-gradient(135deg, #4F84C7 0%, #6CA5E0 100%) border-box;
     box-shadow: 0 4px 12px rgba(79, 132, 199, 0.35)
 }
 
 .quiz-option.selected-b {
-    border-color: #5A9E8F;
-    background: linear-gradient(135deg, #5A9E8F 0%, #7BC1B1 100%);
+    border: 2px solid transparent;
+    background:
+        linear-gradient(135deg, #5A9E8F 0%, #7BC1B1 100%) padding-box,
+        linear-gradient(135deg, #5A9E8F 0%, #7BC1B1 100%) border-box;
     box-shadow: 0 4px 12px rgba(90, 158, 143, 0.35)
 }
 
@@ -2562,6 +2586,11 @@ button:disabled {
 }
 
 /* 다크 모드 대응 */
+
+
+
+
+
 
 
 

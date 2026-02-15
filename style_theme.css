@@ -213,13 +213,25 @@ button[onclick*="logout"]:hover {
 }
 
 .accent-box.box-blue {
-    border-color: #a7f3d0 !important;
+    border-color: #e7e5e4 !important;
     background: #ffffff !important;
 }
 
 .accent-box.box-violet {
-    border-color: #a7f3d0 !important;
+    border-color: #e7e5e4 !important;
     background: #ffffff !important;
+}
+
+/* Requested neutral border unification (same as praise-send card) */
+#peerEvaluationSection #studentSubmitTab .accent-box.box-blue,
+#personalityQuiz .accent-box.box-violet,
+#selfEvaluationMenu > .accent-box.box-violet,
+#dailyReflectionTab .accent-box.box-blue {
+    border-color: #e7e5e4 !important;
+}
+
+#selfDate {
+    border-color: #e7e5e4 !important;
 }
 
 .box-label {
