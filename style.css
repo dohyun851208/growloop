@@ -695,14 +695,25 @@ button:disabled {
 }
 
 .rating-item:nth-child(5) .rating-btn.selected {
-    background: linear-gradient(135deg, #4DB6AC 0%, #80CBC4 100%);
-    border-color: #4DB6AC
+    background: linear-gradient(135deg, #D98A2F 0%, #E9B462 100%);
+    border-color: #D98A2F
 }
 
 .rating-item:nth-child(5) .rating-btn:hover:not(.selected) {
-    border-color: #4DB6AC;
-    color: #4DB6AC;
-    background: #E0F2F1
+    border-color: #D98A2F;
+    color: #D98A2F;
+    background: #FFF5E8
+}
+
+.rating-item:nth-child(6) .rating-btn.selected {
+    background: linear-gradient(135deg, #C85F84 0%, #E08FAE 100%);
+    border-color: #C85F84
+}
+
+.rating-item:nth-child(6) .rating-btn:hover:not(.selected) {
+    border-color: #C85F84;
+    color: #C85F84;
+    background: #FDEFF5
 }
 
 .review-card {
@@ -1939,14 +1950,14 @@ button:disabled {
 }
 
 .quiz-question.answered {
-    border-color: var(--color-teacher);
-    background: var(--color-teacher-bg)
+    border-color: var(--color-teal);
+    background: #F2FAF7
 }
 
 .quiz-question-number {
     font-size: 0.8rem;
     font-weight: 700;
-    color: var(--color-teacher);
+    color: var(--color-teal);
     margin-bottom: 8px
 }
 

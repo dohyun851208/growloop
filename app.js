@@ -1242,6 +1242,24 @@ function renderRatingItems(criteria) {
   });
 }
 function selectRating(idx, score, btn) { btn.parentElement.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); currentRatings[idx] = score; if (navigator.vibrate) navigator.vibrate(10); }
+function clearRatingSelectionUI() {
+  currentRatings = {};
+  document.querySelectorAll('#ratingItems .rating-btn').forEach(b => b.classList.remove('selected'));
+}
+function applyExistingRatings(scores) {
+  clearRatingSelectionUI();
+  if (!scores || typeof scores !== 'object') return;
+  const rows = document.querySelectorAll('#ratingItems .rating-buttons');
+  rows.forEach((row, idx) => {
+    const raw = scores[String(idx)] ?? scores[idx];
+    const score = parseInt(raw, 10);
+    if (score < 1 || score > 5) return;
+    const btn = row.querySelectorAll('.rating-btn')[score - 1];
+    if (!btn) return;
+    btn.classList.add('selected');
+    currentRatings[idx] = score;
+  });
+}
 function insertTemplate(text, targetId = 'reviewContent') {
   const ta = document.getElementById(targetId);
   if (!ta) return;
@@ -1270,12 +1288,16 @@ async function loadEvalTargetGrid() {
   const max = currentStudent.type === 'group' ? settings.groupCount : settings.studentCount;
   renderTargetGrid(max, currentStudent.id, completed, currentStudent.type);
 }
+let targetSelectionRequestSeq = 0;
 function renderTargetGrid(maxCount, myId, completedList, type) {
   const grid = document.getElementById('targetGrid'); grid.innerHTML = '';
   const doneCount = completedList.length; const total = maxCount - 1;
   const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
   document.getElementById('progressText').textContent = '평가 진행: ' + doneCount + ' / ' + total + '명 완료 (' + pct + '%)';
   document.getElementById('progressBar').style.width = pct + '%';
+  document.getElementById('targetId').value = '';
+  clearRatingSelectionUI();
+  targetSelectionRequestSeq++;
   for (let i = 1; i <= maxCount; i++) {
     const btn = document.createElement('button'); btn.type = 'button';
     btn.textContent = type === 'group' ? i + '모둠' : i + '번'; btn.className = 'target-btn';
@@ -1285,7 +1307,22 @@ function renderTargetGrid(maxCount, myId, completedList, type) {
     grid.appendChild(btn);
   }
 }
-function selectTarget(id, button) { document.querySelectorAll('.target-btn.selected').forEach(b => b.classList.remove('selected')); button.classList.add('selected'); document.getElementById('targetId').value = id; }
+async function selectTarget(id, button) {
+  document.querySelectorAll('.target-btn.selected').forEach(b => b.classList.remove('selected'));
+  button.classList.add('selected');
+  document.getElementById('targetId').value = id;
+  clearRatingSelectionUI();
+  const requestSeq = ++targetSelectionRequestSeq;
+  if (!currentStudent) return;
+  try {
+    const date = document.getElementById('reviewDate').value;
+    const { data: existing } = await db.from('reviews').select('scores_json').eq('class_code', currentClassCode).eq('review_date', date).eq('reviewer_id', String(currentStudent.id)).eq('target_id', String(id)).eq('review_type', currentStudent.type).maybeSingle();
+    if (requestSeq !== targetSelectionRequestSeq) return;
+    if (existing && existing.scores_json && existing.scores_json.scores) applyExistingRatings(existing.scores_json.scores);
+  } catch (error) {
+    console.warn('Failed to load saved scores for target:', error);
+  }
+}
 
 // ============================================
 // 평가 제출
@@ -1317,8 +1354,8 @@ async function doSubmitReview(data, btn, msg) {
   if (error) { showMsg(msg, error.message, 'error'); return; }
   showMsg(msg, '성공적으로 제출되었습니다!', 'success');
   const savedDate = document.getElementById('reviewDate').value;
-  document.getElementById('reviewForm').reset(); currentRatings = {};
-  document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('reviewForm').reset();
+  clearRatingSelectionUI();
   document.getElementById('reviewerId').value = currentStudent.id;
   document.getElementById('reviewDate').value = savedDate;
   document.getElementById('targetId').value = ''; updateCharCount();
@@ -1336,9 +1373,11 @@ async function viewMyResult() {
   const date = document.getElementById('viewDate').value;
   const btn = document.getElementById('viewResultBtn'); const msg = document.getElementById('viewMsg');
   setLoading(true, btn, '확인 중...'); document.getElementById('resultArea').classList.add('hidden');
-  const { data: reviews } = await db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('target_id', String(currentStudent.id)).eq('review_type', currentStudent.type);
+  const { data: reviews, error: reviewsError } = await db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('target_id', String(currentStudent.id)).eq('review_type', currentStudent.type);
+  if (reviewsError) { setLoading(false, btn, '내 결과 확인하기'); showMsg(msg, '결과 조회 중 오류: ' + reviewsError.message, 'error'); return; }
   if (!reviews || reviews.length === 0) { setLoading(false, btn, '내 결과 확인하기'); showMsg(msg, '해당 날짜(' + date + ')에 받은 평가가 없습니다.', 'error'); return; }
-  const { data: allReviews } = await db.from('reviews').select('target_id, scores_json').eq('class_code', currentClassCode).eq('review_date', date).eq('review_type', currentStudent.type);
+  const { data: allReviews, error: allReviewsError } = await db.from('reviews').select('target_id, scores_json').eq('class_code', currentClassCode).eq('review_date', date).eq('review_type', currentStudent.type);
+  if (allReviewsError) { setLoading(false, btn, '내 결과 확인하기'); showMsg(msg, '통계 조회 중 오류: ' + allReviewsError.message, 'error'); return; }
   const myScoresArray = reviews.map(r => r.scores_json).filter(s => s && s.criteria);
   const myAvgScores = calculateAverageScores(myScoresArray);
   const allStudentScores = {};
@@ -1482,12 +1521,34 @@ function renderRankingTable(ranking, criteria, type) {
   renderScoreDistribution(ranking, type);
 }
 function renderScoreDistribution(ranking, type) {
-  const bins = [0, 0, 0, 0, 0]; const binLabels = ['1점대', '2점대', '3점대', '4점대', '5점대'];
-  ranking.forEach(r => { const avg = r.totalAvg; if (avg >= 4.5) bins[4]++; else if (avg >= 3.5) bins[3]++; else if (avg >= 2.5) bins[2]++; else if (avg >= 1.5) bins[1]++; else bins[0]++; });
-  const maxBin = Math.max(...bins, 1); const colors = ['#D4A574', '#C2654A', '#D4785E', '#5E8C61', '#5A9E8F'];
-  let h = '<div class="chart-container" style="border-left-color:var(--color-blue);margin-top:20px;"><h4 style="color:var(--color-blue);">📈 ' + (type === 'group' ? '모둠' : '개인') + ' 평균 점수 분포</h4><div class="bar-chart">';
-  binLabels.forEach((label, i) => { const pct = (bins[i] / maxBin) * 100; h += '<div class="bar-item"><div class="bar-label">' + label + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + colors[i] + ' 0%,' + colors[i] + 'CC 100%);"></div></div><div class="bar-value">' + bins[i] + '명</div></div>'; });
-  h += '</div></div>'; document.getElementById('rankingTable').insertAdjacentHTML('afterend', h);
+  const bins = [0, 0, 0, 0, 0];
+  const binLabels = ['1\uC810\uB300', '2\uC810\uB300', '3\uC810\uB300', '4\uC810\uB300', '5\uC810\uB300'];
+  ranking.forEach(r => {
+    const avg = r.totalAvg;
+    if (avg >= 4.5) bins[4]++;
+    else if (avg >= 3.5) bins[3]++;
+    else if (avg >= 2.5) bins[2]++;
+    else if (avg >= 1.5) bins[1]++;
+    else bins[0]++;
+  });
+
+  const maxBin = Math.max(...bins, 1);
+  const colorPairs = [
+    ['#C96D6D', '#E29A7D'],
+    ['#C78B4A', '#E4BF79'],
+    ['#5FA584', '#8CCDA9'],
+    ['#4B88B7', '#79B4DC'],
+    ['#7566C9', '#A191E5']
+  ];
+
+  let h = '<div class="chart-container" style="border-left-color:var(--color-blue);margin-top:20px;"><h4 style="color:var(--color-blue);">' + (type === 'group' ? '\uBAA8\uB46C' : '\uAC1C\uC778') + ' \uD3C9\uADE0 \uC810\uC218 \uBD84\uD3EC</h4><div class="bar-chart">';
+  binLabels.forEach((label, i) => {
+    const pct = (bins[i] / maxBin) * 100;
+    const pair = colorPairs[i] || colorPairs[0];
+    h += '<div class="bar-item"><div class="bar-label">' + label + '</div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + pair[0] + ' 0%,' + pair[1] + ' 100%);"></div></div><div class="bar-value">' + bins[i] + '\uBA85</div></div>';
+  });
+  h += '</div></div>';
+  document.getElementById('rankingTable').insertAdjacentHTML('afterend', h);
 }
 function renderStudentSelector(students) {
   const container = document.getElementById('studentSelector'); container.innerHTML = '';
