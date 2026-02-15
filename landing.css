@@ -149,6 +149,16 @@ body {
     100% { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes heroWordReveal {
+    0% { opacity: 0; transform: translateY(14px) scale(.96); filter: blur(2px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+@keyframes heroSubSettle {
+    0% { transform: translateX(0) scale(1); }
+    100% { transform: translateX(var(--hero-sub-shift-x)) scale(var(--hero-sub-end-scale)); }
+}
+
 @keyframes brandReveal {
     0% { opacity: 0; transform: scale(.85); filter: grayscale(1) blur(2px); }
     50% { opacity: 1; transform: scale(1.02); filter: grayscale(.5) blur(0); }
@@ -326,6 +336,11 @@ body {
 }
 
 .hero-center {
+    --hero-sub-start-size: 4.2rem;
+    --hero-sub-end-size: 2.2rem;
+    --hero-sub-end-scale: .52;
+    --hero-sub-shift-x: -220px;
+    --hero-sub-settle-delay: 2.6s;
     max-width: 1040px;
     width: 100%;
     margin: 0 auto;
@@ -345,8 +360,9 @@ body {
     grid-row: 1;
 }
 .hero-sub {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 2;
+    justify-self: center;
 }
 .hero-brand {
     grid-column: 2;
@@ -397,7 +413,7 @@ body {
     border: 1.5px solid rgba(244, 63, 94, .15);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    animation: brandReveal 1s 1.2s cubic-bezier(.16,1,.3,1) both;
+    animation: brandReveal .9s var(--hero-sub-settle-delay) cubic-bezier(.16,1,.3,1) both;
     box-shadow:
         0 8px 40px rgba(244, 63, 94, .12),
         0 0 80px rgba(139, 92, 246, .06);
@@ -411,13 +427,17 @@ body {
     border-radius: 999px;
     background: linear-gradient(135deg, rgba(225,29,72,.15), rgba(124,58,237,.1), transparent);
     opacity: 0;
-    animation: brandGlowPulse .8s 1.4s ease-out both;
+    animation: brandGlowPulse .7s calc(var(--hero-sub-settle-delay) + .15s) ease-out both;
     pointer-events: none;
     z-index: -1;
 }
 
 .brand-emoji {
-    font-size: 4.8rem;
+    width: 6.2rem;
+    height: 6.2rem;
+    object-fit: contain;
+    border-radius: 16px;
+    display: inline-block;
     animation: float 3.5s ease-in-out infinite;
     filter: drop-shadow(0 4px 12px rgba(34, 197, 94, .2));
 }
@@ -433,19 +453,51 @@ body {
 }
 
 .hero-sub {
-    font-size: 1.6rem;
+    font-size: var(--hero-sub-start-size);
     color: #3D3030;
     font-weight: 700;
-    line-height: 1.6;
+    line-height: 1.45;
+    height: calc(var(--hero-sub-end-size) * 1.25);
     margin-top: 0;
     letter-spacing: -.3px;
-    text-align: left;
-    animation: subSlideIn .7s .6s cubic-bezier(.16,1,.3,1) both;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: .2em;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    transform-origin: center center;
+    animation: heroSubSettle .7s var(--hero-sub-settle-delay) cubic-bezier(.16,1,.3,1) both;
+}
+
+.hero-sub-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(14px) scale(.96);
+    filter: blur(2px);
+    animation: heroWordReveal .8s cubic-bezier(.16,1,.3,1) forwards;
+}
+
+.hero-sub-word:nth-child(1) { animation-delay: .4s; }
+.hero-sub-word:nth-child(2) { animation-delay: 1.1s; }
+.hero-sub-word:nth-child(3) { animation-delay: 1.8s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-sub-word {
+        opacity: 1;
+        transform: none;
+        filter: none;
+        animation: none;
+    }
+    .hero-sub {
+        animation: none;
+        transform: translateX(var(--hero-sub-shift-x)) scale(var(--hero-sub-end-scale));
+    }
 }
 
 /* Typing Area - Bright glassmorphism (compact) */
 .hero-typing-area {
-    animation: lowerFadeIn .6s 2s ease-out both;
+    animation: lowerFadeIn .6s var(--hero-sub-settle-delay) ease-out both;
     margin-top: 28px;
     height: 44px;
     display: flex;
@@ -499,7 +551,7 @@ body {
 
 /* Stats - Compact white cards with colored accents */
 .hero-stats {
-    animation: lowerFadeIn .6s 2.2s ease-out both;
+    animation: lowerFadeIn .6s var(--hero-sub-settle-delay) ease-out both;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
@@ -624,7 +676,7 @@ body {
     justify-content: center;
     gap: 14px;
     margin-top: 24px;
-    animation: lowerFadeIn .6s 2.4s ease-out both;
+    animation: lowerFadeIn .6s var(--hero-sub-settle-delay) ease-out both;
 }
 
 .hero-cta-btn {
@@ -1626,6 +1678,13 @@ body {
 
 /* ===== RESPONSIVE: Tablet ===== */
 @media (max-width:768px) {
+    .hero-center {
+        --hero-sub-start-size: 2.8rem;
+        --hero-sub-end-size: 1.55rem;
+        --hero-sub-end-scale: .55;
+        --hero-sub-shift-x: -140px;
+    }
+
     .features-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 16px;
@@ -1653,15 +1712,12 @@ body {
     }
 
     .brand-emoji {
-        font-size: 3.2rem;
+        width: 4.2rem;
+        height: 4.2rem;
     }
 
     .hero-tagline {
         font-size: 1.05rem;
-    }
-
-    .hero-sub {
-        font-size: 1.3rem;
     }
 
     .hero-typing-area {
@@ -1749,6 +1805,10 @@ body {
 
     /* Mobile: single column stack, center aligned */
     .hero-center {
+        --hero-sub-start-size: 1.96rem;
+        --hero-sub-end-size: 1.35rem;
+        --hero-sub-end-scale: .69;
+        --hero-sub-shift-x: -36px;
         grid-template-columns: 1fr;
         grid-template-rows: auto;
         column-gap: 0;
@@ -1768,6 +1828,7 @@ body {
         grid-row: auto;
         text-align: center;
         margin-bottom: 16px;
+        justify-content: center;
     }
 
     .hero-brand {
@@ -1781,15 +1842,12 @@ body {
     }
 
     .brand-emoji {
-        font-size: 2.2rem;
+        width: 2.9rem;
+        height: 2.9rem;
     }
 
     .hero-tagline {
         font-size: 1rem;
-    }
-
-    .hero-sub {
-        font-size: 1.15rem;
     }
 
     .hero-typing-area {
@@ -1918,11 +1976,8 @@ body {
     }
 
     .brand-emoji {
-        font-size: 4.8rem;
-    }
-
-    .hero-sub {
-        font-size: 1.8rem;
+        width: 6.2rem;
+        height: 6.2rem;
     }
 
     .hero-typing-text {
@@ -1940,21 +1995,25 @@ body {
 
 /* ===== RESPONSIVE: Large Desktop ===== */
 @media (min-width:1100px) {
+    .hero-center {
+        --hero-sub-start-size: 4.9rem;
+        --hero-sub-end-size: 2.4rem;
+        --hero-sub-end-scale: .49;
+        --hero-sub-shift-x: -260px;
+    }
+
     .hero-brand {
         font-size: 7rem;
         padding: 32px 64px;
     }
 
     .brand-emoji {
-        font-size: 5.5rem;
+        width: 7.2rem;
+        height: 7.2rem;
     }
 
     .hero-tagline {
         font-size: 1.35rem;
-    }
-
-    .hero-sub {
-        font-size: 2rem;
     }
 
     .section-title, .cta-title, .demo-title {
