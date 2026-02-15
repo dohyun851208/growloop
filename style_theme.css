@@ -161,6 +161,12 @@ input[type="date"].class-tone-input {
     box-shadow: none !important;
 }
 
+/* Teacher message: badge box should be amber (avoid pink/red --bg-soft). */
+#teacherMessageTab #messageModeBadge {
+    background: #fffbeb !important; /* amber-50 */
+    border: 1.5px solid #fde68a !important; /* amber-200 */
+}
+
 #settingsMiniTab .class-tone-section > div[style*="display:flex"] {
     background: var(--bg-body) !important;
     border: none !important;
