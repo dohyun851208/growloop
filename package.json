@@ -8,7 +8,8 @@
     "test": "playwright test",
     "seed": "node seed_supabase_demo.js",
     "supabase:check": "node check_seed_2026-03-01.js",
-    "supabase:check:compare": "node check_seed_2026-03-01_compare.js"
+    "supabase:check:compare": "node check_seed_2026-03-01_compare.js",
+    "partner:check": "node check_partner_types.js"
   },
   "keywords": [],
   "author": "",
