@@ -167,6 +167,15 @@ input[type="date"].class-tone-input {
     border: 1.5px solid #fde68a !important; /* amber-200 */
 }
 
+/* Teacher message: textarea should be white (not pink --bg-soft). */
+#teacherMessageTab #teacherMessage {
+    background: #ffffff !important;
+}
+
+#teacherMessageTab #teacherMessage:focus {
+    background: #ffffff !important;
+}
+
 #settingsMiniTab .class-tone-section > div[style*="display:flex"] {
     background: var(--bg-body) !important;
     border: none !important;
