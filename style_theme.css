@@ -161,10 +161,10 @@ input[type="date"].class-tone-input {
     box-shadow: none !important;
 }
 
-/* Teacher message: badge box should be amber (avoid pink/red --bg-soft). */
+/* Teacher message: badge box should be white (avoid pink/red --bg-soft). */
 #teacherMessageTab #messageModeBadge {
-    background: #fffbeb !important; /* amber-50 */
-    border: 1.5px solid #fde68a !important; /* amber-200 */
+    background: #ffffff !important;
+    border: 1.5px solid #e7e5e4 !important;
 }
 
 /* Teacher message: textarea should be white (not pink --bg-soft). */
