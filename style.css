@@ -2033,8 +2033,8 @@ button:disabled {
 }
 
 .quiz-question.answered {
-    border-color: var(--color-teal);
-    background: #F2FAF7
+    border-color: #d1d5db;
+    background: #ffffff
 }
 
 .quiz-question-number {

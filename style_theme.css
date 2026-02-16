@@ -164,7 +164,7 @@ input[type="date"].class-tone-input {
 
 .personality-result-head {
     text-align: center;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
 }
 
 .personality-icon-large {
@@ -178,9 +178,400 @@ input[type="date"].class-tone-input {
 }
 
 .personality-desc {
-    color: var(--text-sub);
-    margin-top: 10px;
+    color: var(--text-main);
+    margin-top: 0;
+    font-size: 0.98rem;
     line-height: 1.6;
+}
+
+.personality-result-card {
+    background: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 16px !important;
+    padding: 16px !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05) !important;
+}
+
+.partner-result-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+}
+
+.partner-result-title {
+    text-align: center;
+    font-size: 1.58rem;
+    line-height: 1.22;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.partner-result-identity {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+}
+
+.partner-result-identity-card {
+    --partner-accent: #2563eb;
+    --partner-accent-bg: #eff6ff;
+    --partner-accent-border: #bfdbfe;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    box-sizing: border-box;
+    padding: 9px 11px;
+    border: 1.5px solid var(--partner-accent-border);
+    border-radius: 14px;
+    background: var(--partner-accent-bg);
+    box-shadow: none;
+}
+
+.partner-result-identity-card.tone-blue {
+    --partner-accent: #2563eb;
+    --partner-accent-bg: #eff6ff;
+    --partner-accent-border: #bfdbfe;
+}
+
+.partner-result-identity-card.tone-purple {
+    --partner-accent: #7c3aed;
+    --partner-accent-bg: #f5f3ff;
+    --partner-accent-border: #ddd6fe;
+}
+
+.partner-result-identity-card.tone-green {
+    --partner-accent: #15803d;
+    --partner-accent-bg: #ecfdf5;
+    --partner-accent-border: #bbf7d0;
+}
+
+.partner-result-identity-card.tone-orange {
+    --partner-accent: #c2410c;
+    --partner-accent-bg: #fff7ed;
+    --partner-accent-border: #fed7aa;
+}
+
+.partner-result-identity-emoji {
+    font-size: 1.72rem;
+    line-height: 1;
+}
+
+.partner-result-identity-name {
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: var(--partner-accent);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.partner-result-tag-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 1.5px solid var(--partner-accent-border);
+    color: var(--partner-accent);
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.partner-result-identity-message {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--partner-accent-border);
+    font-size: 1.03rem;
+    color: #374151;
+    line-height: 1.55;
+    font-weight: 600;
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+.partner-result-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.partner-result-cards .partner-result-card:nth-child(3) {
+    grid-column: 1 / -1;
+}
+
+.partner-result-card {
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+.partner-result-card-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 7px;
+    text-align: center;
+}
+
+.partner-result-card-body {
+    font-size: 0.97rem;
+    color: #4b5563;
+    line-height: 1.62;
+    text-align: center;
+}
+
+.partner-result-quote {
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px 12px;
+    text-align: center;
+}
+
+.partner-result-quote-body {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    color: #4b5563;
+    line-height: 1.62;
+    font-size: 0.97rem;
+    text-align: center;
+}
+
+.partner-type-accordion {
+    margin-top: 2px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.partner-type-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #374151;
+}
+
+.partner-type-summary::-webkit-details-marker {
+    display: none;
+}
+
+.partner-type-summary::marker {
+    content: '';
+}
+
+.partner-type-summary-state {
+    color: #6b7280;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.partner-type-summary-state::before {
+    content: '펼치기';
+}
+
+.partner-type-accordion[open] .partner-type-summary {
+    border-bottom: 1px solid #e5e7eb;
+    background: #fafafa;
+}
+
+.partner-type-accordion[open] .partner-type-summary-state::before {
+    content: '접기';
+}
+
+.partner-type-list-title {
+    margin: 12px 0 8px 0;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #4b5563;
+    font-weight: 700;
+}
+
+.partner-type-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 8px;
+}
+
+.partner-type-item {
+    border: 1.5px solid #e5e7eb;
+    border-radius: 11px;
+    background: #ffffff;
+    padding: 8px 10px;
+    text-align: center;
+}
+
+.partner-type-item.mine {
+    border-color: #94a3b8;
+    background: #f8fafc;
+}
+
+.partner-type-main {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-bottom: 5px;
+}
+
+.partner-type-emoji {
+    font-size: 1.15rem;
+    line-height: 1;
+}
+
+.partner-type-name {
+    font-size: 1.04rem;
+    font-weight: 700;
+    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.partner-type-me {
+    color: #475569;
+    font-size: 0.84rem;
+}
+
+.partner-type-hint {
+    font-size: 0.95rem;
+    color: #6b7280;
+    line-height: 1.6;
+    padding-left: 0;
+    text-align: center;
+}
+
+#personalityIcon:empty,
+#personalityTitle:empty {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .personality-result-card {
+        padding: 12px !important;
+    }
+
+    .partner-result-shell {
+        gap: 6px;
+    }
+
+    .partner-result-title {
+        font-size: 1.22rem;
+    }
+
+    .partner-result-identity {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .partner-result-identity-card {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        padding: 8px 9px;
+        gap: 2px;
+    }
+
+    .partner-result-identity-emoji {
+        font-size: 1.54rem;
+    }
+
+    .partner-result-identity-name {
+        font-size: 1.12rem;
+    }
+
+    .partner-result-tag-badge {
+        font-size: 0.86rem;
+        padding: 4px 10px;
+    }
+
+    .partner-result-identity-message {
+        margin-top: 5px;
+        padding-top: 7px;
+        font-size: 0.96rem;
+        line-height: 1.5;
+        text-align: center;
+    }
+
+    .partner-result-cards {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .partner-result-card,
+    .partner-result-quote {
+        padding: 8px 10px;
+    }
+
+    .partner-result-card-title {
+        font-size: 0.95rem;
+    }
+
+    .partner-result-card-body,
+    .partner-result-quote-body {
+        font-size: 0.93rem;
+    }
+
+    .partner-result-quote-body {
+        padding: 0;
+    }
+
+    .partner-type-list-title {
+        margin: 10px 0 6px 0;
+    }
+
+    .partner-type-summary {
+        padding: 9px 10px;
+        font-size: 0.9rem;
+    }
+
+    .partner-type-summary-state {
+        font-size: 0.8rem;
+    }
+
+    .partner-type-list {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        padding: 7px;
+    }
+
+    .partner-type-item {
+        padding: 7px 9px;
+    }
+
+    .partner-type-main {
+        margin-bottom: 4px;
+    }
+
+    .partner-type-name {
+        font-size: 0.98rem;
+    }
+
+    .partner-type-hint {
+        font-size: 0.9rem;
+        padding-left: 0;
+    }
 }
 
 .personality-types-wrap {
@@ -1841,7 +2232,7 @@ input:checked+.switch-slider:before {
 }
 
 #teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-student {
-    background: #f8fafc !important;
+    background: #ffffff !important;
     border: 1.5px solid #e7e5e4 !important;
 }
 
@@ -2577,5 +2968,111 @@ body.teacher-layout {
 
 #studentTab #dailyReflectionTab .student-tags-wrap {
     margin-top: 0 !important;
+}
+
+/* Self-learning mini tabs: align project/dashboard with daily-note baseline */
+#studentTab #selfEvaluationMenu .sub-tab-container {
+    margin-bottom: 16px !important;
+}
+
+#studentTab #selfEvaluationMenu .sub-tab-btn {
+    min-height: 42px !important;
+    padding: 9px 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#studentTab #selfEvaluationMenu .sub-tab-btn.active {
+    background: #ffffff !important;
+    color: var(--primary) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+#studentTab #selfEvaluationMenu #dailyReflectionTab,
+#studentTab #selfEvaluationMenu #projectReflectionTab,
+#studentTab #selfEvaluationMenu #dashboardTab {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#studentTab #selfEvaluationMenu #dailyReflectionTab > .accent-box,
+#studentTab #selfEvaluationMenu #projectReflectionTab > .accent-box,
+#studentTab #selfEvaluationMenu #dashboardTab > .accent-box {
+    margin-bottom: 0 !important;
+}
+
+#studentTab #selfEvaluationMenu #dailyMsg,
+#studentTab #selfEvaluationMenu #projectMsg {
+    margin-top: 0 !important;
+}
+
+#studentTab #selfEvaluationMenu #projectReflectionTab label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+#studentTab #selfEvaluationMenu #projectReflectionTab #projectName,
+#studentTab #selfEvaluationMenu #projectReflectionTab #projectComment {
+    background: var(--bg-body) !important;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 12px !important;
+}
+
+#studentTab #selfEvaluationMenu #projectReflectionTab #projectName {
+    margin-bottom: 10px !important;
+}
+
+#studentTab #selfEvaluationMenu #projectReflectionTab #projectComment {
+    min-height: 176px;
+    margin-bottom: 10px !important;
+}
+
+/* Partial color unification: self mini-tab buttons + submit buttons only */
+#studentTab #selfEvaluationMenu #saveDailyBtn,
+#studentTab #selfEvaluationMenu #submitProjectBtn {
+    background: var(--color-eval) !important;
+    border-radius: 12px !important;
+    min-height: 48px;
+    margin-top: 6px !important;
+}
+
+#studentTab #selfEvaluationMenu #saveDailyBtn:hover:not(:disabled),
+#studentTab #selfEvaluationMenu #submitProjectBtn:hover:not(:disabled) {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .dashboard-help-text,
+#studentTab #selfEvaluationMenu #dashboardTab .growth-report-desc {
+    margin-bottom: 12px;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .summary-period-row {
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .growth-report-btn {
+    margin-bottom: 12px !important;
+}
+
+/* Dashboard first card: keep left border consistent with daily-note cards */
+#studentTab #selfEvaluationMenu #dashboardTab #streakBadgeArea {
+    border-left: 2px solid #e7e5e4 !important;
+    border-left-color: #e7e5e4 !important;
+}
+
+@media (max-width: 768px) {
+    #studentTab #selfEvaluationMenu .sub-tab-btn {
+        min-height: 40px !important;
+        padding: 8px 8px !important;
+        font-size: 0.88rem !important;
+    }
+
+    #studentTab #selfEvaluationMenu #dashboardTab .summary-period-row {
+        gap: 6px !important;
+    }
 }
 

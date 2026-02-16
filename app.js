@@ -1031,7 +1031,6 @@ async function loadStudentSettingsData() {
           <div style="font-size:2.5rem; margin-bottom:6px;">${partner.emoji || '🧠'}</div>
           <div style="font-weight:700; font-size:1.1rem; color:var(--text-main);">나의 성장 파트너: ${escapeHtml(partner.type_name)}</div>
           ${axisBadges.length ? `<div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:10px;">${axisBadges.map(b => `<span style="font-size:0.72rem; padding:3px 9px; border-radius:999px; background:var(--bg-body); border:1px solid var(--border); color:var(--text-sub);">${escapeHtml(b)}</span>`).join('')}</div>` : ''}
-          ${(partner.style_guide?.tone || partner.style_guide?.format) ? `<div style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; line-height:1.5;">${partner.style_guide?.tone ? `톤: ${escapeHtml(partner.style_guide.tone)}` : ''}${partner.style_guide?.tone && partner.style_guide?.format ? '<br>' : ''}${partner.style_guide?.format ? `형식: ${escapeHtml(partner.style_guide.format)}` : ''}</div>` : ''}
         </div>
       `;
 
@@ -3093,19 +3092,17 @@ async function renderTeacherDashboard(data, totalStudents) {
     let totalAvg = 0; if (data.ranking.length > 0) totalAvg = (data.ranking.reduce((a, r) => a + r.totalAvg, 0) / data.ranking.length).toFixed(2);
     const totalReviews = data.ranking.reduce((a, r) => a + r.count, 0);
     const participation = totalStudents > 0 ? Math.round((evaluated / totalStudents) * 100) : 0;
-    // 오늘 성장 일기 작성률 및 메시지 수 조회
-    let diaryCount = 0, msgCount = 0;
+    // 오늘 성장 일기 작성률 조회
+    let diaryCount = 0;
     try {
       const today = getDefaultQueryDate();
-      const [diaryRes, msgRes] = await Promise.allSettled([
-        db.from('daily_reflections').select('student_id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('reflection_date', today),
-        db.from('teacher_messages').select('id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('has_reply', false)
+      const [diaryRes] = await Promise.allSettled([
+        db.from('daily_reflections').select('student_id', { count: 'exact', head: true }).eq('class_code', currentClassCode).eq('reflection_date', today)
       ]);
       diaryCount = diaryRes.status === 'fulfilled' && diaryRes.value.count ? diaryRes.value.count : 0;
-      msgCount = msgRes.status === 'fulfilled' && msgRes.value.count ? msgRes.value.count : 0;
     } catch (subErr) { console.warn('대시보드 부가 데이터 조회 오류:', subErr); }
     const diaryPct = totalStudents > 0 ? Math.round((diaryCount / totalStudents) * 100) : 0;
-  d.innerHTML = '<div class="stat-card"><span class="stat-number">' + participation + '%</span><span class="stat-label">평가 참여율 (' + evaluated + '/' + totalStudents + ')</span></div><div class="stat-card blue"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">전체 평균 점수</span></div><div class="stat-card" style="border-left-color:var(--color-teal);"><span class="stat-number" style="color:var(--color-teal);">' + totalReviews + '건</span><span class="stat-label">총 평가 수</span></div><div class="stat-card" style="border-left-color:var(--color-teacher);"><span class="stat-number" style="color:var(--color-teacher);">' + diaryPct + '%</span><span class="stat-label">오늘 일기 작성률 (' + diaryCount + '/' + totalStudents + ')</span></div>' + (msgCount > 0 ? '<div class="stat-card" style="border-left-color:#e67e22;"><span class="stat-number" style="color:#e67e22;">' + msgCount + '건</span><span class="stat-label">미답변 메시지</span></div>' : '');
+  d.innerHTML = '<div class="stat-card"><span class="stat-number">' + participation + '%</span><span class="stat-label">평가 참여율 (' + evaluated + '/' + totalStudents + ')</span></div><div class="stat-card blue"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">전체 평균 점수</span></div><div class="stat-card" style="border-left-color:var(--color-teal);"><span class="stat-number" style="color:var(--color-teal);">' + totalReviews + '건</span><span class="stat-label">총 평가 수</span></div><div class="stat-card" style="border-left-color:var(--color-teacher);"><span class="stat-number" style="color:var(--color-teacher);">' + diaryPct + '%</span><span class="stat-label">오늘 일기 작성률 (' + diaryCount + '/' + totalStudents + ')</span></div>';
   } catch (err) {
     console.warn('renderTeacherDashboard 오류:', err);
     d.innerHTML = '<div class="stat-card"><span class="stat-number">-</span><span class="stat-label">데이터 로드 실패</span></div>';
@@ -3148,7 +3145,7 @@ function renderScoreDistribution(ranking, type) {
     ['#7E7ACF', '#A9A3E6']
   ];
 
-  let h = '<div class="chart-container" style="border-left-color:var(--color-blue);margin-top:20px;"><h4 style="color:var(--color-blue);">' + (type === 'group' ? '\uBAA8\uB46C' : '\uAC1C\uC778') + ' \uD3C9\uADE0 \uC810\uC218 \uBD84\uD3EC</h4><div class="bar-chart">';
+  let h = '<div class="chart-container" style="border-left-color:var(--color-blue);margin-top:20px;"><h4 style="color:var(--color-blue);">' + (type === 'group' ? '\uBAA8\uB460' : '\uAC1C\uC778') + ' \uD3C9\uADE0 \uC810\uC218 \uBD84\uD3EC</h4><div class="bar-chart">';
   binLabels.forEach((label, i) => {
     const pct = (bins[i] / maxBin) * 100;
     const pair = colorPairs[i] || colorPairs[0];
@@ -4110,8 +4107,7 @@ async function submitTeacherMessageOnly() {
       class_code: currentClassCode,
       student_id: currentMessageMode === 'named' ? String(currentStudent.id) : null,
       is_anonymous: currentMessageMode === 'anonymous',
-      message_content: teacherMessage,
-      has_reply: false
+      message_content: teacherMessage
     };
 
     // 오늘 날짜의 reflection_id 찾기 (선택 사항)
@@ -5116,6 +5112,124 @@ async function submitPersonalityQuiz() {
   }
 }
 
+function getPartnerLearningEnvironmentText(supportTag) {
+  if (supportTag === '#함께 성장형') {
+    return '친구와 설명 연습, 모둠 토론처럼 함께 배우는 활동에서 강점이 잘 살아나요.';
+  }
+  if (supportTag === '#혼자 집중형') {
+    return '혼자 깊이 집중해 정리하고 복습하는 흐름에서 실력이 가장 안정적으로 쌓여요.';
+  }
+  return '나에게 맞는 학습 리듬으로 배울 때 성장 속도가 더 좋아져요.';
+}
+
+function withTopicParticle(text) {
+  const value = String(text || '').trim();
+  if (!value) return '이 유형은';
+  const lastChar = value.charAt(value.length - 1);
+  const code = lastChar.charCodeAt(0);
+  const isHangul = code >= 0xAC00 && code <= 0xD7A3;
+  if (!isHangul) return `${value}는`;
+  const hasBatchim = ((code - 0xAC00) % 28) !== 0;
+  return `${value}${hasBatchim ? '은' : '는'}`;
+}
+
+function getPartnerEmpathyText(partner, supportTag) {
+  const typeName = String(partner?.type_name || '이 유형');
+  const typeSubject = withTopicParticle(typeName);
+  if (supportTag === '#함께 성장형') {
+    return `${typeSubject} 함께 이야기하고 협력할 때 이해가 더 깊어지는 유형이에요.`;
+  }
+  if (supportTag === '#혼자 집중형') {
+    return `${typeSubject} 혼자 몰입해 차근차근 정리할 때 강점이 가장 잘 드러나요.`;
+  }
+  return `${typeSubject} 나만의 방식으로 배울 때 성장이 더 선명하게 보이는 유형이에요.`;
+}
+
+function getPartnerToneClass(typeCode) {
+  const code = String(typeCode || '').trim();
+  if (!code) return 'tone-blue';
+  if (code.startsWith('해결디테일')) return 'tone-blue';     // 구체적인
+  if (code.startsWith('해결큰그림')) return 'tone-purple';   // 큰그림형
+  if (code.startsWith('지지디테일')) return 'tone-green';    // 함께하는
+  if (code.startsWith('지지큰그림')) return 'tone-orange';   // 공감하는
+  return 'tone-blue';
+}
+
+const PARTNER_TYPE_HINT_TEXT = {
+  '해결디테일계획': '정확히 짚어주고, 계획표로 차근차근 정리',
+  '해결디테일탐색': '정확히 짚어주고, 작은 도전으로 바로 실천',
+  '해결큰그림계획': '큰 방향을 잡고, 우선순위로 길을 정리',
+  '해결큰그림탐색': '큰 방향을 잡고, 해볼 만한 선택지를 제안',
+  '지지디테일계획': '함께 고민하며, 단계별로 차근차근 계획',
+  '지지디테일탐색': '함께 고민하며, 부담 없는 도전을 시작',
+  '지지큰그림계획': '마음을 먼저 살피고, 내 속도에 맞춰 방향 정리',
+  '지지큰그림탐색': '마음을 먼저 살피고, 새로운 시도를 가볍게 제안'
+};
+
+const PARTNER_TYPE_RESULT_COPY = {
+  '해결디테일계획': {
+    feedback_style: '어디가 잘됐고 어디가 부족한지 정확하게 짚어줘요. 근거와 함께 알려주니까 뭘 고쳐야 할지 바로 알 수 있어요.',
+    action_style: '뭘 언제까지 하면 되는지 계획표로 정리해줘요. 하나씩 체크하다 보면 성장이 눈에 보여요.'
+  },
+  '해결디테일탐색': {
+    feedback_style: '어디가 잘됐고 어디가 부족한지 정확하게 짚어줘요. 핵심만 콕 집어주니까 바로 행동으로 옮길 수 있어요.',
+    action_style: '부담 없이 해볼 수 있는 작은 도전을 제안해줘요. 한 번 해보면 자신감이 붙어요.'
+  },
+  '해결큰그림계획': {
+    feedback_style: '지금 어디쯤 있고 어디로 가면 되는지 방향을 잡아줘요. 전체 그림이 보이니까 흔들리지 않아요.',
+    action_style: '뭐부터 해야 하는지 우선순위를 정리해줘요. 순서대로 하다 보면 길이 선명해져요.'
+  },
+  '해결큰그림탐색': {
+    feedback_style: '지금 어디쯤 있고 어디로 가면 되는지 방향을 잡아줘요. 가능성을 보여주니까 도전하고 싶어져요.',
+    action_style: '여러 가능성 중에 해볼 만한 걸 제안해줘요. 해보면서 나한테 맞는 길을 찾아가요.'
+  },
+  '지지디테일계획': {
+    feedback_style: '잘한 부분을 먼저 알아봐주고, 부족한 점은 같이 고민해줘요. 안심이 되니까 더 솔직하게 받아들일 수 있어요.',
+    action_style: '차근차근 할 수 있도록 단계를 나눠서 정리해줘요. 한 걸음씩 같이 가는 느낌이에요.'
+  },
+  '지지디테일탐색': {
+    feedback_style: '잘한 부분을 먼저 알아봐주고, 부족한 점은 같이 고민해줘요. 혼자가 아니라는 느낌이 힘이 돼요.',
+    action_style: '부담 없는 작은 도전을 함께 시작해줘요. 같이 하니까 용기가 생겨요.'
+  },
+  '지지큰그림계획': {
+    feedback_style: '지금 기분이나 상황을 먼저 알아주고, 큰 방향을 함께 잡아줘요. 마음이 편해진 다음에 움직이니까 더 잘돼요.',
+    action_style: '무리하지 않는 선에서 목표와 순서를 정리해줘요. 내 속도에 맞춰 가니까 지치지 않아요.'
+  },
+  '지지큰그림탐색': {
+    feedback_style: '지금 기분이나 상황을 먼저 알아주고, 큰 방향을 함께 잡아줘요. 내 마음을 알아주니까 더 열리게 돼요.',
+    action_style: '호기심을 자극하는 새로운 시도를 제안해줘요. 재밌어서 하다 보면 어느새 성장해 있어요.'
+  }
+};
+
+function getPartnerResultCopy(typeInfo) {
+  const code = String(typeInfo?.type_code || '').trim();
+  const mapped = code ? PARTNER_TYPE_RESULT_COPY[code] : null;
+
+  const fallbackFeedback = '어디가 잘됐고 어디를 보완하면 좋을지 정확하게 짚어줘요.';
+  const fallbackAction = '무엇을 언제까지 하면 좋을지 계획으로 정리해줘요.';
+
+  return {
+    feedback_style: String(mapped?.feedback_style || typeInfo?.description?.feedback_style || fallbackFeedback).trim(),
+    action_style: String(mapped?.action_style || typeInfo?.description?.action_style || fallbackAction).trim()
+  };
+}
+
+function getPartnerTypeHint(typeInfo) {
+  const code = String(typeInfo?.type_code || '').trim();
+  if (code && PARTNER_TYPE_HINT_TEXT[code]) return PARTNER_TYPE_HINT_TEXT[code];
+
+  const feedback = String(typeInfo?.description?.feedback_style || '').trim();
+  if (feedback) return feedback;
+  const action = String(typeInfo?.description?.action_style || '').trim();
+  if (action) return action;
+  return '학습 방식이 다른 성장 파트너';
+}
+
+function normalizePartnerQuote(text) {
+  const value = String(text || '').trim();
+  return value.replace(/^\s*["']+/, '').replace(/["']+\s*$/, '').trim();
+}
+
 function showPersonalityResult(type) {
   const partner = (type && typeof type === 'object') ? type : null;
   if (!partner || !partner.type_code) {
@@ -5129,37 +5243,81 @@ function showPersonalityResult(type) {
   const descEl = document.getElementById('personalityDesc');
   const cardEl = document.getElementById('personalityCard');
 
-  if (iconEl) iconEl.textContent = partner.emoji || '🧠';
-  if (titleEl) {
-    const tagText = partner.axes_raw?.support_tag ? ` ${partner.axes_raw.support_tag}` : '';
-    titleEl.textContent = (partner.type_name || partner.type_code) + tagText;
-  }
+  // 상단 기본 헤더(기존 DOM)는 비워두고, 카드 내부에서 결과 헤더/타입을 일관되게 렌더링한다.
+  if (iconEl) iconEl.textContent = '';
+  if (titleEl) titleEl.textContent = '';
 
-  const lines = [];
-  if (partner.description?.feedback_style) lines.push('피드백 스타일: ' + escapeHtml(partner.description.feedback_style));
-  if (partner.description?.action_style) lines.push('실천 방식: ' + escapeHtml(partner.description.action_style));
-  if (partner.description?.encouraging_phrase) lines.push('이런 말이 힘이 돼요: ' + escapeHtml(partner.description.encouraging_phrase));
-  if (partner.style_guide?.tone) lines.push('tone: ' + escapeHtml(partner.style_guide.tone));
-  if (partner.style_guide?.format) lines.push('format: ' + escapeHtml(partner.style_guide.format));
-  if (partner.axes_raw?.support_tag && SUPPORT_TAG_GUIDE[partner.axes_raw.support_tag]) {
-    lines.push(escapeHtml(`${partner.axes_raw.support_tag}: ${SUPPORT_TAG_GUIDE[partner.axes_raw.support_tag]}`));
+  const partnerCopy = getPartnerResultCopy(partner);
+  const feedbackStyle = partnerCopy.feedback_style;
+  const actionStyle = partnerCopy.action_style;
+  const encouragingPhraseRaw = String(partner.description?.encouraging_phrase || '충분히 잘하고 있어. 지금 방식대로 한 걸음씩 가보자.').trim();
+  const encouragingPhrase = normalizePartnerQuote(encouragingPhraseRaw);
+  const supportTagRaw = String(partner.axes_raw?.support_tag || '').trim();
+  const supportTag = supportTagRaw || '#성장 파트너형';
+  const learningEnvironmentText = getPartnerLearningEnvironmentText(supportTagRaw);
+  const empathyText = getPartnerEmpathyText(partner, supportTagRaw);
+  const toneClass = getPartnerToneClass(partner.type_code);
+
+  if (descEl) {
+    descEl.innerHTML = `
+      <div class="partner-result-shell">
+        <div class="partner-result-title">나의 성장 파트너를 찾았어요!</div>
+        <div class="partner-result-identity">
+          <div class="partner-result-identity-card ${toneClass}">
+            <span class="partner-result-identity-emoji">${escapeHtml(partner.emoji || '🧠')}</span>
+            <span class="partner-result-identity-name">${escapeHtml(partner.type_name || partner.type_code)}</span>
+            <span class="partner-result-tag-badge">${escapeHtml(supportTag)}</span>
+            <div class="partner-result-identity-message">${escapeHtml(empathyText)}</div>
+          </div>
+        </div>
+        <div class="partner-result-cards">
+          <div class="partner-result-card">
+            <div class="partner-result-card-title">💬 피드백 스타일</div>
+            <div class="partner-result-card-body">${escapeHtml(feedbackStyle)}</div>
+          </div>
+          <div class="partner-result-card">
+            <div class="partner-result-card-title">🚀 실천 방식</div>
+            <div class="partner-result-card-body">${escapeHtml(actionStyle)}</div>
+          </div>
+          <div class="partner-result-card">
+            <div class="partner-result-card-title">📚 학습 환경</div>
+            <div class="partner-result-card-body">${escapeHtml(learningEnvironmentText)}</div>
+          </div>
+        </div>
+        <div class="partner-result-quote">
+          <div class="partner-result-card-title">💡 이런 말이 힘이 돼요</div>
+          <div class="partner-result-quote-body">${escapeHtml(encouragingPhrase)}</div>
+        </div>
+      </div>
+    `;
   }
-  if (descEl) descEl.innerHTML = lines.join('<br>');
 
   if (cardEl) cardEl.className = 'accent-box personality-result-card';
 
   const allContainer = document.getElementById('allPersonalityTypes');
   if (allContainer) {
-    let html = '<div style="font-weight:700; font-size:0.85rem; color:var(--text-sub); margin-bottom:10px; text-align:center;">📌 8가지 성장 파트너 유형</div>';
-    html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
+    let html = `
+      <details class="partner-type-accordion">
+        <summary class="partner-type-summary">
+          <span class="partner-type-summary-title">📌 8가지 성장 파트너 유형</span>
+          <span class="partner-type-summary-state" aria-hidden="true"></span>
+        </summary>
+        <div class="partner-type-list">
+    `;
     PARTNER_TYPES.forEach(t => {
       const isMine = t.type_code === partner.type_code;
-      html += `<div style="padding:12px; border-radius:12px; text-align:center; ${isMine ? 'background:var(--primary-light); border:2px solid var(--primary);' : 'background:var(--bg-body); border:2px solid transparent; opacity:0.7;'}">
-        <div style="font-size:1.5rem;">${t.emoji || '🧠'}</div>
-        <div style="font-weight:700; font-size:0.85rem; color:var(--text-main); margin-top:4px;">${escapeHtml(t.type_name)}${isMine ? ' (나)' : ''}</div>
-      </div>`;
+      const meBadge = isMine ? '<strong class="partner-type-me">(나)</strong>' : '';
+      html += `
+        <div class="partner-type-item${isMine ? ' mine' : ''}">
+          <div class="partner-type-main">
+            <span class="partner-type-emoji">${escapeHtml(t.emoji || '🧠')}</span>
+            <span class="partner-type-name">${escapeHtml(t.type_name)} ${meBadge}</span>
+          </div>
+          <div class="partner-type-hint">${escapeHtml(getPartnerTypeHint(t))}</div>
+        </div>
+      `;
     });
-    html += '</div>';
+    html += '</div></details>';
     allContainer.innerHTML = html;
   }
 }
