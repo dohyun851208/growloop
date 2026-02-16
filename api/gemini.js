@@ -177,13 +177,20 @@ export default async function handler(req, res) {
             break;
           }
 
-          const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          const candidate = data?.candidates?.[0];
+          const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+          const text = parts
+            .map((p) => (p && typeof p.text === 'string' ? p.text : ''))
+            .join('')
+            .trim();
+          const finishReason = candidate?.finishReason || null;
+
           if (!text || typeof text !== 'string') {
             lastProviderError = { status: 502, mapped: { code: 'empty_response', error: 'Gemini returned an empty response.' } };
             break;
           }
 
-          return res.status(200).json({ ok: true, text });
+          return res.status(200).json({ ok: true, text, finishReason });
         } catch (error) {
           lastNetworkError = error;
           // retry once for transient network failures

@@ -1,5 +1,4 @@
-﻿
-// ============================================
+﻿// ============================================
 // Supabase 설정
 // ============================================
 const SUPABASE_URL = 'https://ftvalqzaiooebkulafzg.supabase.co';
@@ -18,16 +17,17 @@ let currentRatings = {};
 let ratingCriteria = [];
 let currentStudent = null;
 let currentClassCode = '';
-let studentPartner = null; // 16-type growth partner (derived from student_personality.question_responses)
+let studentPartner = null; // 8-type growth partner (derived from student_personality.question_responses)
 
 // 교사용(스스로배움) - 교과세특 생성 상태
 let teacherDiarySelectedStudentId = null;
 let currentTeacherDiarySubTab = 'overview'; // overview | student | comment
 let teacherSubjectCommentSemester = 1;
 let teacherSubjectCommentSelectedSubject = '';
-let teacherSubjectCommentLastGenerated = null; // { text, noteCount, key }
+let teacherSubjectCommentLastGenerated = null; // { mode, text, noteCount, key, items[] }
 let teacherSubjectCommentSettingsSaveTimer = null;
 let teacherSubjectCommentLastSettings = null; // cached class settings
+const TEACHER_SUBJECT_COMMENT_ALL_STUDENTS = '__ALL_STUDENTS__';
 
 // 자기평가 전역 변수
 let selectedSubjectTags = [];
@@ -44,71 +44,9 @@ let studentPersonality = null; // 학생 성향 정보
 // 체험 모드 전역 변수
 let isDemoMode = false;
 let demoRole = null;
-let demoLiveReads = false; // demo_live=1: read from Supabase (still blocks writes)
 const DEMO_FIXED_QUERY_DATE = '2026-03-01';
 const DEMO_PERSONALITY_STORAGE_KEY = 'demo_student_personality_v2';
 const DEMO_PERSONALITY_STORAGE_KEY_LEGACY = 'demo_student_personality_v1';
-const DEMO_FALLBACK_DATA = {
-  daily_reflections: [
-    { id: 'demo-dr-1', class_code: '체험용', student_id: '1', reflection_date: '2026-03-01', learning_text: '오늘 배운 내용: 산업혁명 이후 사회 변화가 노동, 도시, 교육에 어떤 영향을 줬는지 정리했다.\n내가 잘한 점: 사건 순서를 연표로 정리해서 발표할 때 흐름을 끊기지 않게 설명했다.\n어려웠던 점: 산업혁명 전후의 생활 변화 차이를 한 문장으로 요약하는 게 어려웠다.\n이해/해결 방법: 원인-변화-결과 3칸 표로 나눠 핵심 단어를 먼저 채운 뒤 문장으로 연결했다.\n아직 헷갈리는 점: 기계화가 지역별로 미친 영향 차이가 왜 생겼는지 더 찾아보고 싶다.\n일상에 적용해볼 점: 뉴스를 볼 때도 사건의 원인과 결과를 표로 정리해 보는 습관을 들이겠다.', subject_tags: ['사회', '세계사', '토론'], gratitude_text: '발표할 때 친구들이 끝까지 들어줘서 고마웠다.' },
-    { id: 'demo-dr-2', class_code: '체험용', student_id: '1', reflection_date: '2026-02-28', learning_text: '수학에서 비례식 문제를 단계별로 풀어보며 실수를 줄였다. 중간 계산을 메모하니 정확도가 올라갔다.', subject_tags: ['수학'] },
-    { id: 'demo-dr-3', class_code: '체험용', student_id: '1', reflection_date: '2026-02-27', learning_text: '국어 시간에 설명문 구조를 분석하고 핵심 문장을 찾아 요약했다. 문단별 중심 생각을 구분하는 연습이 도움이 됐다.', subject_tags: ['국어'] },
-    { id: 'demo-dr-4', class_code: '체험용', student_id: '1', reflection_date: '2026-02-26', learning_text: '과학 실험에서 증발 속도 차이를 관찰했다. 변인을 하나씩 통제해야 결과를 비교할 수 있다는 점을 이해했다.', subject_tags: ['과학', '실험'] },
-    { id: 'demo-dr-5', class_code: '체험용', student_id: '1', reflection_date: '2026-02-25', learning_text: '영어로 일상 표현을 역할극으로 연습했다. 발음이 어색한 부분은 친구 피드백을 받고 다시 말해보며 고쳤다.', subject_tags: ['영어', '발표'] },
-    { id: 'demo-dr-6', class_code: '체험용', student_id: '1', reflection_date: '2026-02-24', learning_text: '모둠활동에서 역할을 나눠 자료를 정리했다. 시간 배분을 먼저 정하니 마무리가 훨씬 수월했다.', subject_tags: ['모둠활동', '실과'] },
-    { id: 'demo-dr-7', class_code: '체험용', student_id: '1', reflection_date: '2026-02-23', learning_text: '미술 시간에 색 대비를 활용해 포스터를 만들었다. 강조하고 싶은 요소를 중심으로 배치하니 전달력이 좋아졌다.', subject_tags: ['미술'] },
-    { id: 'demo-dr-8', class_code: '체험용', student_id: '1', reflection_date: '2026-02-22', learning_text: '체육에서 팀 전략을 맞추며 협력의 중요성을 느꼈다. 서로 신호를 미리 정한 것이 경기 운영에 도움이 됐다.', subject_tags: ['체육'] },
-    { id: 'demo-dr-9', class_code: '체험용', student_id: '1', reflection_date: '2026-02-21', learning_text: '도덕 시간에 갈등 상황 사례를 토의했다. 상대 입장을 먼저 확인하면 오해를 줄일 수 있다는 점이 기억에 남는다.', subject_tags: ['도덕', '토론'] },
-    { id: 'demo-dr-10', class_code: '체험용', student_id: '1', reflection_date: '2026-02-20', learning_text: '사회 시간에 세계사 연표를 다시 정리했다. 사건의 순서와 연결 관계를 시각화하니 암기가 쉬워졌다.', subject_tags: ['사회', '세계사'] },
-    { id: 'demo-dr-11', class_code: '체험용', student_id: '2', reflection_date: '2026-03-01', learning_text: '오늘 발표가 잘 안 돼서 조금 속상했지만 친구들이 응원해줘서 다시 해볼 용기가 생겼다.', subject_tags: ['발표'] },
-    { id: 'demo-dr-12', class_code: '체험용', student_id: '3', reflection_date: '2026-03-01', learning_text: '수학 문제를 다시 풀면서 틀린 이유를 찾았다. 아직 걱정되는 문제 유형이 있어서 복습이 필요하다.', subject_tags: ['수학'] },
-    { id: 'demo-dr-13', class_code: '체험용', student_id: '4', reflection_date: '2026-03-01', learning_text: '과학 실험 결과를 정리했는데 생각보다 헷갈려서 좀 힘들었다. 그래도 모둠원이 도와줘서 끝까지 정리했다.', subject_tags: ['과학', '모둠활동'] },
-    { id: 'demo-dr-14', class_code: '체험용', student_id: '5', reflection_date: '2026-03-01', learning_text: '영어 단어를 문장으로 만들어 외우니 기억이 오래갔다. 내일은 듣기 연습을 더 해보려고 한다.', subject_tags: ['영어'] },
-    { id: 'demo-dr-15', class_code: '체험용', student_id: '6', reflection_date: '2026-03-01', learning_text: '국어 토론에서 근거를 먼저 제시하는 연습을 했다. 다음에는 반박 질문에도 차분히 답해보고 싶다.', subject_tags: ['국어', '토론'] }
-  ],
-  student_goals: {
-    '1': [
-      { id: 'demo-goal-1', class_code: '체험용', student_id: '1', goal_text: '세계사 연표 10개 사건을 원인-결과로 설명하기', goal_type: 'weekly', is_completed: true, created_at: '2026-02-24T09:00:00+09:00' },
-      { id: 'demo-goal-2', class_code: '체험용', student_id: '1', goal_text: '수학 서술형에서 풀이 과정을 빠짐없이 쓰기', goal_type: 'weekly', is_completed: false, created_at: '2026-02-25T09:00:00+09:00' },
-      { id: 'demo-goal-3', class_code: '체험용', student_id: '1', goal_text: '매주 4회 이상 배움 일기 작성하기', goal_type: 'monthly', is_completed: false, created_at: '2026-02-20T09:00:00+09:00' }
-    ]
-  },
-  teacher_messages: [
-    { id: 'demo-tm-1', class_code: '체험용', student_id: '1', is_anonymous: false, message_content: '세계사 발표에서 근거를 더 자신 있게 말하고 싶어요. 연습 방법이 궁금해요.', has_reply: true, created_at: '2026-03-01T09:40:00+09:00', daily_reflections: { reflection_date: '2026-03-01' }, teacher_replies: [{ reply_content: '핵심 문장을 3개로 줄여 먼저 말해보세요. 1분 발표를 녹음해서 속도와 발음을 확인하면 훨씬 좋아집니다.' }] },
-    { id: 'demo-tm-2', class_code: '체험용', student_id: null, is_anonymous: true, message_content: '최근 발표할 때 긴장감이 커졌어요. 발표 전 루틴을 알려주세요.', has_reply: false, created_at: '2026-03-01T08:25:00+09:00', daily_reflections: { reflection_date: '2026-03-01' }, teacher_replies: [] },
-    { id: 'demo-tm-3', class_code: '체험용', student_id: '3', is_anonymous: false, message_content: '수학에서 비례식 단원을 복습 중인데 검산 습관을 어떻게 들이면 좋을까요?', has_reply: false, created_at: '2026-03-01T08:55:00+09:00', daily_reflections: { reflection_date: '2026-03-01' }, teacher_replies: [] }
-  ]
-};
-
-function getDemoFallbackDailyReflections(studentId = null) {
-  const sid = studentId == null ? null : String(studentId);
-  const rows = DEMO_FALLBACK_DATA.daily_reflections.filter(r => r.class_code === '체험용' && (sid ? String(r.student_id) === sid : true));
-  return rows.map(r => ({ ...r }));
-}
-
-function getDemoFallbackDailyReflectionByDate(studentId, dateStr) {
-  return getDemoFallbackDailyReflections(studentId).find(r => r.reflection_date === dateStr) || null;
-}
-
-function getDemoFallbackGoals(studentId) {
-  const sid = String(studentId);
-  const goals = DEMO_FALLBACK_DATA.student_goals[sid] || [];
-  return goals.map(g => ({ ...g }));
-}
-
-function getDemoFallbackTeacherMessages(selectedDate, studentId = null) {
-  const sid = studentId == null ? null : String(studentId);
-  const msgs = DEMO_FALLBACK_DATA.teacher_messages.filter(m => {
-    if (m.class_code !== '체험용') return false;
-    if (sid && String(m.student_id) !== sid) return false;
-    if (!selectedDate) return true;
-    return String(m.created_at || '').startsWith(selectedDate);
-  });
-  return msgs
-    .map(m => ({ ...m, daily_reflections: m.daily_reflections ? { ...m.daily_reflections } : null, teacher_replies: Array.isArray(m.teacher_replies) ? m.teacher_replies.map(r => ({ ...r })) : [] }))
-    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
-}
-
 function loadDemoPersonalityFromStorage() {
   try {
     const raw = sessionStorage.getItem(DEMO_PERSONALITY_STORAGE_KEY) || sessionStorage.getItem(DEMO_PERSONALITY_STORAGE_KEY_LEGACY);
@@ -116,17 +54,17 @@ function loadDemoPersonalityFromStorage() {
     const parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return null;
 
-    // New format (16-type)
-    if (parsed.partner_type_code) return parsed;
+    // Only accept v2+ partner payload.
+    if (parsed.partner_type_code && Number(parsed.partner_version || 0) >= 2) return parsed;
 
-    // Legacy format: derive 16-type from stored answers when possible.
-    if (parsed.question_responses) {
+    // Legacy format: derive the current partner type only when version is v2.
+    if (parsed.question_responses && Number(parsed.partner_version || 0) >= 2) {
       const partner = computePartnerType(parsed.question_responses);
       return {
         ...parsed,
         partner_type_code: partner?.type_code || null,
         partner_type_name: partner?.type_name || null,
-        partner_axes: partner ? { ...(partner.axes_raw || {}), needs_scores: !!partner.needs_scores } : null,
+        partner_axes: partner ? { ...(partner.axes_raw || {}) } : null,
         partner_version: partner?.partner_version || null
       };
     }
@@ -153,9 +91,18 @@ function getDefaultQueryDate() {
   return isDemoMode ? DEMO_FIXED_QUERY_DATE : getKstTodayStr();
 }
 
+function setAppLayoutMode(mode = 'default') {
+  const body = document.body;
+  if (!body) return;
+  body.classList.remove('student-layout', 'teacher-layout');
+  if (mode === 'student') body.classList.add('student-layout');
+  if (mode === 'teacher') body.classList.add('teacher-layout');
+}
+
 function showRoleSelectInApp() {
   const loadingSec = document.getElementById('authLoadingSection');
   if (!loadingSec) return;
+  setAppLayoutMode('default');
   loadingSec.classList.remove('hidden');
   loadingSec.innerHTML = `
     <div style="max-width:380px; margin:0 auto; text-align:center; padding:20px;">
@@ -217,31 +164,32 @@ function ensureSubjectTagButtons() {
 }
 
 function ensureCustomSubjectInput() {
-  if (getCustomSubjectInputEl()) return;
-  const saveBtn = document.getElementById('saveDailyBtn');
-  if (!saveBtn || !saveBtn.parentElement) return;
+  const tagsContainer = document.querySelector('#dailyReflectionTab .subject-tags');
+  if (!tagsContainer || !tagsContainer.parentElement) return;
 
-  const wrap = document.createElement('div');
-  wrap.id = 'customSubjectWrap';
-  wrap.className = 'hidden';
-  wrap.style.marginTop = '8px';
-  wrap.style.marginBottom = '14px';
+  let wrap = getCustomSubjectWrapEl();
+  if (!wrap) {
+    wrap = document.createElement('div');
+    wrap.id = 'customSubjectWrap';
+    wrap.className = 'hidden';
+  }
 
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.id = 'customSubjectInput';
-  input.placeholder = '기타 활동을 직접 입력하세요 (예: 물리, 세계사, 미적분)';
-  input.style.width = '100%';
-  input.style.boxSizing = 'border-box';
-  input.style.padding = '10px 12px';
-  input.style.border = 'none';
-  input.style.borderRadius = '10px';
-  input.style.fontFamily = "'Jua', sans-serif";
-  input.style.fontSize = '0.92rem';
-  input.style.outline = 'none';
+  let input = getCustomSubjectInputEl();
+  if (!input) {
+    input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'customSubjectInput';
+    input.placeholder = '기타 활동을 직접 입력하세요 (예: 물리, 세계사, 미적분)';
+    input.className = 'class-tone-input';
+    wrap.appendChild(input);
+  } else if (input.parentElement !== wrap) {
+    wrap.appendChild(input);
+  }
 
-  wrap.appendChild(input);
-  saveBtn.parentElement.insertBefore(wrap, saveBtn);
+  const parent = tagsContainer.parentElement;
+  if (wrap.parentElement !== parent || tagsContainer.nextSibling !== wrap) {
+    parent.insertBefore(wrap, tagsContainer.nextSibling);
+  }
 }
 
 function getCustomSubjectTagsFromInput() {
@@ -290,12 +238,10 @@ async function checkAuthAndRoute() {
     // --- 체험 모드 감지 ---
     const demoParams = new URLSearchParams(window.location.search);
     const demoParam = demoParams.get('demo');
-    const demoLiveParam = demoParams.get('demo_live');
     if (demoParam === 'student' || demoParam === 'teacher') {
       isDemoMode = true;
       demoRole = demoParam;
-      demoLiveReads = demoLiveParam === '1';
-      initDemoMode(demoParam, { liveReads: demoLiveReads });
+      initDemoMode(demoParam);
       return;
     }
     // --- 체험 모드 감지 끝 ---
@@ -397,8 +343,10 @@ async function checkAuthAndRoute() {
       document.getElementById('authLoadingSection').classList.add('hidden');
 
       if (roleFromUrl === 'student') {
+        setAppLayoutMode('student');
         document.getElementById('studentOnboardingSection').classList.remove('hidden');
       } else {
+        setAppLayoutMode('teacher');
         document.getElementById('teacherOnboardingSection').classList.remove('hidden');
       }
       return;
@@ -420,6 +368,7 @@ async function checkAuthAndRoute() {
       window.history.replaceState({}, '', 'app.html?' + nextParams.toString());
     }
     if (profile.role === 'teacher') {
+      setAppLayoutMode('teacher');
       currentClassCode = profile.class_code;
 
       // 먼저 로딩 숨기고 탭을 표시하여 빈 화면 방지
@@ -452,6 +401,7 @@ async function checkAuthAndRoute() {
 
 
     } else {
+      setAppLayoutMode('student');
       currentClassCode = profile.class_code;
       currentStudent = {
         id: String(profile.student_number),
@@ -550,133 +500,12 @@ async function logoutGoogle() {
 // 체험 모드 (Demo Mode)
 // ============================================
 
-// 체험용 최소 데이터 골격 (나중에 채울 예정)
-const DEMO_DATA = {
-  classes: [{ class_code: '체험용', class_name: '체험용 학급', student_count: 24, group_count: 6, auto_approve_praise: false, creator_id: 'demo-user' }],
-  user_profiles: [
-    { id: 'demo-p1', google_uid: 'demo-user', google_email: 'demo@baeumlog.kr', role: 'student', class_code: '체험용', class_name: '체험용 학급', student_number: 1, student_type: 'individual' },
-    { id: 'demo-p2', google_uid: 'demo-s2', google_email: 'student2@demo.kr', role: 'student', class_code: '체험용', class_name: '체험용 학급', student_number: 2, student_type: 'individual' },
-    { id: 'demo-p3', google_uid: 'demo-s3', google_email: 'student3@demo.kr', role: 'student', class_code: '체험용', class_name: '체험용 학급', student_number: 3, student_type: 'individual' },
-    { id: 'demo-p4', google_uid: 'demo-s4', google_email: 'student4@demo.kr', role: 'student', class_code: '체험용', class_name: '체험용 학급', student_number: 4, student_type: 'individual' },
-    { id: 'demo-p5', google_uid: 'demo-s5', google_email: 'student5@demo.kr', role: 'student', class_code: '체험용', class_name: '체험용 학급', student_number: 5, student_type: 'individual' },
-    { id: 'demo-p6', google_uid: 'demo-s6', google_email: 'student6@demo.kr', role: 'student', class_code: '체험용', class_name: '체험용 학급', student_number: 6, student_type: 'individual' },
-  ],
-  objectives: [],
-  tasks: [],
-  rating_criteria: [],
-  reviews: [],
-  daily_reflections: [],
-  praise_messages: [],
-  teacher_messages: [],
-  student_personality: [],
-  student_goals: [],
-  project_reflections: [],
-};
-
-const DEMO_REVIEW_CRITERIA = ['근거 제시', '경청 태도', '표현의 명확성', '협력 기여'];
-
-function createDemoScoreJson(scores) {
-  const scoreObj = {};
-  scores.forEach((s, idx) => { scoreObj[String(idx)] = s; });
-  return { criteria: DEMO_REVIEW_CRITERIA.slice(), scores: scoreObj };
-}
-
-function buildDemoReviewsByTargets({ type, targetCount, reviewerCount, patterns }) {
-  const rows = [];
-  for (let target = 1; target <= targetCount; target++) {
-    const baseScores = patterns[(target - 1) % patterns.length];
-    for (let k = 0; k < reviewerCount; k++) {
-      let reviewer = ((target + (k + 1) * 5 - 1) % targetCount) + 1;
-      if (reviewer === target) reviewer = (reviewer % targetCount) + 1;
-      rows.push({
-        id: `demo-review-${type}-${target}-${k + 1}`,
-        class_code: '체험용',
-        review_date: DEMO_FIXED_QUERY_DATE,
-        reviewer_id: String(reviewer),
-        target_id: String(target),
-        review_type: type,
-        reviewer_email: '',
-        review_content: `${target}${type === 'group' ? '모둠' : '번'}은(는) 근거와 태도가 안정적이었고, 다음에는 핵심 요약을 더 또렷하게 하면 좋겠습니다.`,
-        scores_json: createDemoScoreJson(baseScores)
-      });
-    }
-  }
-  return rows;
-}
-
-function buildDemoReviewRows() {
-  // Balanced demo distribution:
-  // - 1/5 bands: few
-  // - 3/4 bands: many
-  const individualPatterns = [
-    // 1점대 (2명)
-    [1, 1, 1, 1], [1, 1, 1, 1],
-    // 2점대 (4명)
-    [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 1, 2], [2, 1, 2, 2],
-    // 3점대 (8명)
-    [3, 3, 3, 3], [3, 3, 3, 3], [3, 3, 3, 3], [3, 3, 3, 3],
-    [3, 3, 2, 3], [3, 2, 3, 3], [2, 3, 3, 3], [3, 3, 3, 2],
-    // 4점대 (8명)
-    [4, 4, 4, 4], [4, 4, 4, 4], [4, 4, 4, 4], [4, 4, 4, 4],
-    [4, 4, 3, 4], [4, 3, 4, 4], [3, 4, 4, 4], [4, 4, 4, 3],
-    // 5점대 (2명)
-    [5, 5, 5, 5], [5, 5, 5, 5]
-  ];
-
-  const groupPatterns = [
-    // 1점대 1개, 5점대 1개, 3/4점대가 더 많게
-    [1, 1, 1, 2], [3, 3, 3, 3], [3, 3, 2, 3],
-    [4, 4, 4, 4], [4, 4, 3, 4], [5, 5, 5, 5]
-  ];
-
-  return [
-    ...buildDemoReviewsByTargets({ type: 'individual', targetCount: 24, reviewerCount: 3, patterns: individualPatterns }),
-    ...buildDemoReviewsByTargets({ type: 'group', targetCount: 6, reviewerCount: 4, patterns: groupPatterns })
-  ];
-}
-
-DEMO_DATA.reviews = buildDemoReviewRows();
-
-// 체험 모드 DB 프록시 설치 — 모든 write 차단, select는 DEMO_DATA에서 반환
-function installDemoDbProxy(options = {}) {
-  const liveReads = options.liveReads === true;
+// 체험 모드 DB 프록시 설치 - 모든 write 차단, read는 Supabase 직통
+function installDemoDbProxy() {
   const originalFrom = db.from.bind(db);
 
   db.from = function (tableName) {
-    // select 체인 생성
-    function createDemoSelectChain() {
-      const filters = {};
-      const chain = {
-        eq: function (col, val) { filters[col] = String(val); return chain; },
-        neq: function () { return chain; },
-        gt: function () { return chain; },
-        gte: function () { return chain; },
-        lt: function () { return chain; },
-        lte: function () { return chain; },
-        or: function () { return chain; },
-        in: function () { return chain; },
-        is: function () { return chain; },
-        order: function () { return chain; },
-        limit: function () { return chain; },
-        select: function () { return chain; },
-        maybeSingle: function () {
-          const data = getDemoData(tableName, filters);
-          const single = Array.isArray(data) ? (data[0] || null) : data;
-          return Promise.resolve({ data: single, error: null, count: data.length || 0 });
-        },
-        single: function () { return chain.maybeSingle(); },
-        then: function (resolve) {
-          const data = getDemoData(tableName, filters);
-          return resolve({ data: Array.isArray(data) ? data : [], error: null, count: Array.isArray(data) ? data.length : 0 });
-        },
-        catch: function () { return Promise.resolve({ data: [], error: null }); }
-      };
-      return chain;
-    }
-
-    // write 차단용 fake 체인
     function createFakeWriteChain() {
-      const fakeResult = Promise.resolve({ data: null, error: null, count: 0 });
       const chainMethods = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'or', 'in', 'is', 'order', 'limit', 'select', 'maybeSingle', 'single'];
       const fakeChain = {};
       chainMethods.forEach(m => { fakeChain[m] = function () { return fakeChain; }; });
@@ -685,13 +514,9 @@ function installDemoDbProxy(options = {}) {
       return fakeChain;
     }
 
+    const real = originalFrom(tableName);
     return {
-      select: function (...args) {
-        // Demo mode defaults to mock reviews so the page works without DB/RLS setup.
-        // Use `app.html?demo=student&demo_live=1` (or teacher) to read from Supabase instead.
-        if (tableName === 'reviews' && !liveReads) return createDemoSelectChain();
-        return originalFrom(tableName).select(...args);
-      },
+      select: function (...args) { return real.select(...args); },
       insert: function () { showDemoBlockModal(); return createFakeWriteChain(); },
       update: function () { showDemoBlockModal(); return createFakeWriteChain(); },
       upsert: function () { showDemoBlockModal(); return createFakeWriteChain(); },
@@ -704,21 +529,6 @@ function installDemoDbProxy(options = {}) {
   db.auth.getUser = () => Promise.resolve({ data: { user: { id: 'demo-user', email: 'demo@baeumlog.kr' } }, error: null });
   db.auth.getSession = () => Promise.resolve({ data: { session: { user: { id: 'demo-user', email: 'demo@baeumlog.kr' } } }, error: null });
 }
-
-// DEMO_DATA에서 필터링하여 데이터 반환
-function getDemoData(tableName, filters) {
-  let data = DEMO_DATA[tableName];
-  if (!data) return [];
-  if (!Array.isArray(data)) data = [data];
-
-  return data.filter(item => {
-    return Object.entries(filters).every(([col, val]) => {
-      if (item[col] === undefined) return true;
-      return String(item[col]) === String(val);
-    });
-  });
-}
-
 // 체험 모드 저장 차단 모달
 function showDemoBlockModal() {
   // 모달이 이미 열려있으면 스킵
@@ -733,9 +543,9 @@ function showDemoBlockModal() {
 }
 
 // 체험 모드 초기화
-function initDemoMode(role, options = {}) {
+function initDemoMode(role) {
   // DB 프록시 설치
-  installDemoDbProxy(options);
+  installDemoDbProxy();
   syncAllDates(DEMO_FIXED_QUERY_DATE);
 
   // 기본 전역 변수 설정
@@ -745,6 +555,7 @@ function initDemoMode(role, options = {}) {
   document.getElementById('authLoadingSection').classList.add('hidden');
 
   if (role === 'student') {
+    setAppLayoutMode('student');
     // 학생 전역 변수 설정
     currentStudent = { id: '1', type: 'individual', name: '1' };
     studentPersonality = loadDemoPersonalityFromStorage();
@@ -766,6 +577,7 @@ function initDemoMode(role, options = {}) {
     switchStudentMainTab('self');
 
   } else if (role === 'teacher') {
+    setAppLayoutMode('teacher');
     // 교사 UI 표시
     const tTab = document.getElementById('teacherTab');
     const tMain = document.getElementById('teacherMain');
@@ -799,8 +611,7 @@ function addDemoBanner(role) {
     'text-align:center; padding:10px 16px; font-size:0.85rem; font-weight:700; ' +
     'font-family:"Jua",sans-serif; box-shadow:0 2px 8px rgba(0,0,0,0.1);';
   const roleText = role === 'student' ? '학생용' : '교사용';
-  const liveBadge = demoLiveReads ? ' LIVE' : '';
-  banner.innerHTML = '🎮 체험 모드 (' + roleText + ')' + liveBadge + ' - 데이터는 저장되지 않습니다 ' +
+  banner.innerHTML = '🎮 체험 모드 (' + roleText + ')' + ' - 데이터는 저장되지 않습니다 ' +
     '<a href="index.html" style="color:#78350f; margin-left:12px; text-decoration:underline; font-weight:700;">돌아가기</a>';
   document.body.prepend(banner);
   document.body.style.paddingTop = '42px';
@@ -952,12 +763,6 @@ document.getElementById('teacherDate').addEventListener('change', function () {
 // ============================================
 async function getClassInfo() {
   try {
-    if (isDemoMode) {
-      const demoClass = Array.isArray(DEMO_DATA.classes)
-        ? DEMO_DATA.classes.find(c => String(c.class_code) === String(currentClassCode))
-        : null;
-      return demoClass || { class_code: '체험용', class_name: '체험용 학급', student_count: 24, group_count: 6 };
-    }
     const { data } = await db.from('classes').select('*').eq('class_code', currentClassCode).maybeSingle();
     return data;
   } catch (err) { console.warn('getClassInfo error:', err); return null; }
@@ -1025,6 +830,38 @@ function formatMarkdown(text) {
 
   return html;
 }
+
+function looksLikeCutOffKorean(text) {
+  const t = String(text || '').trim();
+  if (!t) return false;
+  if (/[.!?…]$/.test(t)) return false;
+  if (/(다|요|임|함|됨|음)$/.test(t)) return false;
+  if (/[)\]」』"']$/.test(t)) return false;
+  return true;
+}
+
+function sanitizeAiSummaryText(text) {
+  let t = String(text || '').trim();
+  if (!t) return '';
+  // Remove internal helper labels if model echoes them.
+  t = t.replace(/^\s*\[(수정본|TEXT|원문)\]\s*/i, '');
+  t = t.replace(/^\s*(수정본|수정 결과|결과)\s*[:：]\s*/i, '');
+  t = t.replace(/^\s*```(?:markdown|md|text)?\s*/i, '').replace(/\s*```\s*$/i, '');
+  return t.trim();
+}
+
+function isWeakSummaryOutput(text) {
+  const t = String(text || '').trim();
+  if (!t) return true;
+  const len = t.replace(/\s+/g, ' ').trim().length;
+  const headerCount = (t.match(/^##\s+/gm) || []).length;
+  // Too short, missing 3 headers, or obviously unfinished ending.
+  if (len < 120) return true;
+  if (headerCount < 3) return true;
+  if (looksLikeCutOffKorean(t)) return true;
+  return false;
+}
+
 function setLoading(loading, btn, text) {
   btn.disabled = loading;
   if (loading) btn.innerHTML = '<span class="spinner"></span>' + text;
@@ -1094,7 +931,7 @@ async function switchTypeAndLogout(newType) {
 }
 
 function syncAllDates(dateStr) {
-  const dateInputs = ['reviewDate', 'viewDate', 'teacherDate', 'settingDate', 'selfDate', 'diaryViewDate', 'messageViewDate'];
+  const dateInputs = ['reviewDate', 'viewDate', 'teacherDate', 'settingDate', 'selfDate', 'diaryViewDate', 'diaryStudentViewDate', 'messageViewDate'];
   dateInputs.forEach(id => { const el = document.getElementById(id); if (el) el.value = dateStr; });
 }
 
@@ -1193,7 +1030,6 @@ async function loadStudentSettingsData() {
         <div style="text-align:center; padding:15px 0; margin-bottom:15px; background:var(--primary-light); border:2px solid var(--primary); border-radius:14px;">
           <div style="font-size:2.5rem; margin-bottom:6px;">${partner.emoji || '🧠'}</div>
           <div style="font-weight:700; font-size:1.1rem; color:var(--text-main);">나의 성장 파트너: ${escapeHtml(partner.type_name)}</div>
-          <div style="font-size:0.85rem; color:var(--text-sub); margin-top:4px;">${escapeHtml(partner.type_code)}</div>
           ${axisBadges.length ? `<div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:10px;">${axisBadges.map(b => `<span style="font-size:0.72rem; padding:3px 9px; border-radius:999px; background:var(--bg-body); border:1px solid var(--border); color:var(--text-sub);">${escapeHtml(b)}</span>`).join('')}</div>` : ''}
           ${(partner.style_guide?.tone || partner.style_guide?.format) ? `<div style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; line-height:1.5;">${partner.style_guide?.tone ? `톤: ${escapeHtml(partner.style_guide.tone)}` : ''}${partner.style_guide?.tone && partner.style_guide?.format ? '<br>' : ''}${partner.style_guide?.format ? `형식: ${escapeHtml(partner.style_guide.format)}` : ''}</div>` : ''}
         </div>
@@ -1203,12 +1039,9 @@ async function loadStudentSettingsData() {
       html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px;">';
       PARTNER_TYPES.forEach(t => {
         const isMine = t.type_code === partner.type_code;
-        const rep = t.representative_answers ? formatRepresentativeAnswers(t.representative_answers) : '';
         html += `<div style="padding:10px; border-radius:12px; text-align:center; ${isMine ? 'background:var(--primary-light); border:2px solid var(--primary);' : 'background:var(--bg-body); border:2px solid transparent; opacity:0.6;'}">
           <div style="font-size:1.4rem;">${t.emoji || '🧠'}</div>
           <div style="font-weight:700; font-size:0.82rem; color:var(--text-main); margin-top:3px;">${escapeHtml(t.type_name)}${isMine ? ' ✓' : ''}</div>
-          <div style="font-size:0.68rem; color:var(--text-sub); margin-top:2px; line-height:1.3;">${escapeHtml(t.type_code)}</div>
-          ${rep ? `<div style="font-size:0.66rem; color:var(--text-sub); margin-top:6px; opacity:0.85;">대표: ${escapeHtml(rep)}</div>` : ''}
         </div>`;
       });
       html += '</div>';
@@ -1236,62 +1069,7 @@ async function loadStudentSettingsData() {
 
       area.innerHTML = html;
       return;
-    }
-
-    const personalities = {
-      analytical: { icon: '🎯', title: '분석형', desc: '구체적이고 논리적인 피드백을 선호하는 스타일' },
-      balanced: { icon: '⚖️', title: '균형형', desc: '논리와 감정의 균형을 중시하는 스타일' },
-      growth: { icon: '🌱', title: '성장형', desc: '과정과 배움을 중시하는 스타일' },
-      empathetic: { icon: '💝', title: '감성형', desc: '공감과 격려를 중시하는 스타일' }
-    };
-
-    const myType = personality.personality_type;
-    const p = personalities[myType] || { icon: '❓', title: '알 수 없음', desc: '' };
-
-    // 나의 유형 강조 표시
-    let html = `
-      <div style="text-align:center; padding:15px 0; margin-bottom:15px; background:var(--primary-light); border:2px solid var(--primary); border-radius:14px;">
-        <div style="font-size:2.5rem; margin-bottom:6px;">${p.icon}</div>
-        <div style="font-weight:700; font-size:1.1rem; color:var(--text-main);">나의 유형: ${p.title}</div>
-        <div style="font-size:0.85rem; color:var(--text-sub); margin-top:4px;">${p.desc}</div>
-      </div>
-    `;
-
-    // 전체 유형 비교
-    html += '<div style="font-weight:700; font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">📌 전체 성향 유형</div>';
-    html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px;">';
-    Object.entries(personalities).forEach(([key, val]) => {
-      const isMine = key === myType;
-      html += `<div style="padding:10px; border-radius:12px; text-align:center; ${isMine ? 'background:var(--primary-light); border:2px solid var(--primary);' : 'background:var(--bg-body); border:2px solid transparent; opacity:0.6;'}">
-        <div style="font-size:1.4rem;">${val.icon}</div>
-        <div style="font-weight:700; font-size:0.8rem; color:var(--text-main); margin-top:3px;">${val.title}${isMine ? ' ✓' : ''}</div>
-        <div style="font-size:0.7rem; color:var(--text-sub); margin-top:2px; line-height:1.3;">${val.desc}</div>
-      </div>`;
-    });
-    html += '</div>';
-
-    // 질문별 응답 표시 (선택한 것 + 선택 안 한 것 모두 표시)
-    if (personality.question_responses) {
-      html += '<div style="font-weight:700; font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">📋 나의 응답</div>';
-      personalityQuestions.forEach(q => {
-        const answer = personality.question_responses[q.id];
-        if (answer) {
-          const chosen = answer === 'A' ? q.optionA : q.optionB;
-          const notChosen = answer === 'A' ? q.optionB : q.optionA;
-          html += `
-            <div style="padding:10px 12px; margin-bottom:8px; background:var(--bg-body); border-radius:10px; font-size:0.82rem;">
-              <div style="color:var(--text-sub); margin-bottom:6px;">Q${q.id}. ${q.question}</div>
-              <div style="color:var(--primary); font-weight:700;">✓ ${answer}. ${chosen.text}</div>
-              <div style="color:var(--text-sub); opacity:0.5; margin-top:3px; font-size:0.78rem;">${answer === 'A' ? 'B' : 'A'}. ${notChosen.text}</div>
-            </div>
-          `;
-        }
-      });
-    }
-
-    html += '<button type="button" onclick="resetPersonalityFromSettings()" style="background:var(--border); color:var(--text-main); font-size:0.85rem; padding:10px 20px; margin-top:12px; border-radius:50px; border:none; font-family:\'Jua\',sans-serif; cursor:pointer;">다시 진단하기</button>';
-
-    area.innerHTML = html;
+    }    area.innerHTML = '<p style="color:var(--text-sub); text-align:center; padding:20px 0;">저장된 진단이 현재 버전과 달라요.<br>자기평가 탭에서 다시 진단해 주세요.</p>';
   } catch (err) {
     console.error('성향 정보 로드 오류:', err);
     area.innerHTML = '<p style="color:var(--text-sub); text-align:center;">성향 정보를 불러올 수 없습니다.</p>';
@@ -1601,6 +1379,8 @@ function initTeacherSubjectCommentUI() {
   const sl = document.getElementById('teacherSubjectCommentSchoolLevel');
   const startEl = document.getElementById('teacherSubjectCommentStart');
   const endEl = document.getElementById('teacherSubjectCommentEnd');
+  const customSubjectEl = document.getElementById('teacherSubjectCommentCustomSubjectInput');
+  bindTeacherSubjectCommentStudentMenu();
 
   sl?.addEventListener('change', () => {
     queueSaveTeacherSubjectCommentSettings();
@@ -1619,9 +1399,18 @@ function initTeacherSubjectCommentUI() {
     refreshTeacherSubjectCommentActions();
     loadTeacherSavedSubjectComment();
   });
+  customSubjectEl?.addEventListener('input', () => {
+    refreshTeacherSubjectCommentActions();
+  });
+  customSubjectEl?.addEventListener('change', () => {
+    refreshTeacherSubjectCommentActions();
+    loadTeacherSavedSubjectComment();
+  });
 
   setTeacherSubjectCommentSemester(1);
-  renderTeacherSubjectCommentSubjectTags(PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG));
+  renderTeacherSubjectCommentSubjectTags(PRESET_SUBJECT_TAGS);
+  syncTeacherSubjectCommentCustomSubjectVisibility();
+  syncTeacherSubjectCommentStudentMenuSelection();
   refreshTeacherSubjectCommentActions();
 
   setTimeout(() => { loadTeacherSubjectCommentSettings(); }, 0);
@@ -1715,14 +1504,130 @@ function queueSaveTeacherSubjectCommentSettings() {
   }, 600);
 }
 
+function getTeacherSubjectCommentCustomSubjectInputEl() {
+  return document.getElementById('teacherSubjectCommentCustomSubjectInput');
+}
+
+function getTeacherSubjectCommentOrderedSubjects(subjects) {
+  const presetBase = PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG);
+  const source = Array.isArray(subjects) ? subjects : [];
+  const unique = Array.from(new Set(source.map(s => String(s || '').trim()).filter(Boolean)));
+
+  const known = presetBase.filter(t => unique.includes(t));
+  const custom = unique.filter(t => !presetBase.includes(t) && t !== OTHER_SUBJECT_TAG);
+  const ordered = (known.length + custom.length > 0) ? [...known, ...custom] : [...presetBase];
+
+  if (!ordered.includes(OTHER_SUBJECT_TAG)) ordered.push(OTHER_SUBJECT_TAG);
+  return ordered;
+}
+
+function syncTeacherSubjectCommentCustomSubjectVisibility({ clearOnHide = false, focusOnShow = false } = {}) {
+  const wrap = document.getElementById('teacherSubjectCommentCustomSubjectWrap');
+  const input = getTeacherSubjectCommentCustomSubjectInputEl();
+  if (!wrap || !input) return;
+
+  const shouldShow = String(teacherSubjectCommentSelectedSubject || '').trim() === OTHER_SUBJECT_TAG;
+  wrap.classList.toggle('hidden', !shouldShow);
+  if (!shouldShow && clearOnHide) input.value = '';
+  if (shouldShow && focusOnShow) input.focus();
+}
+
+function bindTeacherSubjectCommentStudentMenu() {
+  const picker = document.getElementById('teacherSubjectCommentStudentPicker');
+  if (!picker) return;
+  if (picker.dataset.bound === '1') return;
+  picker.dataset.bound = '1';
+
+  document.addEventListener('click', (event) => {
+    if (!picker.contains(event.target)) closeTeacherSubjectCommentStudentMenu();
+  });
+
+  renderTeacherSubjectCommentStudentMenu();
+}
+
+async function renderTeacherSubjectCommentStudentMenu() {
+  const menu = document.getElementById('teacherSubjectCommentStudentMenu');
+  if (!menu) return;
+
+  const settings = await getClassSettings().catch(() => ({ studentCount: 30 }));
+  const countRaw = Number(settings?.studentCount || 30);
+  const count = Math.max(1, Number.isFinite(countRaw) ? Math.floor(countRaw) : 30);
+
+  menu.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.type = 'button';
+  allBtn.className = 'teacher-subject-comment-student-option';
+  allBtn.dataset.studentId = TEACHER_SUBJECT_COMMENT_ALL_STUDENTS;
+  allBtn.textContent = '전체';
+  allBtn.onclick = (event) => {
+    event.stopPropagation();
+    setTeacherSubjectCommentSelectedStudent(TEACHER_SUBJECT_COMMENT_ALL_STUDENTS);
+    closeTeacherSubjectCommentStudentMenu();
+  };
+  menu.appendChild(allBtn);
+
+  for (let i = 1; i <= count; i++) {
+    const sid = String(i);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'teacher-subject-comment-student-option';
+    btn.dataset.studentId = sid;
+    btn.textContent = sid + '번';
+    btn.onclick = (event) => {
+      event.stopPropagation();
+      setTeacherSubjectCommentSelectedStudent(sid);
+      closeTeacherSubjectCommentStudentMenu();
+    };
+    menu.appendChild(btn);
+  }
+  syncTeacherSubjectCommentStudentMenuSelection();
+}
+
+function syncTeacherSubjectCommentStudentMenuSelection() {
+  const trigger = document.getElementById('teacherSubjectCommentStudent');
+  const menu = document.getElementById('teacherSubjectCommentStudentMenu');
+  const sid = String(teacherDiarySelectedStudentId || '').trim();
+
+  if (trigger) trigger.classList.toggle('is-empty', !sid);
+  if (!menu) return;
+  menu.querySelectorAll('.teacher-subject-comment-student-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.studentId === sid);
+  });
+}
+
+async function toggleTeacherSubjectCommentStudentMenu() {
+  const menu = document.getElementById('teacherSubjectCommentStudentMenu');
+  if (!menu) return;
+
+  if (menu.classList.contains('hidden')) {
+    await renderTeacherSubjectCommentStudentMenu();
+    menu.classList.remove('hidden');
+    return;
+  }
+  closeTeacherSubjectCommentStudentMenu();
+}
+
+function closeTeacherSubjectCommentStudentMenu() {
+  const menu = document.getElementById('teacherSubjectCommentStudentMenu');
+  if (!menu) return;
+  menu.classList.add('hidden');
+}
+
 function setTeacherSubjectCommentSelectedStudent(studentId) {
   teacherDiarySelectedStudentId = String(studentId || '').trim() || null;
   const pill = document.getElementById('teacherSubjectCommentStudent');
-  if (pill) pill.textContent = teacherDiarySelectedStudentId ? (teacherDiarySelectedStudentId + '번') : '미선택';
+  if (pill) {
+    if (!teacherDiarySelectedStudentId) pill.textContent = '미선택';
+    else if (teacherDiarySelectedStudentId === TEACHER_SUBJECT_COMMENT_ALL_STUDENTS) pill.textContent = '전체';
+    else pill.textContent = teacherDiarySelectedStudentId + '번';
+  }
+  syncTeacherSubjectCommentStudentMenuSelection();
 
   teacherSubjectCommentLastGenerated = null;
   setTeacherSubjectCommentStatus('');
   setTeacherSubjectCommentResult(null, { resetEmpty: true });
+  const noteCountEl = document.getElementById('teacherSubjectCommentNoteCount');
+  if (noteCountEl) noteCountEl.textContent = '-';
 
   refreshTeacherSubjectCommentSubjects();
   refreshTeacherSubjectCommentActions();
@@ -1736,9 +1641,13 @@ function getTeacherSubjectCommentUIValues() {
   const schoolLevel = normalizeSchoolLevel(sl?.value || '');
   const start = String(startEl?.value || '').trim();
   const end = String(endEl?.value || '').trim();
-  const subject = String(teacherSubjectCommentSelectedSubject || '').trim();
+  const rawSubject = String(teacherSubjectCommentSelectedSubject || '').trim();
+  const customSubjectRaw = String(getTeacherSubjectCommentCustomSubjectInputEl()?.value || '').trim();
+  const customSubject = customSubjectRaw ? String(customSubjectRaw.split(',')[0] || '').trim() : '';
+  const subject = rawSubject === OTHER_SUBJECT_TAG ? (customSubject || OTHER_SUBJECT_TAG) : rawSubject;
   const studentId = String(teacherDiarySelectedStudentId || '').trim();
-  return { schoolLevel, start, end, subject, studentId, semester: teacherSubjectCommentSemester };
+  const isAllStudents = studentId === TEACHER_SUBJECT_COMMENT_ALL_STUDENTS;
+  return { schoolLevel, start, end, subject, rawSubject, customSubject, studentId, isAllStudents, semester: teacherSubjectCommentSemester };
 }
 
 function refreshTeacherSubjectCommentActions() {
@@ -1772,6 +1681,7 @@ function renderTeacherSubjectCommentSubjectTags(subjects) {
       teacherSubjectCommentSelectedSubject = String(tag);
       wrap.querySelectorAll('.subject-tag-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+      syncTeacherSubjectCommentCustomSubjectVisibility({ focusOnShow: String(tag) === OTHER_SUBJECT_TAG });
       refreshTeacherSubjectCommentActions();
       loadTeacherSavedSubjectComment();
     };
@@ -1781,20 +1691,10 @@ function renderTeacherSubjectCommentSubjectTags(subjects) {
 
 async function refreshTeacherSubjectCommentSubjects() {
   const { start, end, studentId } = getTeacherSubjectCommentUIValues();
-  if (!start || !end || !studentId || !currentClassCode) return;
+  const fallback = getTeacherSubjectCommentOrderedSubjects([]);
 
-  try {
-    const records = await fetchTeacherLearningNotes({ studentId, start, end });
-    const set = new Set();
-    records.forEach(r => {
-      const tags = Array.isArray(r.subject_tags) ? r.subject_tags : [];
-      tags.forEach(t => { if (t) set.add(String(t)); });
-    });
-
-    const fallback = PRESET_SUBJECT_TAGS.filter(t => t !== OTHER_SUBJECT_TAG);
-    const subjects = Array.from(set);
-    const chosen = subjects.length > 0 ? subjects : fallback;
-
+  const applySubjectTags = (subjects) => {
+    const chosen = getTeacherSubjectCommentOrderedSubjects(subjects);
     renderTeacherSubjectCommentSubjectTags(chosen);
 
     if (teacherSubjectCommentSelectedSubject && chosen.includes(teacherSubjectCommentSelectedSubject)) {
@@ -1805,27 +1705,42 @@ async function refreshTeacherSubjectCommentSubjects() {
       teacherSubjectCommentSelectedSubject = '';
       refreshTeacherSubjectCommentActions();
     }
+    syncTeacherSubjectCommentCustomSubjectVisibility();
+  };
+
+  if (!start || !end || !studentId || !currentClassCode) {
+    applySubjectTags(fallback);
+    return;
+  }
+
+  try {
+    const records = await fetchTeacherLearningNotes({ studentId, start, end });
+    const set = new Set();
+    records.forEach(r => {
+      const tags = Array.isArray(r.subject_tags) ? r.subject_tags : [];
+      tags.forEach(t => { if (t) set.add(String(t)); });
+    });
+
+    const subjects = Array.from(set);
+    applySubjectTags(subjects);
   } catch (err) {
     console.warn('Failed to refresh subject tags:', err);
+    applySubjectTags(fallback);
   }
 }
 
 async function fetchTeacherLearningNotes({ studentId, start, end }) {
-  if (isDemoMode) {
-    const all = Array.isArray(DEMO_FALLBACK_DATA.daily_reflections) ? DEMO_FALLBACK_DATA.daily_reflections : [];
-    return all
-      .filter(r => String(r.class_code) === String(currentClassCode))
-      .filter(r => String(r.student_id) === String(studentId))
-      .filter(r => String(r.reflection_date) >= String(start) && String(r.reflection_date) <= String(end));
+  let q = db.from('daily_reflections')
+    .select('student_id, reflection_date, learning_text, subject_tags')
+    .eq('class_code', currentClassCode)
+    .gte('reflection_date', start)
+    .lte('reflection_date', end);
+
+  if (studentId && String(studentId) !== TEACHER_SUBJECT_COMMENT_ALL_STUDENTS) {
+    q = q.eq('student_id', String(studentId));
   }
 
-  const { data, error } = await db.from('daily_reflections')
-    .select('reflection_date, learning_text, subject_tags')
-    .eq('class_code', currentClassCode)
-    .eq('student_id', String(studentId))
-    .gte('reflection_date', start)
-    .lte('reflection_date', end)
-    .order('reflection_date', { ascending: true });
+  const { data, error } = await q.order('reflection_date', { ascending: true });
   if (error) throw error;
   return data || [];
 }
@@ -1954,13 +1869,88 @@ function truncateText(s, n) {
   return t.slice(0, n - 1) + '…';
 }
 
+function isTeacherSubjectCommentTagMatch(tags, { rawSubject, subject, customSubject }) {
+  const normalizedTags = Array.isArray(tags) ? tags.map(t => String(t || '').trim()).filter(Boolean) : [];
+  if (normalizedTags.length === 0) return false;
+
+  if (String(rawSubject || '').trim() === OTHER_SUBJECT_TAG) {
+    const custom = String(customSubject || '').trim();
+    if (custom) return normalizedTags.includes(custom);
+    const hasCustomTag = normalizedTags.some(tag => !PRESET_SUBJECT_TAGS.includes(tag));
+    return normalizedTags.includes(OTHER_SUBJECT_TAG) || hasCustomTag;
+  }
+
+  return normalizedTags.includes(String(subject || '').trim());
+}
+
+async function generateTeacherSubjectCommentTextFromNotes({ filteredNotes, schoolLevel, subject, start, end }) {
+  const notes = Array.isArray(filteredNotes) ? filteredNotes : [];
+  const noteCount = notes.length;
+  if (noteCount === 0) {
+    return { ok: false, type: 'no_notes', noteCount: 0 };
+  }
+
+  const evidence = notes.slice(0, 12).map(r => {
+    const d = String(r.reflection_date || '').slice(0, 10);
+    const lt = truncateText(r.learning_text, 160);
+    return d + ': ' + lt;
+  });
+
+  const base = buildSubjectCommentPromptBase({ schoolLevel, subject, noteCount, start, end });
+  const style = buildSubjectCommentPromptStyle(schoolLevel);
+  const prompt =
+    base +
+    style +
+    '\n[배움노트 근거]\n' +
+    evidence.join('\n') +
+    '\n\n[출력]\n';
+
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 700 } });
+  if (!result.ok) return { ok: false, type: 'api', noteCount, error: result.error || 'AI 생성 실패' };
+
+  let out = String(result.text || '').trim();
+  out = out.replace(/^\s*[-*•]\s*/gm, '').replace(/^\s*\d+[.)]\s*/gm, '').trim();
+
+  let validation = validateSubjectCommentOutput(out, schoolLevel);
+  let tries = 0;
+
+  while (!validation.ok && tries < 2) {
+    tries++;
+    const reasons = validation.reasons.join(', ');
+    const fixPrompt =
+      '다음 문장을 규칙에 맞게 다시 작성함.\n\n' +
+      '[규칙 요약]\n' +
+      '- 1인칭 금지, 주어 최소화함.\n' +
+      '- 모든 문장 “~함/~임/~음/~됨” 종결함.\n' +
+      '- 학교급 문장 수 범위 준수함.\n' +
+      '- 역량/태도 2개 이상 포함함.\n' +
+      '- 배움노트 근거 1개 이상 포함함.\n' +
+      '- 번호/불릿 없이 문장만 줄바꿈 출력함.\n\n' +
+      '[학교급]\n' + normalizeSchoolLevel(schoolLevel) + '\n\n' +
+      '[위반 항목]\n' + reasons + '\n\n' +
+      '[원문]\n' + out + '\n\n' +
+      '[수정본 출력]\n';
+
+    const retry = await callGemini(fixPrompt, { generationConfig: { temperature: 0.2, maxOutputTokens: 700 } });
+    if (!retry.ok) break;
+    out = String(retry.text || '').trim().replace(/^\s*[-*•]\s*/gm, '').replace(/^\s*\d+[.)]\s*/gm, '').trim();
+    validation = validateSubjectCommentOutput(out, schoolLevel);
+  }
+
+  if (!validation.ok) {
+    return { ok: false, type: 'validation', noteCount, text: out, reasons: validation.reasons };
+  }
+
+  return { ok: true, noteCount, text: out };
+}
+
 async function generateTeacherSubjectComment(forceRegenerate) {
   const genBtn = document.getElementById('teacherSubjectCommentGenerateBtn');
   const regenBtn = document.getElementById('teacherSubjectCommentRegenerateBtn');
   const btn = forceRegenerate ? regenBtn : genBtn;
   if (!btn) return;
 
-  const { schoolLevel, start, end, subject, studentId, semester } = getTeacherSubjectCommentUIValues();
+  const { schoolLevel, start, end, subject, rawSubject, customSubject, studentId, isAllStudents, semester } = getTeacherSubjectCommentUIValues();
   if (!studentId) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '먼저 학생을 선택해 주세요.' }); return; }
   if (!schoolLevel) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '학교급을 선택해 주세요.' }); return; }
   if (!start || !end) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '기간(시작일/종료일)을 선택해 주세요.' }); return; }
@@ -1976,85 +1966,133 @@ async function generateTeacherSubjectComment(forceRegenerate) {
 
   try {
     const records = await fetchTeacherLearningNotes({ studentId, start, end });
-    const filtered = (records || []).filter(r => {
-      const tags = Array.isArray(r.subject_tags) ? r.subject_tags.map(String) : [];
-      return tags.includes(String(subject)) && String(r.learning_text || '').trim().length > 0;
+
+    if (!isAllStudents) {
+      const filtered = (records || []).filter(r => {
+        const tags = Array.isArray(r.subject_tags) ? r.subject_tags.map(String) : [];
+        return isTeacherSubjectCommentTagMatch(tags, { rawSubject, subject, customSubject }) && String(r.learning_text || '').trim().length > 0;
+      });
+
+      const noteCount = filtered.length;
+      if (noteCountEl) noteCountEl.textContent = String(noteCount);
+
+      if (noteCount === 0) {
+        setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+        setTeacherSubjectCommentResult(null, { resetEmpty: true });
+        setTeacherSubjectCommentError('선택한 기간에 해당 과목 배움노트가 없어 생성할 수 없음. 기간을 조정해 주세요.', { showRetry: false });
+        refreshTeacherSubjectCommentActions();
+        return;
+      }
+
+      const single = await generateTeacherSubjectCommentTextFromNotes({ filteredNotes: filtered, schoolLevel, subject, start, end });
+      if (!single.ok) {
+        setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+        if (single.type === 'validation' && single.text) {
+          setTeacherSubjectCommentResult(single.text, { resetEmpty: false });
+          setTeacherSubjectCommentError('출력 규칙을 완전히 만족하지 못했습니다. [재시도]를 눌러 다시 생성해 주세요.', { showRetry: true });
+        } else {
+          setTeacherSubjectCommentResult(null, { resetEmpty: true });
+          setTeacherSubjectCommentError('생성 중 오류가 발생했습니다: ' + (single.error || single.type || 'unknown'), { showRetry: true });
+        }
+        refreshTeacherSubjectCommentActions();
+        return;
+      }
+
+      teacherSubjectCommentLastGenerated = {
+        mode: 'single',
+        text: single.text,
+        noteCount: single.noteCount,
+        key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject }),
+        items: [{
+          studentId: String(studentId),
+          noteCount: Number(single.noteCount || 0),
+          text: String(single.text || ''),
+          key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject })
+        }]
+      };
+
+      setTeacherSubjectCommentResult(single.text, { resetEmpty: false });
+      setTeacherSubjectCommentStatus('미저장');
+
+      setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+      refreshTeacherSubjectCommentActions();
+      return;
+    }
+
+    const settings = await getClassSettings().catch(() => ({ studentCount: 30 }));
+    const countRaw = Number(settings?.studentCount || 30);
+    const totalStudents = Math.max(1, Number.isFinite(countRaw) ? Math.floor(countRaw) : 30);
+    const targetStudentIds = [];
+    for (let i = 1; i <= totalStudents; i++) targetStudentIds.push(String(i));
+
+    const byStudent = new Map();
+    (records || []).forEach(r => {
+      const sid = String(r.student_id || '').trim();
+      if (!sid) return;
+      if (!byStudent.has(sid)) byStudent.set(sid, []);
+      byStudent.get(sid).push(r);
     });
 
-    const noteCount = filtered.length;
-    if (noteCountEl) noteCountEl.textContent = String(noteCount);
+    const generatedItems = [];
+    let totalNoteCount = 0;
+    const failedStudents = [];
 
-    if (noteCount === 0) {
+    for (let i = 0; i < targetStudentIds.length; i++) {
+      const sid = targetStudentIds[i];
+      setTeacherSubjectCommentStatus('생성 중 (' + (i + 1) + '/' + targetStudentIds.length + ')');
+
+      const studentNotes = (byStudent.get(sid) || []).filter(r => {
+        const tags = Array.isArray(r.subject_tags) ? r.subject_tags.map(String) : [];
+        return isTeacherSubjectCommentTagMatch(tags, { rawSubject, subject, customSubject }) && String(r.learning_text || '').trim().length > 0;
+      });
+
+      const generated = await generateTeacherSubjectCommentTextFromNotes({ filteredNotes: studentNotes, schoolLevel, subject, start, end });
+      if (!generated.ok) {
+        failedStudents.push(sid);
+        continue;
+      }
+
+      totalNoteCount += Number(generated.noteCount || 0);
+      generatedItems.push({
+        studentId: sid,
+        noteCount: Number(generated.noteCount || 0),
+        text: String(generated.text || ''),
+        key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId: sid, semester, subject })
+      });
+    }
+
+    if (noteCountEl) noteCountEl.textContent = String(totalNoteCount);
+
+    if (generatedItems.length === 0) {
       setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
+      setTeacherSubjectCommentStatus('');
       setTeacherSubjectCommentResult(null, { resetEmpty: true });
-      setTeacherSubjectCommentError('선택한 기간에 해당 과목 배움노트가 없어 생성할 수 없음. 기간을 조정해 주세요.', { showRetry: false });
+      setTeacherSubjectCommentError('전체 선택 상태에서 생성 가능한 학생이 없습니다. 기간/과목을 조정해 주세요.', { showRetry: false });
       refreshTeacherSubjectCommentActions();
       return;
     }
 
-    const evidence = filtered.slice(0, 12).map(r => {
-      const d = String(r.reflection_date || '').slice(0, 10);
-      const lt = truncateText(r.learning_text, 160);
-      return d + ': ' + lt;
-    });
-
-    const base = buildSubjectCommentPromptBase({ schoolLevel, subject, noteCount, start, end });
-    const style = buildSubjectCommentPromptStyle(schoolLevel);
-    const prompt =
-      base +
-      style +
-      '\n[배움노트 근거]\n' +
-      evidence.join('\n') +
-      '\n\n[출력]\n';
-
-    let result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 700 } });
-    if (!result.ok) throw new Error(result.error || 'AI 생성 실패');
-
-    let out = String(result.text || '').trim();
-    out = out.replace(/^\s*[-*•]\s*/gm, '').replace(/^\s*\d+[.)]\s*/gm, '').trim();
-
-    let validation = validateSubjectCommentOutput(out, schoolLevel);
-    let tries = 0;
-
-    while (!validation.ok && tries < 2) {
-      tries++;
-      const reasons = validation.reasons.join(', ');
-      const fixPrompt =
-        '다음 문장을 규칙에 맞게 다시 작성함.\n\n' +
-        '[규칙 요약]\n' +
-        '- 1인칭 금지, 주어 최소화함.\n' +
-        '- 모든 문장 “~함/~임/~음/~됨” 종결함.\n' +
-        '- 학교급 문장 수 범위 준수함.\n' +
-        '- 역량/태도 2개 이상 포함함.\n' +
-        '- 배움노트 근거 1개 이상 포함함.\n' +
-        '- 번호/불릿 없이 문장만 줄바꿈 출력함.\n\n' +
-        '[학교급]\n' + normalizeSchoolLevel(schoolLevel) + '\n\n' +
-        '[위반 항목]\n' + reasons + '\n\n' +
-        '[원문]\n' + out + '\n\n' +
-        '[수정본 출력]\n';
-
-      const retry = await callGemini(fixPrompt, { generationConfig: { temperature: 0.2, maxOutputTokens: 700 } });
-      if (!retry.ok) break;
-      out = String(retry.text || '').trim().replace(/^\s*[-*•]\s*/gm, '').replace(/^\s*\d+[.)]\s*/gm, '').trim();
-      validation = validateSubjectCommentOutput(out, schoolLevel);
-    }
-
-    if (!validation.ok) {
-      setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
-      setTeacherSubjectCommentResult(out, { resetEmpty: false });
-      setTeacherSubjectCommentError('출력 규칙을 완전히 만족하지 못했습니다. [재시도]를 눌러 다시 생성해 주세요.', { showRetry: true });
-      refreshTeacherSubjectCommentActions();
-      return;
-    }
+    const mergedText = generatedItems
+      .map(item => '[' + item.studentId + '번 | 배움노트 ' + item.noteCount + '건]\n' + item.text)
+      .join('\n\n');
 
     teacherSubjectCommentLastGenerated = {
-      text: out,
-      noteCount,
-      key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject })
+      mode: 'all',
+      text: mergedText,
+      noteCount: totalNoteCount,
+      key: '',
+      items: generatedItems
     };
 
-    setTeacherSubjectCommentResult(out, { resetEmpty: false });
-    setTeacherSubjectCommentStatus('미저장');
+    setTeacherSubjectCommentResult(mergedText, { resetEmpty: false });
+    setTeacherSubjectCommentStatus('미저장 (' + generatedItems.length + '명)');
+
+    if (failedStudents.length > 0) {
+      setTeacherSubjectCommentError(
+        '전체 ' + targetStudentIds.length + '명 중 ' + generatedItems.length + '명 생성됨. 일부 학생은 기간/과목 노트 부족으로 제외됨.',
+        { showRetry: true }
+      );
+    }
 
     setLoading(false, btn, forceRegenerate ? '재생성' : '생성하기');
     refreshTeacherSubjectCommentActions();
@@ -2067,9 +2105,13 @@ async function generateTeacherSubjectComment(forceRegenerate) {
 }
 
 async function loadTeacherSavedSubjectComment() {
-  const { studentId, semester, subject } = getTeacherSubjectCommentUIValues();
+  const { studentId, isAllStudents, semester, subject } = getTeacherSubjectCommentUIValues();
   if (!studentId || !subject || !currentClassCode) return;
   if (isDemoMode) return;
+  if (isAllStudents) {
+    setTeacherSubjectCommentStatus('');
+    return;
+  }
 
   try {
     const { data, error } = await db.from('subject_comments')
@@ -2092,9 +2134,16 @@ async function loadTeacherSavedSubjectComment() {
     setTeacherSubjectCommentStatus('저장됨');
 
     teacherSubjectCommentLastGenerated = {
+      mode: 'single',
       text: data.generated_text,
       noteCount: data.note_count || 0,
-      key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject })
+      key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject }),
+      items: [{
+        studentId: String(studentId),
+        noteCount: Number(data.note_count || 0),
+        text: String(data.generated_text || ''),
+        key: getTeacherSubjectCommentKey({ classCode: currentClassCode, studentId, semester, subject })
+      }]
     };
 
     refreshTeacherSubjectCommentActions();
@@ -2107,7 +2156,7 @@ async function saveTeacherSubjectComment(btn) {
   if (isDemoMode) { showDemoBlockModal(); return; }
   if (!teacherSubjectCommentLastGenerated || !teacherSubjectCommentLastGenerated.text) return;
 
-  const { schoolLevel, start, end, subject, studentId, semester } = getTeacherSubjectCommentUIValues();
+  const { schoolLevel, start, end, subject, studentId, isAllStudents, semester } = getTeacherSubjectCommentUIValues();
   if (!schoolLevel || !start || !end || !subject || !studentId) {
     showModal({ type: 'alert', icon: '⚠️', title: '저장 불가', message: '학생/학교급/학기/기간/과목을 모두 선택해 주세요.' });
     return;
@@ -2119,25 +2168,67 @@ async function saveTeacherSubjectComment(btn) {
     const { data: session } = await db.auth.getSession();
     const uid = session?.session?.user?.id || null;
 
-    const payload = {
-      class_code: currentClassCode,
-      student_id: String(studentId),
-      semester: Number(semester),
-      subject: String(subject),
-      school_level: normalizeSchoolLevel(schoolLevel),
-      period_start: start,
-      period_end: end,
-      note_count: Number(teacherSubjectCommentLastGenerated.noteCount || 0),
-      generated_text: String(teacherSubjectCommentLastGenerated.text),
-      created_by: uid
-    };
+    const items = Array.isArray(teacherSubjectCommentLastGenerated.items) ? teacherSubjectCommentLastGenerated.items : [];
+    const payloadRows = [];
 
-    const { error } = await db.from('subject_comments').upsert(payload, { onConflict: 'class_code,student_id,semester,subject' });
+    if (isAllStudents) {
+      if (items.length === 0) {
+        setLoading(false, btn, '저장');
+        showModal({ type: 'alert', icon: '⚠️', title: '저장 불가', message: '전체 생성 결과가 없습니다. 먼저 [생성하기]를 실행해 주세요.' });
+        return;
+      }
+      items.forEach(item => {
+        const sid = String(item?.studentId || '').trim();
+        const text = String(item?.text || '').trim();
+        if (!sid || !text) return;
+        payloadRows.push({
+          class_code: currentClassCode,
+          student_id: sid,
+          semester: Number(semester),
+          subject: String(subject),
+          school_level: normalizeSchoolLevel(schoolLevel),
+          period_start: start,
+          period_end: end,
+          note_count: Number(item?.noteCount || 0),
+          generated_text: text,
+          created_by: uid
+        });
+      });
+    } else {
+      payloadRows.push({
+        class_code: currentClassCode,
+        student_id: String(studentId),
+        semester: Number(semester),
+        subject: String(subject),
+        school_level: normalizeSchoolLevel(schoolLevel),
+        period_start: start,
+        period_end: end,
+        note_count: Number(teacherSubjectCommentLastGenerated.noteCount || 0),
+        generated_text: String(teacherSubjectCommentLastGenerated.text),
+        created_by: uid
+      });
+    }
+
+    if (payloadRows.length === 0) {
+      setLoading(false, btn, '저장');
+      showModal({ type: 'alert', icon: '⚠️', title: '저장 불가', message: '저장할 생성 결과가 없습니다.' });
+      return;
+    }
+
+    const { error } = await db.from('subject_comments').upsert(payloadRows, { onConflict: 'class_code,student_id,semester,subject' });
     if (error) throw error;
 
-    setTeacherSubjectCommentStatus('저장됨');
+    const savedCount = payloadRows.length;
+    setTeacherSubjectCommentStatus(savedCount > 1 ? ('저장됨 (' + savedCount + '명)') : '저장됨');
     setLoading(false, btn, '저장');
-    showModal({ type: 'alert', icon: '✅', title: '저장 완료', message: '생성 평어가 저장되었습니다.' });
+    showModal({
+      type: 'alert',
+      icon: '✅',
+      title: '저장 완료',
+      message: savedCount > 1
+        ? ('생성 평어가 ' + savedCount + '명 분량 저장되었습니다.')
+        : '생성 평어가 저장되었습니다.'
+    });
   } catch (err) {
     console.error('save subject comment error:', err);
     setLoading(false, btn, '저장');
@@ -2216,7 +2307,7 @@ function setExportMsg(text, type = 'error') {
   const el = document.getElementById('teacherSubjectCommentExportMsg');
   if (!el) return;
   el.textContent = String(text || '');
-  el.className = 'message ' + type;
+  el.className = 'message teacher-subject-comment-export-msg ' + type;
   el.style.display = text ? 'block' : 'none';
 }
 
@@ -2266,7 +2357,11 @@ async function downloadTeacherSubjectCommentXlsx() {
   let studentIds = [];
   if (tgtV === 'current') {
     if (!teacherDiarySelectedStudentId) { setExportMsg('현재 학생이 선택되어 있지 않습니다.', 'error'); return; }
-    studentIds = [String(teacherDiarySelectedStudentId)];
+    if (String(teacherDiarySelectedStudentId) === TEACHER_SUBJECT_COMMENT_ALL_STUDENTS) {
+      for (let i = 1; i <= studentCount; i++) studentIds.push(String(i));
+    } else {
+      studentIds = [String(teacherDiarySelectedStudentId)];
+    }
   } else if (tgtV === 'selected') {
     const grid = document.getElementById('teacherSubjectCommentExportStudentGrid');
     const selected = Array.from(grid?.querySelectorAll('.subject-tag-btn.selected') || []).map(b => b.dataset.sid).filter(Boolean);
@@ -2653,7 +2748,6 @@ async function viewMyResult() {
   const classAvgScores = Object.keys(globalAvg).map(k => ({ criterion: k, average: globalAvg[k].count > 0 ? globalAvg[k].sum / globalAvg[k].count : 0 }));
   const reviewTexts = reviews.map(r => r.review_content);
   const partner = await ensureStudentPartnerLoaded({ backfill: true });
-  const showScores = !!(partner && partner.needs_scores);
 
   let myTotalAvgNum = null;
   if (myAvgScores.length > 0) myTotalAvgNum = (myAvgScores.reduce((a, i) => a + i.average, 0) / myAvgScores.length);
@@ -2671,7 +2765,7 @@ async function viewMyResult() {
   const evaluation_context = {
     eval_type: currentStudent.type,
     review_count: reviews.length,
-    ...(showScores && myTotalAvgNum != null && classTotalAvgNum != null ? {
+    ...(myTotalAvgNum != null && classTotalAvgNum != null ? {
       my_total_avg: Number(myTotalAvgNum.toFixed(2)),
       class_total_avg: Number(classTotalAvgNum.toFixed(2)),
       criteria_stats
@@ -2683,26 +2777,16 @@ async function viewMyResult() {
   document.getElementById('resultArea').classList.remove('hidden');
   let totalAvg = 0; if (myAvgScores.length > 0) totalAvg = (myAvgScores.reduce((a, i) => a + i.average, 0) / myAvgScores.length).toFixed(2);
   let classAvg = 0; if (classAvgScores.length > 0) classAvg = (classAvgScores.reduce((a, i) => a + i.average, 0) / classAvgScores.length).toFixed(2);
-  document.getElementById('statsSummary').innerHTML = '<div class="stat-card"><span class="stat-number">' + reviews.length + '명</span><span class="stat-label">평가 참여 인원</span></div><div class="stat-card"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">나의 평균 점수</span></div><div class="stat-card blue"><span class="stat-number">' + classAvg + '</span><span class="stat-label">우리 반 평균 점수</span></div>';
-  // 점수/평균 공개: 디테일형+성과형(필요한 성향)만
   const statsEl = document.getElementById('statsSummary');
   if (statsEl) {
-    let statsHtml = '<div class="stat-card"><span class="stat-number">' + reviews.length + '명</span><span class="stat-label">평가 참여 인원</span></div>';
-    if (showScores) {
-      statsHtml += '<div class="stat-card"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">나의 평균 점수</span></div>' +
-        '<div class="stat-card blue"><span class="stat-number">' + classAvg + '</span><span class="stat-label">우리 반 평균 점수</span></div>';
-    } else {
-      statsHtml += '<div class="stat-card"><span class="stat-number">🔒</span><span class="stat-label">점수/평균은 필요한 성향에게만 보여요</span></div>';
-    }
+    const statsHtml = '<div class="stat-card"><span class="stat-number">' + reviews.length + '명</span><span class="stat-label">평가 참여 인원</span></div>' +
+      '<div class="stat-card"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">나의 평균 점수</span></div>' +
+      '<div class="stat-card blue"><span class="stat-number">' + classAvg + '</span><span class="stat-label">우리 반 평균 점수</span></div>';
     statsEl.innerHTML = statsHtml;
   }
 
   const chartContainer = document.getElementById('chartContainer'); const barChart = document.getElementById('barChart');
-  if (!showScores) {
-    // Hide score UI entirely for non score-needed partner types.
-    chartContainer.classList.add('hidden');
-    barChart.innerHTML = '';
-  } else if (myAvgScores.length > 0) {
+  if (myAvgScores.length > 0) {
     chartContainer.classList.remove('hidden');
     const classAvgMap = {}; classAvgScores.forEach(item => { classAvgMap[item.criterion] = item.average; });
     let chartHtml = '';
@@ -2837,7 +2921,6 @@ async function generateSummary(reviews, opts = {}) {
 
   const passedPartner = (opts.partner && typeof opts.partner === 'object') ? opts.partner : null;
   const partner = passedPartner || studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
-  const showScores = !!(partner && partner.needs_scores);
 
   const evaluation_context = (opts.evaluation_context && typeof opts.evaluation_context === 'object')
     ? { ...opts.evaluation_context }
@@ -2849,23 +2932,15 @@ async function generateSummary(reviews, opts = {}) {
   // Always include the raw texts for grouping.
   evaluation_context.review_texts = Array.isArray(evaluation_context.review_texts) ? evaluation_context.review_texts : reviews;
 
-  // Enforce the score visibility policy at the input boundary.
-  if (!showScores) {
-    delete evaluation_context.my_total_avg;
-    delete evaluation_context.class_total_avg;
-    delete evaluation_context.criteria_stats;
-  }
-
-  const header1 = (partner?.axes_raw?.solve_support === '해결') ? '핵심 진단' : '핵심 요약';
-  const header2 = (partner?.axes_raw?.detail_big === '디테일') ? '친구 피드백에서 반복된 강점/근거' : '친구 피드백에서 반복된 강점/패턴';
-  const header3 = (partner?.axes_raw?.solve_support === '해결') ? '다음 처방(실천)' : '다음 걸음(실천)';
+  const header1 = (partner?.axes_raw?.coaching_style === '해결형') ? '핵심 진단' : '핵심 요약';
+  const header2 = (partner?.axes_raw?.info_processing === '디테일형') ? '친구 피드백에서 반복된 강점/근거' : '친구 피드백에서 반복된 강점/패턴';
+  const header3 = (partner?.axes_raw?.coaching_style === '해결형') ? '다음 처방(실천)' : '다음 걸음(실천)';
 
   const student_partner = partner ? {
     type_code: partner.type_code,
     type_name: partner.type_name,
     axes: partner.axes || null,
-    style_guide: partner.style_guide || null,
-    score_visibility: showScores ? 'show' : 'hide'
+    style_guide: partner.style_guide || null
   } : null;
 
   const inputObj = { student_partner, evaluation_context };
@@ -2873,13 +2948,13 @@ async function generateSummary(reviews, opts = {}) {
   const prompt = [
     '[ROLE]',
     "너는 '배움로그'의 AI 성장 파트너다.",
-    "학생의 '성장 파트너 유형(16유형)'에 맞춰, 친구들이 남긴 피드백 텍스트와 (필요한 경우에만) 점수 요약을 바탕으로",
+    "학생의 '성장 파트너 유형(8유형 + 보조태그)'에 맞춰, 친구들이 남긴 피드백 텍스트와 (필요한 경우에만) 점수 요약을 바탕으로",
     "학생이 가장 잘 받아들이는 톤/구조로 '동료평가 결과'를 정리해준다.",
     '',
     '[INPUT]',
     JSON.stringify(inputObj, null, 2),
     '',
-    '[16 TYPE LIBRARY]',
+    '[8 TYPE LIBRARY]',
     buildPartnerTypeLibraryText(),
     '',
     '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
@@ -2895,24 +2970,74 @@ async function generateSummary(reviews, opts = {}) {
     '2) review_texts는 의미가 비슷한 것끼리 묶어서 3~5개 포인트로 정리한다.',
     '3) 부정 피드백은 그대로 때리지 말고 개선하면 더 강해지는 지점으로 전환한다.',
     '4) 점수는 순위/비교/누가 썼는지 추정 금지.',
-    showScores
-      ? '   - class_total_avg 또는 class_avg와의 차이를 참고용으로 완곡하게 말하는 건 가능(예: 평균보다 약간 높게 나온 편). 숫자 그대로 노출은 피한다.'
-      : '   - score_visibility가 hide이면 점수/평균/수치(총평균, 반평균, criteria_stats)를 절대 언급하지 않는다.',
+    '   - class_total_avg 또는 class_avg와의 차이를 참고용으로 완곡하게 말하는 건 가능(예: 평균보다 약간 높게 나온 편). 숫자 그대로 노출은 피한다.',
     '5) 근거 제시는 친구들이 자주 쓴 표현 정도로만 아주 짧게(따옴표 1~2개, 각 8~12자 이내).',
     '6) 실천(헤더3)은 1개 또는 2개까지 가능.',
-    '   - 성과형: 반드시 성공 신호(측정 가능) 1개 포함',
-    '   - 성장형: 반드시 과정 증거(기록/습관) 1개 포함',
+    '   - 해결형: 구체 행동 중심으로 제안',
+    '   - 지지형: 안정/격려 한 줄 + 행동 제안',
     '   - 디테일형: 단계/체크리스트(최대 3)',
     '   - 큰그림형: 방향 1문장 + 체크 질문 2개',
     '   - 계획형: 일정/우선순위 한 줄 포함',
     '   - 탐색형: 작은 실험 형태로 제안',
+    '   - #함께 성장형: 협력 활동(설명 연습/모둠 토론/같이 문제 풀기) 포함',
+    '   - #혼자 집중형: 개인 활동(노트 정리/혼자 풀기/조용한 복습) 포함',
     '7) 전체 길이는 짧지만 빈약하지 않게 12~18문장(또는 6~10개 불릿 이내).',
     '8) 한국어로만 작성.',
     ''
   ].join('\n');
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 900 } });
-  return result.ok ? result.text : 'AI summary failed [' + (result.code || 'unknown') + ']: ' + (result.error || 'No details');
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.45, maxOutputTokens: 1200 } });
+  if (!result.ok) return 'AI summary failed [' + (result.code || 'unknown') + ']: ' + (result.error || 'No details');
+
+  let output = sanitizeAiSummaryText(result.text);
+  if (String(result.finishReason || '').toUpperCase() === 'MAX_TOKENS') {
+    const continuationPrompt = [
+      '아래 텍스트의 마지막 부분부터 자연스럽게 이어서 완성하라.',
+      '기존 내용 반복 금지, 헤더 반복 금지, 새 헤더 추가 금지.',
+      '반드시 본문만 출력하라.',
+      '',
+      '[현재 텍스트]',
+      output
+    ].join('\n');
+    const cont = await callGemini(continuationPrompt, { generationConfig: { temperature: 0.35, maxOutputTokens: 320 } });
+    if (cont.ok && cont.text) {
+      output = sanitizeAiSummaryText(output + '\n' + cont.text);
+    }
+  }
+  if (looksLikeCutOffKorean(output)) {
+    const fixPrompt = [
+      '아래 텍스트는 문장이 중간에 끊겼을 수 있다.',
+      '원래 내용/톤/헤더 구조를 유지하고, 끊긴 문장만 자연스럽게 완결하라.',
+      '새 정보를 크게 추가하지 말고, 문장 종결만 정리하라.',
+      '작업용 라벨([수정본], [TEXT])은 절대 출력하지 말고 본문만 출력하라.',
+      '',
+      '[TEXT]',
+      output,
+      '',
+      '[수정본]'
+    ].join('\n');
+    const fixed = await callGemini(fixPrompt, { generationConfig: { temperature: 0.2, maxOutputTokens: 350 } });
+    if (fixed.ok && fixed.text) output = sanitizeAiSummaryText(fixed.text);
+  }
+
+  if (isWeakSummaryOutput(output)) {
+    const regenPrompt = [
+      '아래 요구를 엄격히 지켜 요약을 다시 작성하라.',
+      '- 헤더는 반드시 3개(##) 모두 출력',
+      '- 각 헤더 아래 문장은 끊기지 않게 완결',
+      '- 너무 짧지 않게(최소 8문장 수준)',
+      '- 작업용 라벨([수정본], [TEXT]) 절대 출력 금지',
+      '',
+      '[원문 리뷰]',
+      (evaluation_context.review_texts || []).join('\n- ')
+    ].join('\n');
+    const regen = await callGemini(regenPrompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 900 } });
+    if (regen.ok && regen.text) {
+      const regenerated = sanitizeAiSummaryText(regen.text);
+      if (!isWeakSummaryOutput(regenerated)) output = regenerated;
+    }
+  }
+  return output;
 }
 
 // ============================================
@@ -2978,12 +3103,6 @@ async function renderTeacherDashboard(data, totalStudents) {
       ]);
       diaryCount = diaryRes.status === 'fulfilled' && diaryRes.value.count ? diaryRes.value.count : 0;
       msgCount = msgRes.status === 'fulfilled' && msgRes.value.count ? msgRes.value.count : 0;
-      if (isDemoMode && diaryCount === 0) {
-        diaryCount = getDemoFallbackDailyReflections().filter(r => r.reflection_date === today).length;
-      }
-      if (isDemoMode && msgCount === 0) {
-        msgCount = getDemoFallbackTeacherMessages(today).filter(m => !m.has_reply).length;
-      }
     } catch (subErr) { console.warn('대시보드 부가 데이터 조회 오류:', subErr); }
     const diaryPct = totalStudents > 0 ? Math.round((diaryCount / totalStudents) * 100) : 0;
   d.innerHTML = '<div class="stat-card"><span class="stat-number">' + participation + '%</span><span class="stat-label">평가 참여율 (' + evaluated + '/' + totalStudents + ')</span></div><div class="stat-card blue"><span class="stat-number">' + totalAvg + '</span><span class="stat-label">전체 평균 점수</span></div><div class="stat-card" style="border-left-color:var(--color-teal);"><span class="stat-number" style="color:var(--color-teal);">' + totalReviews + '건</span><span class="stat-label">총 평가 수</span></div><div class="stat-card" style="border-left-color:var(--color-teacher);"><span class="stat-number" style="color:var(--color-teacher);">' + diaryPct + '%</span><span class="stat-label">오늘 일기 작성률 (' + diaryCount + '/' + totalStudents + ')</span></div>' + (msgCount > 0 ? '<div class="stat-card" style="border-left-color:#e67e22;"><span class="stat-number" style="color:#e67e22;">' + msgCount + '건</span><span class="stat-label">미답변 메시지</span></div>' : '');
@@ -3088,9 +3207,8 @@ function saveClassInfo(btn) {
 
   const isCodeChanged = (newCode !== currentClassCode);
   const msg = isCodeChanged
-    ? `학급 정보와 <strong>클래스 코드</strong>를 변경하시겠습니까?<br><span style="color:var(--color-danger);font-size:0.8rem;">* 코드를 변경하면 기존 학생들도 새 코드로 다시 접속해야 합니다.</span>`
-    : `학급 정보를 변경하시겠습니까?`;
-
+    ? '\uD559\uAE09 \uC815\uBCF4\uC640 <strong>\uD074\uB798\uC2A4 \uCF54\uB4DC</strong>\uB97C \uBCC0\uACBD\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?<br><span class="modal-inline-note modal-inline-note-warning">* \uCF54\uB4DC\uB97C \uBCC0\uACBD\uD558\uBA74 \uAE30\uC874 \uD559\uC0DD\uB4E4\uB3C4 \uC0C8 \uCF54\uB4DC\uB85C \uB2E4\uC2DC \uC811\uC18D\uD574\uC57C \uD569\uB2C8\uB2E4.</span>'
+    : '\uD559\uAE09 \uC815\uBCF4\uB97C \uBCC0\uACBD\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?';
   showModal({
     type: 'confirm', icon: '📋', title: '학급 정보 변경', message: msg,
     onConfirm: async () => {
@@ -3148,32 +3266,34 @@ function saveClassSettingsUI(btn) {
 }
 async function loadStudentMappingData() {
   const grid = document.getElementById('studentMappingGrid');
-  grid.innerHTML = '<p>로딩 중...</p>';
-  // 학급의 학생 수 가져오기
+  grid.innerHTML = '<p class="teacher-list-loading">\uB85C\uB529 \uC911...</p>';
+
   const { data: classData } = await db.from('classes').select('student_count').eq('class_code', currentClassCode).maybeSingle();
   const studentCount = classData ? classData.student_count : 30;
-  // 등록된 학생 프로필 가져오기
+
   const { data: profiles } = await db.from('user_profiles')
     .select('id, student_number, google_email')
     .eq('class_code', currentClassCode)
     .eq('role', 'student')
     .order('student_number');
+
   const profileMap = {};
   (profiles || []).forEach(p => { profileMap[p.student_number] = p; });
   grid.innerHTML = '';
+
   for (let i = 1; i <= studentCount; i++) {
     const p = profileMap[i];
     if (p) {
-      const emailShort = p.google_email ? (p.google_email.length > 20 ? p.google_email.substring(0, 18) + '...' : p.google_email) : '(이메일 없음)';
-      grid.innerHTML += '<div class="student-auth-item" style="display:flex; align-items:center; gap:6px;">'
-        + '<label style="min-width:45px; margin:0;">' + i + '번</label>'
-        + '<span style="flex:1; font-size:0.8rem; color:var(--primary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + (p.google_email || '') + '">' + emailShort + '</span>'
-        + '<button onclick="removeStudentMapping(\'' + p.id + '\', ' + i + ')" style="width:auto; padding:4px 10px; font-size:0.75rem; background:var(--color-danger); color:white; margin:0; box-shadow:none;">해제</button>'
+      const emailShort = p.google_email ? (p.google_email.length > 20 ? p.google_email.substring(0, 18) + '...' : p.google_email) : '(\uC774\uBA54\uC77C \uC5C6\uC74C)';
+      grid.innerHTML += '<div class="student-auth-item teacher-student-auth-item">'
+        + '<label class="teacher-student-auth-label">' + i + '\uBC88</label>'
+        + '<span class="teacher-student-auth-email" title="' + (p.google_email || '') + '">' + emailShort + '</span>'
+        + '<button type="button" class="teacher-student-auth-remove" onclick="removeStudentMapping(\'' + p.id + '\', ' + i + ')">\uD574\uC81C</button>'
         + '</div>';
     } else {
-      grid.innerHTML += '<div class="student-auth-item" style="display:flex; align-items:center; gap:6px;">'
-        + '<label style="min-width:45px; margin:0;">' + i + '번</label>'
-        + '<span style="flex:1; font-size:0.8rem; color:var(--text-sub);">미등록</span>'
+      grid.innerHTML += '<div class="student-auth-item teacher-student-auth-item">'
+        + '<label class="teacher-student-auth-label">' + i + '\uBC88</label>'
+        + '<span class="teacher-student-auth-empty">\uBBF8\uB4F1\uB85D</span>'
         + '</div>';
     }
   }
@@ -3181,7 +3301,7 @@ async function loadStudentMappingData() {
 function removeStudentMapping(profileId, num) {
   showModal({
     type: 'confirm', icon: '⚠️', title: '번호 등록 해제',
-    message: '<strong>' + num + '번</strong> 학생의 등록을 해제하시겠습니까?<br><span style="font-size:0.85rem; color:var(--text-sub);">해당 학생은 다시 온보딩을 진행해야 합니다.</span>',
+    message: '<strong>' + num + '번</strong> 학생의 등록을 해제하시겠습니까?<br><span class="modal-inline-note">해당 학생은 다시 온보딩을 진행해야 합니다.</span>',
     onConfirm: async () => {
       await db.from('user_profiles').delete().eq('id', profileId);
       showModal({ type: 'alert', icon: '✅', title: '해제 완료', message: num + '번 학생의 등록이 해제되었습니다.' });
@@ -3548,10 +3668,7 @@ async function loadDailyReflection() {
     .eq('student_id', String(currentStudent.id))
     .eq('reflection_date', targetDate)
     .maybeSingle();
-  let reflection = reflectionData;
-  if (!reflection && isDemoMode) {
-    reflection = getDemoFallbackDailyReflectionByDate(currentStudent.id, targetDate);
-  }
+  const reflection = reflectionData;
 
   if (reflection) {
     document.getElementById('learningText').value = reflection.learning_text || '';
@@ -3740,15 +3857,43 @@ async function generateProjectAnalysis(stars) {
 // 성장 일기 날짜 초기화
 function initDiaryDate() {
   const today = getDefaultQueryDate();
-  document.getElementById('diaryViewDate').value = today;
+  ['diaryViewDate', 'diaryStudentViewDate'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+}
+
+function getTeacherDiarySelectedDate() {
+  return document.getElementById('diaryViewDate')?.value
+    || document.getElementById('diaryStudentViewDate')?.value
+    || '';
+}
+
+function syncTeacherDiaryDateInputs(dateStr, sourceId = '') {
+  const selected = String(dateStr || '').trim();
+  if (!selected) return;
+  ['diaryViewDate', 'diaryStudentViewDate'].forEach((id) => {
+    if (id === sourceId) return;
+    const el = document.getElementById(id);
+    if (el) el.value = selected;
+  });
+}
+
+function handleTeacherDiaryDateChange(sourceId) {
+  const sourceEl = document.getElementById(sourceId);
+  const selectedDate = String(sourceEl?.value || '').trim();
+  if (!selectedDate) return;
+  syncTeacherDiaryDateInputs(selectedDate, sourceId);
+  loadTeacherDiaryData();
 }
 
 // 교사용 성장 일기 데이터 로드
 async function loadTeacherDiaryData() {
   if (!currentClassCode) return;
 
-  const selectedDate = document.getElementById('diaryViewDate')?.value;
+  const selectedDate = getTeacherDiarySelectedDate();
   if (!selectedDate) return;
+  syncTeacherDiaryDateInputs(selectedDate);
 
   try {
     // "참여현황" + "배움노트 확인"을 조회날짜 기반으로 한 번에 로드
@@ -3765,14 +3910,6 @@ async function loadTeacherDiaryData() {
 
     let totalCount = totalCountRes?.count || 0;
     let todayReflections = selectedDateRes?.data || [];
-
-    if (isDemoMode) {
-      const allReflections = getDemoFallbackDailyReflections();
-      if (!totalCount) totalCount = allReflections.length;
-      if (!todayReflections || todayReflections.length === 0) {
-        todayReflections = allReflections.filter(r => r.reflection_date === selectedDate);
-      }
-    }
 
     // 통계 업데이트
     document.getElementById('totalReflections').textContent = totalCount || 0;
@@ -3807,10 +3944,7 @@ async function loadTeacherMessages() {
       .gte('created_at', selectedDate + 'T00:00:00')
       .lt('created_at', selectedDate + 'T23:59:59.999')
       .order('created_at', { ascending: false });
-    let messages = messageRows || [];
-    if (isDemoMode && messages.length === 0) {
-      messages = getDemoFallbackTeacherMessages(selectedDate);
-    }
+    const messages = messageRows || [];
     renderMessageList(messages || []);
   } catch (error) {
     console.error('Error loading messages:', error);
@@ -3843,6 +3977,7 @@ function switchPraiseTab(mode) {
 function renderDiaryCompletionStatus(todayReflections, totalStudents, selectedDate) {
   const summaryEl = document.getElementById('diaryCompletionSummary');
   const listEl = document.getElementById('diaryCompletionList');
+  const studentListEl = document.getElementById('diaryStudentSelectorList');
   const detailEl = document.getElementById('diaryStudentDetail');
   if (!summaryEl || !listEl || !detailEl) return;
 
@@ -3856,78 +3991,91 @@ function renderDiaryCompletionStatus(todayReflections, totalStudents, selectedDa
   const submittedCount = reflectionMap.size;
   const unsubmittedCount = Math.max(0, totalStudents - submittedCount);
   summaryEl.innerHTML =
-    '<strong style="color:#0f766e;">제출 ' + submittedCount + '명</strong> · ' +
-    '<strong style="color:#b91c1c;">미제출 ' + unsubmittedCount + '명</strong>';
+    '<strong class="diary-completion-count is-submitted">\uC81C\uCD9C ' + submittedCount + '\uBA85</strong> \u00B7 ' +
+    '<strong class="diary-completion-count is-unsubmitted">\uBBF8\uC81C\uCD9C ' + unsubmittedCount + '\uBA85</strong>';
 
   listEl.innerHTML = '';
-  let firstButton = null;
-  let firstSubmittedButton = null;
+  if (studentListEl) studentListEl.innerHTML = '';
+  let firstSid = '';
+  let firstSubmittedSid = '';
+
+  const selectStudent = (sid) => {
+    const reflection = reflectionMap.get(sid) || null;
+    const isSubmitted = !!reflection;
+
+    [listEl, studentListEl].forEach(container => {
+      if (!container) return;
+      container.querySelectorAll('.diary-student-chip').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sid === sid);
+      });
+    });
+
+    if (typeof setTeacherSubjectCommentSelectedStudent === 'function') {
+      setTeacherSubjectCommentSelectedStudent(sid);
+    }
+    renderDiaryStudentDetail(reflection, sid, selectedDate, isSubmitted);
+  };
+
+  const appendStudentButton = (container, sid, isSubmitted) => {
+    if (!container) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'diary-student-chip ' + (isSubmitted ? 'submitted' : 'unsubmitted');
+    btn.dataset.sid = sid;
+    btn.innerHTML =
+      '<div class="diary-student-chip-id">' + sid + '\uBC88</div>' +
+      '<div class="diary-student-chip-status">' + (isSubmitted ? '\uC81C\uCD9C' : '\uBBF8\uC81C\uCD9C') + '</div>';
+    btn.onclick = () => selectStudent(sid);
+    container.appendChild(btn);
+  };
+
   for (let i = 1; i <= totalStudents; i++) {
     const sid = String(i);
     const reflection = reflectionMap.get(sid) || null;
     const isSubmitted = !!reflection;
 
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.style.padding = '10px 8px';
-    btn.style.borderRadius = '10px';
-    btn.style.border = 'none';
-    btn.style.cursor = 'pointer';
-    btn.style.fontFamily = "'Jua', sans-serif";
-    btn.style.fontSize = '0.9rem';
-    btn.style.transition = 'transform .12s ease, box-shadow .12s ease';
-    btn.style.boxShadow = isSubmitted ? '0 2px 8px rgba(34,197,94,.20)' : '0 2px 8px rgba(239,68,68,.16)';
-    btn.style.background = isSubmitted ? '#dcfce7' : '#fee2e2';
-    btn.style.color = isSubmitted ? '#166534' : '#991b1b';
-    btn.innerHTML = '<div style="font-weight:700;">' + sid + '번</div><div style="font-size:.74rem;opacity:.9;">' + (isSubmitted ? '제출' : '미제출') + '</div>';
-
-    btn.onclick = () => {
-      listEl.querySelectorAll('button').forEach(b => b.style.outline = 'none');
-      btn.style.outline = '2px solid ' + (isSubmitted ? '#22c55e' : '#ef4444');
-      // 교과세특(평어) 생성 섹션과 학생 선택을 연동
-      if (typeof setTeacherSubjectCommentSelectedStudent === 'function') {
-        setTeacherSubjectCommentSelectedStudent(sid);
-      }
-      renderDiaryStudentDetail(reflection, sid, selectedDate, isSubmitted);
-    };
-
-    listEl.appendChild(btn);
-    if (!firstButton) firstButton = btn;
-    if (isSubmitted && !firstSubmittedButton) firstSubmittedButton = btn;
+    appendStudentButton(listEl, sid, isSubmitted);
+    appendStudentButton(studentListEl, sid, isSubmitted);
+    if (!firstSid) firstSid = sid;
+    if (isSubmitted && !firstSubmittedSid) firstSubmittedSid = sid;
   }
 
-  const initialBtn = firstSubmittedButton || firstButton;
-  if (initialBtn) initialBtn.click();
+  const currentSid = String(teacherDiarySelectedStudentId || '').trim();
+  const hasCurrentSid = !!(currentSid && Number(currentSid) >= 1 && Number(currentSid) <= totalStudents);
+  const initialSid = hasCurrentSid ? currentSid : (firstSubmittedSid || firstSid);
+  if (initialSid) selectStudent(initialSid);
 }
 
 function renderDiaryStudentDetail(reflection, studentId, selectedDate, isSubmitted) {
   const detailEl = document.getElementById('diaryStudentDetail');
   if (!detailEl) return;
-  const stripeColors = ['#5f97c4', '#7e7acf', '#6faf8c'];
-  const stripeColor = stripeColors[(Math.max(1, Number(studentId)) - 1) % stripeColors.length] || '#5f97c4';
+
+  const toneClass = 'tone-' + ((Math.max(1, Number(studentId)) - 1) % 3);
+  const dateText = escapeHtml(String(selectedDate || ''));
 
   if (!isSubmitted || !reflection) {
     detailEl.innerHTML =
-      '<div style="padding:14px;border-radius:12px;background:#ffffff;border:1.5px solid #d1d5db;border-left:5px solid ' + stripeColor + ';">' +
-      '<div style="font-weight:700;color:#374151;margin-bottom:6px;">' + studentId + '번 학생</div>' +
-      '<div style="font-size:.9rem;color:#b91c1c;">' + selectedDate + ' 배움노트를 아직 제출하지 않았습니다.</div>' +
+      '<div class="diary-student-detail-card is-unsubmitted ' + toneClass + '">' +
+      '<div class="diary-student-detail-title">' + studentId + '\uBC88 \uD559\uC0DD</div>' +
+      '<div class="diary-student-detail-message is-warning">' + dateText + ' \uBC30\uC6C0\uB178\uD2B8\uB97C \uC544\uC9C1 \uC81C\uCD9C\uD558\uC9C0 \uC54A\uC558\uC2B5\uB2C8\uB2E4.</div>' +
       '</div>';
     return;
   }
 
   const tags = Array.isArray(reflection.subject_tags) ? reflection.subject_tags : [];
   const tagsHtml = tags.length > 0
-    ? '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">' +
-      tags.map(tag => '<span style="padding:2px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:.76rem;">' + escapeHtml(String(tag)) + '</span>').join('') +
+    ? '<div class="diary-student-detail-tags">' +
+      tags.map(tag => '<span class="diary-student-detail-tag">' + escapeHtml(String(tag)) + '</span>').join('') +
       '</div>'
     : '';
+
   detailEl.innerHTML =
-    '<div style="padding:14px;border-radius:12px;background:#ffffff;border:1.5px solid #d1d5db;border-left:5px solid ' + stripeColor + ';">' +
-    '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px;">' +
-    '<strong style="color:#065f46;">' + studentId + '번 학생</strong>' +
-    '<span style="font-size:.78rem;color:#0f766e;">' + selectedDate + ' 제출 완료</span>' +
+    '<div class="diary-student-detail-card ' + toneClass + '">' +
+    '<div class="diary-student-detail-head">' +
+    '<strong class="diary-student-detail-title">' + studentId + '\uBC88 \uD559\uC0DD</strong>' +
+    '<span class="diary-student-detail-meta">' + dateText + ' \uC81C\uCD9C \uC644\uB8CC</span>' +
     '</div>' +
-    '<div style="font-size:.92rem;color:var(--text-main);line-height:1.6;white-space:pre-wrap;">' + escapeHtml(String(reflection.learning_text || '작성된 내용이 없습니다.')) + '</div>' +
+    '<div class="diary-student-detail-body">' + escapeHtml(String(reflection.learning_text || '\uC791\uC131\uB41C \uB0B4\uC6A9\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.')) + '</div>' +
     tagsHtml +
     '</div>';
 }
@@ -4058,26 +4206,48 @@ async function loadReceivedPraises() {
   if (!currentStudent || !currentClassCode) return;
   const container = document.getElementById('receivedPraiseList');
   const { data: praises } = await db.from('praise_messages').select('*').eq('class_code', currentClassCode).eq('receiver_id', String(currentStudent.id)).eq('is_approved', true).order('created_at', { ascending: false });
-  if (!praises || praises.length === 0) { container.innerHTML = '<div class="empty-state"><span class="empty-icon">💌</span><div class="empty-title">아직 받은 칭찬이 없어요</div><div class="empty-desc">친구들의 칭찬이 도착하면<br>여기에 표시됩니다!</div></div>'; return; }
+  if (!praises || praises.length === 0) {
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">\uD83D\uDC8C</span><div class="empty-title">\uC544\uC9C1 \uBC1B\uC740 \uCE6D\uCC2C\uC774 \uC5C6\uC5B4\uC694</div><div class="empty-desc">\uCE5C\uAD6C\uB4E4\uC758 \uCE6D\uCC2C\uC774 \uB3C4\uCC29\uD558\uBA74<br>\uC5EC\uAE30\uC5D0 \uD45C\uC2DC\uB429\uB2C8\uB2E4!</div></div>';
+    return;
+  }
   container.innerHTML = praises.map(p => {
-    const sender = p.is_anonymous ? '🎭 익명의 친구' : (p.sender_id + '번 친구');
+    const sender = p.is_anonymous ? '\uD83C\uDFAD \uC775\uBA85\uC758 \uCE5C\uAD6C' : (p.sender_id + '\uBC88 \uCE5C\uAD6C');
     const date = new Date(p.created_at).toLocaleDateString('ko-KR');
-    return '<div style="padding:12px;background:var(--bg-body);border-radius:10px;border-left:3px solid var(--color-teacher);margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-weight:700;color:var(--color-teacher);">' + sender + '</span><span style="font-size:0.8rem;color:var(--text-sub);">' + date + '</span></div><div style="color:var(--text-main);line-height:1.6;">' + escapeHtml(p.message_content) + '</div></div>';
+    return '<div class="teacher-praise-item teacher-praise-item-received">' +
+      '<div class="teacher-praise-item-head">' +
+      '<span class="teacher-praise-sender teacher-praise-sender-received">' + sender + '</span>' +
+      '<span class="teacher-praise-date">' + date + '</span>' +
+      '</div>' +
+      '<div class="teacher-praise-content">' + escapeHtml(p.message_content) + '</div>' +
+      '</div>';
   }).join('');
 }
 
-// 교사 - 우체통 관리
 async function loadPendingPraises() {
   const container = document.getElementById('pendingPraiseList');
-  container.innerHTML = '<p style="text-align:center;">불러오는 중...</p>';
+  container.innerHTML = '<p class="teacher-list-loading">\uBD88\uB7EC\uC624\uB294 \uC911...</p>';
   const { data: praises } = await db.from('praise_messages').select('*').eq('class_code', currentClassCode).eq('is_approved', false).order('created_at', { ascending: false });
-  if (!praises || praises.length === 0) { container.innerHTML = '<div class="empty-state"><span class="empty-icon">✅</span><div class="empty-desc">대기 중인 칭찬이 없습니다</div></div>'; return; }
+  if (!praises || praises.length === 0) {
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">\u2705</span><div class="empty-desc">\uB300\uAE30 \uC911\uC778 \uCE6D\uCC2C\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div></div>';
+    return;
+  }
   container.innerHTML = praises.map(p => {
-    const sender = p.is_anonymous ? '익명(' + p.sender_id + '번)' : p.sender_id + '번';
+    const sender = p.is_anonymous ? ('\uC775\uBA85(' + p.sender_id + '\uBC88)') : (p.sender_id + '\uBC88');
     const date = new Date(p.created_at).toLocaleDateString('ko-KR');
-    return '<div style="padding:12px;background:var(--bg-body);border-radius:10px;border:1.5px solid var(--border);margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.85rem;"><span><strong>' + sender + '</strong> → <strong>' + p.receiver_id + '번</strong></span><span style="color:var(--text-sub);">' + date + '</span></div><div style="color:var(--text-main);margin-bottom:10px;line-height:1.5;">' + escapeHtml(p.message_content) + '</div><div style="display:flex;gap:8px;"><button type="button" onclick="approvePraise(\'' + p.id + '\')" style="flex:1;background:var(--color-result);color:white;padding:8px;font-size:0.85rem;">✅ 승인</button><button type="button" onclick="rejectPraise(\'' + p.id + '\')" style="flex:1;background:#e57373;color:white;padding:8px;font-size:0.85rem;">❌ 삭제</button></div></div>';
+    return '<div class="teacher-praise-item teacher-praise-item-pending">' +
+      '<div class="teacher-praise-item-head compact">' +
+      '<span><strong>' + sender + '</strong> \u2192 <strong>' + p.receiver_id + '\uBC88</strong></span>' +
+      '<span class="teacher-praise-date">' + date + '</span>' +
+      '</div>' +
+      '<div class="teacher-praise-content with-gap">' + escapeHtml(p.message_content) + '</div>' +
+      '<div class="teacher-praise-actions">' +
+      '<button type="button" class="teacher-praise-action approve" onclick="approvePraise(\'' + p.id + '\')">\u2705 \uC2B9\uC778</button>' +
+      '<button type="button" class="teacher-praise-action reject" onclick="rejectPraise(\'' + p.id + '\')">\u274C \uC0AD\uC81C</button>' +
+      '</div>' +
+      '</div>';
   }).join('');
 }
+
 async function approvePraise(id) {
   if (isDemoMode) { showDemoBlockModal(); return; }
   await db.from('praise_messages').update({ is_approved: true }).eq('id', id);
@@ -4101,17 +4271,25 @@ async function loadPraiseStats() {
 }
 async function loadApprovedPraises() {
   const container = document.getElementById('approvedPraiseList');
-  container.innerHTML = '<p style="text-align:center;">불러오는 중...</p>';
+  container.innerHTML = '<p class="teacher-list-loading">\uBD88\uB7EC\uC624\uB294 \uC911...</p>';
   const { data: praises } = await db.from('praise_messages').select('*').eq('class_code', currentClassCode).eq('is_approved', true).order('created_at', { ascending: false });
-  if (!praises || praises.length === 0) { container.innerHTML = '<div class="empty-state"><span class="empty-icon">📬</span><div class="empty-desc">승인된 칭찬이 없습니다</div></div>'; return; }
+  if (!praises || praises.length === 0) {
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">\uD83D\uDCEC</span><div class="empty-desc">\uC2B9\uC778\uB41C \uCE6D\uCC2C\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div></div>';
+    return;
+  }
   container.innerHTML = praises.map(p => {
-    const sender = p.is_anonymous ? '익명(' + p.sender_id + '번)' : p.sender_id + '번';
+    const sender = p.is_anonymous ? ('\uC775\uBA85(' + p.sender_id + '\uBC88)') : (p.sender_id + '\uBC88');
     const date = new Date(p.created_at).toLocaleDateString('ko-KR');
-    return '<div style="padding:12px;background:var(--bg-body);border-radius:10px;border-left:3px solid var(--color-result);margin-bottom:10px;"><div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.85rem;"><span><strong>' + sender + '</strong> → <strong>' + p.receiver_id + '번</strong></span><span style="color:var(--text-sub);">' + date + '</span></div><div style="color:var(--text-main);line-height:1.5;">' + escapeHtml(p.message_content) + '</div></div>';
+    return '<div class="teacher-praise-item teacher-praise-item-approved">' +
+      '<div class="teacher-praise-item-head compact">' +
+      '<span><strong>' + sender + '</strong> \u2192 <strong>' + p.receiver_id + '\uBC88</strong></span>' +
+      '<span class="teacher-praise-date">' + date + '</span>' +
+      '</div>' +
+      '<div class="teacher-praise-content">' + escapeHtml(p.message_content) + '</div>' +
+      '</div>';
   }).join('');
 }
 
-// 자동 승인 상태 로드
 async function loadAutoApproveStatus() {
   if (!currentClassCode) return;
   const toggle = document.getElementById('autoApproveToggle');
@@ -4203,8 +4381,10 @@ function focusTeacherDiaryStudent(studentId) {
   try { switchTeacherDiarySubTab('student'); } catch (_) {}
 
   try {
-    const listEl = document.getElementById('diaryCompletionList');
-    if (listEl) {
+    const listIds = ['diaryStudentSelectorList', 'diaryCompletionList'];
+    for (const listId of listIds) {
+      const listEl = document.getElementById(listId);
+      if (!listEl) continue;
       const btn = Array.from(listEl.querySelectorAll('button')).find(b => (b.textContent || '').includes(sid + '번'));
       if (btn) { btn.click(); return; }
     }
@@ -4216,13 +4396,13 @@ function focusTeacherDiaryStudent(studentId) {
   }
 }
 
-// "관심이 필요한 학생" (기존: 감정 키워드) -> "미해결 어려움" 기반
+// "관심이 필요한 학생" (기존: 감정 키워드) -> "어려움 모아보기" 기반
 function renderEmotionAlerts(reflections, selectedDate = null) {
   const area = document.getElementById('emotionAlertArea');
   const list = document.getElementById('emotionAlertList');
   if (!area || !list) return;
 
-  const dateStr = selectedDate || document.getElementById('diaryViewDate')?.value || '';
+  const dateStr = selectedDate || getTeacherDiarySelectedDate() || '';
 
   const byStudent = new Map();
   (reflections || []).forEach(r => {
@@ -4240,36 +4420,34 @@ function renderEmotionAlerts(reflections, selectedDate = null) {
   });
 
   const alerts = Array.from(byStudent.values()).sort((a, b) => Number(a.studentId) - Number(b.studentId));
-  if (alerts.length === 0) { area.classList.add('hidden'); return; }
+  if (alerts.length === 0) {
+    area.classList.add('hidden');
+    return;
+  }
 
   area.classList.remove('hidden');
-  const stripeColors = ['#5f97c4', '#7e7acf', '#6faf8c'];
   list.innerHTML = alerts.map((a, idx) => {
     const sidSafe = String(a.studentId || '').replace(/[^0-9]/g, '');
-    const stripe = stripeColors[idx % stripeColors.length];
-    const tagHtml = (a.tags || []).map(tag => '<span style="display:inline-block;padding:2px 8px;background:#ecfeff;color:#155e75;border-radius:999px;font-size:0.72rem;margin:2px;">' + escapeHtml(tag) + '</span>').join('');
-    const snipHtml = (a.snippets || []).slice(0, 2).map(s => '<li style="margin:2px 0;">' + escapeHtml(s) + '</li>').join('');
-
-    const subtitle = dateStr ? (escapeHtml(dateStr) + ' 기준') : '선택 날짜 기준';
+    const toneClass = 'tone-' + (idx % 3);
+    const tagHtml = (a.tags || []).map(tag => '<span class="emotion-alert-tag">' + escapeHtml(tag) + '</span>').join('');
+    const snipHtml = (a.snippets || []).slice(0, 2).map(s => '<li class="emotion-alert-snippet-item">' + escapeHtml(s) + '</li>').join('');
+    const subtitle = dateStr ? (escapeHtml(dateStr) + ' \uAE30\uC900') : '\uC120\uD0DD \uB0A0\uC9DC \uAE30\uC900';
 
     return (
-      '<button type="button" onclick="focusTeacherDiaryStudent(\'' + sidSafe + '\')" ' +
-      'style="width:100%; text-align:left; padding:10px; background:#ffffff; border-radius:10px; border:1.5px solid #d1d5db; border-left:4px solid ' + stripe + '; margin-bottom:8px; cursor:pointer;">' +
-      '<div style="display:flex; justify-content:space-between; gap:10px; align-items:center; margin-bottom:6px;">' +
-      '<div style="font-weight:800;">' + escapeHtml(a.studentId) + '번 학생</div>' +
-      '<div style="font-size:0.75rem; color:var(--text-sub);">' + subtitle + '</div>' +
+      '<button type="button" class="emotion-alert-item ' + toneClass + '" onclick="focusTeacherDiaryStudent(\'' + sidSafe + '\')">' +
+      '<div class="emotion-alert-head">' +
+      '<div class="emotion-alert-student">' + escapeHtml(a.studentId) + '\uBC88 \uD559\uC0DD</div>' +
+      '<div class="emotion-alert-date">' + subtitle + '</div>' +
       '</div>' +
-      (tagHtml ? ('<div style="margin-bottom:6px;">' + tagHtml + '</div>') : '') +
-      '<div style="font-size:0.86rem; color:var(--text-main); line-height:1.45;">' +
-      '<div style="font-weight:700; margin-bottom:4px;">미해결 어려움</div>' +
-      '<ul style="margin:0; padding-left:18px;">' + snipHtml + '</ul>' +
+      (tagHtml ? ('<div class="emotion-alert-tags">' + tagHtml + '</div>') : '') +
+      '<div class="emotion-alert-content">' +
+      '<div class="emotion-alert-title">\uAE30\uB85D\uB41C \uC5B4\uB824\uC6C0</div>' +
+      '<ul class="emotion-alert-snippet-list">' + snipHtml + '</ul>' +
       '</div>' +
       '</button>'
     );
   }).join('');
 }
-
-// 메시지 목록 렌더링
 function renderMessageList(messages) {
   const container = document.getElementById('messageList');
 
@@ -4344,126 +4522,135 @@ function renderKeywordStats(tagCounts) {
 // 성향 진단 시스템
 // ============================================
 
-const PARTNER_VERSION = 1;
+const PARTNER_VERSION = 2;
 
-// 16-Type Growth Partner Catalog (source of truth)
-// - type_name: 당신이 만든 최종 명칭(정밀 전략가 세트)로 고정
-// - representative_answers: "대표(정석) 패턴" (설명/검증용)
-// - style_guide: 16 TYPE LIBRARY(톤/형식) 요약본
 const PARTNER_TYPES = [
   {
-    type_code: '해결디테일성과계획',
-    type_name: '정밀 전략가',
+    type_code: '해결디테일계획',
+    type_name: '구체적인 계획가',
     emoji: '🎯',
-    representative_answers: { 1: 'A', 2: 'A', 3: 'A', 4: 'A', 5: 'A', 6: 'A', 7: 'A', 8: 'A' },
-    style_guide: { tone: '단정/직설, 근거-진단-처방', format: '체크리스트(최대 3) + 성공 신호(측정 1개)' }
+    representative_answers: { 1: 'A', 2: 'A', 3: 'A', 4: 'A', 5: 'A', 6: 'A' },
+    description: {
+      feedback_style: '어디가 잘됐고 어디가 부족한지 정확하게 짚어줘요',
+      action_style: '뭘 언제까지 하면 되는지 계획표로 정리해줘요',
+      encouraging_phrase: '"3번 유형 문제, 이렇게 풀어보면 돼. 이번 주 월수는 이거, 목금은 저거."'
+    },
+    style_guide: {
+      tone: '단정/직설, 근거-진단-처방',
+      format: '체크리스트(최대 3) + 일정/우선순위'
+    }
   },
   {
-    type_code: '해결디테일성과탐색',
-    type_name: '현장 최적화가',
-    emoji: '🛠️',
-    representative_answers: { 1: 'A', 2: 'A', 3: 'A', 4: 'A', 5: 'B', 6: 'B', 7: 'A', 8: 'A' },
-    style_guide: { tone: '직설 + 실험 제안', format: '가장 작은 실험 1개 + 성공 신호 1개' }
+    type_code: '해결디테일탐색',
+    type_name: '구체적인 도전가',
+    emoji: '🛠',
+    representative_answers: { 1: 'A', 2: 'A', 3: 'A', 4: 'A', 5: 'B', 6: 'B' },
+    description: {
+      feedback_style: '어디가 잘됐고 어디가 부족한지 정확하게 짚어줘요',
+      action_style: '부담 없이 해볼 수 있는 작은 도전을 제안해줘요',
+      encouraging_phrase: '"이 부분만 바꿔봐. 일단 한 문제만 이 방법으로 풀어보자."'
+    },
+    style_guide: {
+      tone: '직설 + 실험 제안',
+      format: '가장 작은 실험 1개 + 해보고 메모'
+    }
   },
   {
-    type_code: '해결디테일성장계획',
-    type_name: '프로세스 개선가',
-    emoji: '📈',
-    representative_answers: { 1: 'A', 2: 'A', 3: 'B', 4: 'A', 5: 'A', 6: 'A', 7: 'A', 8: 'A' },
-    style_guide: { tone: '차분/분석, 루틴 설계', format: '단계(최대 3) + 과정 증거(기록/습관 1개)' }
+    type_code: '해결큰그림계획',
+    type_name: '큰그림형 계획가',
+    emoji: '🗺',
+    representative_answers: { 1: 'A', 2: 'A', 3: 'B', 4: 'B', 5: 'A', 6: 'A' },
+    description: {
+      feedback_style: '지금 어디쯤 있고, 어디로 가면 되는지 방향을 잡아줘요',
+      action_style: '뭐부터 해야 하는지 우선순위를 정리해줘요',
+      encouraging_phrase: '"전체적으로 이 방향이야. 이번 주는 이것부터, 다음 주는 저것."'
+    },
+    style_guide: {
+      tone: '방향 제시/우선순위',
+      format: '방향 1문장 + 우선순위 2개 + 일정'
+    }
   },
   {
-    type_code: '해결디테일성장탐색',
-    type_name: '실험 조정가',
-    emoji: '🧪',
-    representative_answers: { 1: 'A', 2: 'A', 3: 'B', 4: 'A', 5: 'B', 6: 'B', 7: 'A', 8: 'A' },
-    style_guide: { tone: '해보며 조정 실험 톤', format: '실험 1개 + 실험 로그(짧게) 1개' }
-  },
-  {
-    type_code: '해결큰그림성과계획',
-    type_name: '목표 설계자',
-    emoji: '🗺️',
-    representative_answers: { 1: 'A', 2: 'B', 3: 'A', 4: 'A', 5: 'A', 6: 'A', 7: 'B', 8: 'A' },
-    style_guide: { tone: '방향 제시/우선순위', format: '방향 1문장 + 우선순위 2개 + 성공 신호 1개' }
-  },
-  {
-    type_code: '해결큰그림성과탐색',
-    type_name: '기회 개척자',
+    type_code: '해결큰그림탐색',
+    type_name: '큰그림형 도전가',
     emoji: '🚀',
-    representative_answers: { 1: 'A', 2: 'B', 3: 'A', 4: 'A', 5: 'B', 6: 'B', 7: 'B', 8: 'A' },
-    style_guide: { tone: '자신감, 옵션 제시', format: '선택지 2개 + 가장 유리한 실험 1개 + 성공 신호 1개' }
+    representative_answers: { 1: 'A', 2: 'A', 3: 'B', 4: 'B', 5: 'B', 6: 'B' },
+    description: {
+      feedback_style: '지금 어디쯤 있고, 어디로 가면 되는지 방향을 잡아줘요',
+      action_style: '여러 가능성 중에 해볼 만한 걸 제안해줘요',
+      encouraging_phrase: '"이런 방향도 있어. 한번 해보고 맞는지 느껴봐."'
+    },
+    style_guide: {
+      tone: '자신감, 옵션 제시',
+      format: '방향 1문장 + 선택지 2개 + 작은 실험'
+    }
   },
   {
-    type_code: '해결큰그림성장계획',
-    type_name: '성장 아키텍트',
-    emoji: '🏗️',
-    representative_answers: { 1: 'A', 2: 'B', 3: 'B', 4: 'A', 5: 'A', 6: 'A', 7: 'B', 8: 'A' },
-    style_guide: { tone: '원칙/전략', format: '방향 1문장 + 체크 질문 2개 + 루틴 1개(과정 증거 포함)' }
-  },
-  {
-    type_code: '해결큰그림성장탐색',
-    type_name: '혁신 탐험가',
-    emoji: '🔭',
-    representative_answers: { 1: 'A', 2: 'B', 3: 'B', 4: 'A', 5: 'B', 6: 'B', 7: 'B', 8: 'A' },
-    style_guide: { tone: '영감 + 실행 연결', format: '방향 1문장 + 탐색 질문 2개 + 작은 실험 1개' }
-  },
-  {
-    type_code: '지지디테일성과계획',
-    type_name: '운영 매니저',
+    type_code: '지지디테일계획',
+    type_name: '함께하는 계획가',
     emoji: '📋',
-    representative_answers: { 1: 'B', 2: 'A', 3: 'A', 4: 'B', 5: 'A', 6: 'A', 7: 'A', 8: 'B' },
-    style_guide: { tone: '따뜻하지만 정돈', format: '잘한 점(근거) + 개선(부드럽게) + 체크리스트 + 성공 신호' }
+    representative_answers: { 1: 'B', 2: 'B', 3: 'A', 4: 'A', 5: 'A', 6: 'A' },
+    description: {
+      feedback_style: '잘한 부분을 먼저 알아봐주고, 부족한 점은 같이 고민해줘요',
+      action_style: '차근차근 할 수 있도록 단계를 나눠서 정리해줘요',
+      encouraging_phrase: '"이건 진짜 잘했어. 여기는 같이 해보자, 먼저 이것부터."'
+    },
+    style_guide: {
+      tone: '따뜻하지만 정돈',
+      format: '잘한 점 + 개선(부드럽게) + 단계별 계획'
+    }
   },
   {
-    type_code: '지지디테일성과탐색',
-    type_name: '현장 서포터',
+    type_code: '지지디테일탐색',
+    type_name: '함께하는 도전가',
     emoji: '🤝',
-    representative_answers: { 1: 'B', 2: 'A', 3: 'A', 4: 'B', 5: 'B', 6: 'B', 7: 'A', 8: 'B' },
-    style_guide: { tone: '공감 + 같이 방법 찾기', format: '잘한 점 2개 + 작은 실험 1개 + 성공 신호' }
+    representative_answers: { 1: 'B', 2: 'B', 3: 'A', 4: 'A', 5: 'B', 6: 'B' },
+    description: {
+      feedback_style: '잘한 부분을 먼저 알아봐주고, 부족한 점은 같이 고민해줘요',
+      action_style: '부담 없는 작은 도전을 함께 시작해줘요',
+      encouraging_phrase: '"이건 잘했어! 여기는 이렇게 한번 해볼까?"'
+    },
+    style_guide: {
+      tone: '공감 + 같이 방법 찾기',
+      format: '잘한 점 + 작은 실험 1개 + 해보고 메모'
+    }
   },
   {
-    type_code: '지지디테일성장계획',
-    type_name: '회복 촉진가',
-    emoji: '🌿',
-    representative_answers: { 1: 'B', 2: 'A', 3: 'B', 4: 'B', 5: 'A', 6: 'A', 7: 'A', 8: 'B' },
-    style_guide: { tone: '안정/회복 + 루틴', format: '안정 1문장 + 강점 + 단계(최대 3) + 과정 증거 1개' }
-  },
-  {
-    type_code: '지지디테일성장탐색',
-    type_name: '적응 가이드',
-    emoji: '🧭',
-    representative_answers: { 1: 'B', 2: 'A', 3: 'B', 4: 'B', 5: 'B', 6: 'B', 7: 'A', 8: 'B' },
-    style_guide: { tone: '공감 + 동행', format: '공감 1문장 + 배움 포인트 + 실험 1개 + 실험 로그 1개' }
-  },
-  {
-    type_code: '지지큰그림성과계획',
-    type_name: '팀 퍼실리테이터',
-    emoji: '🧑‍🤝‍🧑',
-    representative_answers: { 1: 'B', 2: 'B', 3: 'A', 4: 'B', 5: 'A', 6: 'A', 7: 'B', 8: 'B' },
-    style_guide: { tone: '팀 관점의 격려 + 목표 정돈', format: '큰 성과 요약 + 팀 기여 1문장 + 다음 목표 + 성공 신호' }
-  },
-  {
-    type_code: '지지큰그림성과탐색',
-    type_name: '연결 촉진자',
-    emoji: '🔗',
-    representative_answers: { 1: 'B', 2: 'B', 3: 'A', 4: 'B', 5: 'B', 6: 'B', 7: 'B', 8: 'B' },
-    style_guide: { tone: '에너지/확장', format: '가능성 요약 + 선택지 2개 + 실험 1개 + 성공 신호' }
-  },
-  {
-    type_code: '지지큰그림성장계획',
-    type_name: '성장 동반자',
+    type_code: '지지큰그림계획',
+    type_name: '공감하는 계획가',
     emoji: '🫶',
-    representative_answers: { 1: 'B', 2: 'B', 3: 'B', 4: 'B', 5: 'A', 6: 'A', 7: 'B', 8: 'B' },
-    style_guide: { tone: '든든 + 방향', format: '방향 1문장 + 체크 질문 2개 + 루틴 1개(과정 증거)' }
+    representative_answers: { 1: 'B', 2: 'B', 3: 'B', 4: 'B', 5: 'A', 6: 'A' },
+    description: {
+      feedback_style: '지금 기분이나 상황을 먼저 알아주고, 큰 방향을 함께 잡아줘요',
+      action_style: '무리하지 않는 선에서 목표와 순서를 정리해줘요',
+      encouraging_phrase: '"많이 노력했지? 방향은 맞아. 이번 주는 이것만 해보자."'
+    },
+    style_guide: {
+      tone: '든든 + 방향',
+      format: '공감 1문장 + 방향 + 우선순위 정리'
+    }
   },
   {
-    type_code: '지지큰그림성장탐색',
-    type_name: '영감 큐레이터',
-    emoji: '✨',
-    representative_answers: { 1: 'B', 2: 'B', 3: 'B', 4: 'B', 5: 'B', 6: 'B', 7: 'B', 8: 'B' },
-    style_guide: { tone: '영감/스토리 + 실천 연결', format: '의미 1문장 + 질문 2개 + 작은 실험 + 1줄 회고' }
+    type_code: '지지큰그림탐색',
+    type_name: '공감하는 도전가',
+    emoji: '🌈',
+    representative_answers: { 1: 'B', 2: 'B', 3: 'B', 4: 'B', 5: 'B', 6: 'B' },
+    description: {
+      feedback_style: '지금 기분이나 상황을 먼저 알아주고, 큰 방향을 함께 잡아줘요',
+      action_style: '호기심을 자극하는 새로운 시도를 제안해줘요',
+      encouraging_phrase: '"충분히 잘하고 있어. 이런 것도 해보면 재밌을 거야."'
+    },
+    style_guide: {
+      tone: '영감 + 실천 연결',
+      format: '공감 1문장 + 탐색 질문 + 작은 실험'
+    }
   }
 ];
+
+const SUPPORT_TAG_GUIDE = {
+  '#함께 성장형': '실천 활동에 "친구와 설명 연습", "모둠 토론", "같이 문제 풀기" 등 협력 활동 제안',
+  '#혼자 집중형': '실천 활동에 "노트 정리", "혼자 풀어보기", "조용히 복습" 등 개인 활동 제안'
+};
 
 const PARTNER_TYPE_BY_CODE = {};
 PARTNER_TYPES.forEach(t => { PARTNER_TYPE_BY_CODE[t.type_code] = t; });
@@ -4473,59 +4660,94 @@ function getQuizAnswer(answers, qid) {
   return answers[qid] || answers[String(qid)] || null;
 }
 
-// Returns raw axes without the "형" suffix (ex: {solve_support:"해결", detail_big:"디테일", ...})
-function computePartnerAxes(answers) {
-  const solveSupportAnswers = [1, 4, 8].map(id => getQuizAnswer(answers, id)).filter(a => a === 'A' || a === 'B');
-  const solveVotes = solveSupportAnswers.filter(a => a === 'A').length;
-  const solve_support = solveSupportAnswers.length >= 2
-    ? (solveVotes > (solveSupportAnswers.length / 2) ? '해결' : '지지')
-    : null;
+function resolveAxisWithPriority(answers, primaryQid, secondaryQid, mapByAnswer) {
+  const primary = getQuizAnswer(answers, primaryQid);
+  const secondary = getQuizAnswer(answers, secondaryQid);
+  const isValid = (v) => v === 'A' || v === 'B';
 
-  const q2 = getQuizAnswer(answers, 2);
+  if (isValid(primary) && isValid(secondary)) {
+    if (primary === secondary) return mapByAnswer(primary);
+    return mapByAnswer(primary);
+  }
+
+  if (isValid(primary)) return mapByAnswer(primary);
+  if (isValid(secondary)) return mapByAnswer(secondary);
+  return null;
+}
+
+function computeLearningEnvAndTag(answers) {
   const q7 = getQuizAnswer(answers, 7);
-  const detailSource = (q2 === 'A' || q2 === 'B') ? q2 : ((q7 === 'A' || q7 === 'B') ? q7 : null);
-  const detail_big = detailSource ? (detailSource === 'A' ? '디테일' : '큰그림') : null;
+  const q8 = getQuizAnswer(answers, 8);
+  const isValid = (v) => v === 'A' || v === 'B';
 
-  const q3 = getQuizAnswer(answers, 3);
-  const motive = (q3 === 'A' || q3 === 'B') ? (q3 === 'A' ? '성과' : '성장') : null;
+  if (!isValid(q7) && !isValid(q8)) return { learning_env: null, support_tag: null };
 
-  const q5 = getQuizAnswer(answers, 5);
-  const q6 = getQuizAnswer(answers, 6);
-  const planSource = (q5 === 'A' || q5 === 'B') ? q5 : ((q6 === 'A' || q6 === 'B') ? q6 : null);
-  const plan_explore = planSource ? (planSource === 'A' ? '계획' : '탐색') : null;
+  let picked = null;
+  if (isValid(q7) && isValid(q8)) {
+    const aCount = (q7 === 'A' ? 1 : 0) + (q8 === 'A' ? 1 : 0);
+    const bCount = (q7 === 'B' ? 1 : 0) + (q8 === 'B' ? 1 : 0);
+    if (aCount > bCount) picked = 'A';
+    else if (bCount > aCount) picked = 'B';
+    else picked = q7; // 동률 시 Q7 우선
+  } else {
+    picked = isValid(q7) ? q7 : q8;
+  }
 
-  return { solve_support, detail_big, motive, plan_explore };
+  if (picked === 'A') return { learning_env: '함께형', support_tag: '#함께 성장형' };
+  return { learning_env: '혼자형', support_tag: '#혼자 집중형' };
+}
+
+function computePartnerAxes(answers) {
+  const coaching_style = resolveAxisWithPriority(answers, 1, 2, (ans) => ans === 'A' ? '해결형' : '지지형');
+  const info_processing = resolveAxisWithPriority(answers, 3, 4, (ans) => ans === 'A' ? '디테일형' : '큰그림형');
+  const execution_strategy = resolveAxisWithPriority(answers, 5, 6, (ans) => ans === 'A' ? '계획형' : '탐색형');
+  const env = computeLearningEnvAndTag(answers);
+
+  return {
+    coaching_style,
+    info_processing,
+    execution_strategy,
+    learning_env: env.learning_env,
+    support_tag: env.support_tag
+  };
 }
 
 function computePartnerType(answers) {
   const axes_raw = computePartnerAxes(answers);
-  if (!axes_raw.solve_support || !axes_raw.detail_big || !axes_raw.motive || !axes_raw.plan_explore) return null;
+  if (!axes_raw.coaching_style || !axes_raw.info_processing || !axes_raw.execution_strategy) return null;
 
-  const type_code = `${axes_raw.solve_support}${axes_raw.detail_big}${axes_raw.motive}${axes_raw.plan_explore}`;
+  const coachingCode = axes_raw.coaching_style === '해결형' ? '해결' : '지지';
+  const infoCode = axes_raw.info_processing === '디테일형' ? '디테일' : '큰그림';
+  const executionCode = axes_raw.execution_strategy === '계획형' ? '계획' : '탐색';
+  const type_code = `${coachingCode}${infoCode}${executionCode}`;
+
   const catalog = PARTNER_TYPE_BY_CODE[type_code] || null;
   const type_name = catalog ? catalog.type_name : type_code;
   const emoji = catalog ? catalog.emoji : '🧠';
   const style_guide = catalog ? catalog.style_guide : null;
+  const description = catalog ? catalog.description : null;
 
-  const needs_scores = (axes_raw.detail_big === '디테일' && axes_raw.motive === '성과');
-
-  // UI-friendly labels
   const axes = {
-    solve_support: axes_raw.solve_support === '해결' ? '해결형' : '지지형',
-    detail_big: axes_raw.detail_big === '디테일' ? '디테일형' : '큰그림형',
-    motive: axes_raw.motive === '성과' ? '성과형' : '성장형',
-    plan_explore: axes_raw.plan_explore === '계획' ? '계획형' : '탐색형'
+    coaching_style: axes_raw.coaching_style,
+    info_processing: axes_raw.info_processing,
+    execution_strategy: axes_raw.execution_strategy,
+    learning_env: axes_raw.learning_env,
+    support_tag: axes_raw.support_tag
   };
 
-  return { type_code, type_name, emoji, axes_raw, axes, style_guide, needs_scores, partner_version: PARTNER_VERSION };
+  return { type_code, type_name, emoji, axes_raw, axes, style_guide, description, partner_version: PARTNER_VERSION };
 }
 
 function buildPartnerTypeLibraryText() {
   return PARTNER_TYPES.map(t => {
     return [
       `${t.type_code} | ${t.type_name}`,
-      `- 톤: ${t.style_guide?.tone || '-'}`,
-      `- 형식: ${t.style_guide?.format || '-'}`
+      `- 대표 응답(Q1~Q6): ${formatRepresentativeAnswers(t.representative_answers)}`,
+      `- 피드백 스타일: ${t.description?.feedback_style || '-'}`,
+      `- 실천 방식: ${t.description?.action_style || '-'}`,
+      `- 이런 말이 힘이 돼요: ${t.description?.encouraging_phrase || '-'}`,
+      `- tone: ${t.style_guide?.tone || '-'}`,
+      `- format: ${t.style_guide?.format || '-'}`
     ].join('\n');
   }).join('\n\n');
 }
@@ -4533,17 +4755,19 @@ function buildPartnerTypeLibraryText() {
 function formatRepresentativeAnswers(rep) {
   if (!rep || typeof rep !== 'object') return '';
   const parts = [];
-  for (let i = 1; i <= 8; i++) {
+  for (let i = 1; i <= 6; i++) {
     const v = rep[i] || rep[String(i)] || '?';
     parts.push((v === 'A' || v === 'B') ? v : '?');
   }
-  return parts.join(' ');
+  return parts.join('');
 }
 
 function getPartnerFromPersonalityRow(row) {
   if (!row || typeof row !== 'object') return null;
 
-  // Prefer new columns when present.
+  const rowVersion = Number(row.partner_version || 0);
+  if (rowVersion !== PARTNER_VERSION) return null;
+
   const code = row.partner_type_code;
   if (code && PARTNER_TYPE_BY_CODE[code]) {
     const base = PARTNER_TYPE_BY_CODE[code];
@@ -4552,46 +4776,42 @@ function getPartnerFromPersonalityRow(row) {
       type_code: code,
       type_name,
       emoji: base.emoji,
+      description: base.description,
       style_guide: base.style_guide,
-      partner_version: row.partner_version || PARTNER_VERSION
+      partner_version: PARTNER_VERSION
     };
 
     if (row.partner_axes && typeof row.partner_axes === 'object') {
       partner.axes_raw = {
-        solve_support: row.partner_axes.solve_support || null,
-        detail_big: row.partner_axes.detail_big || null,
-        motive: row.partner_axes.motive || null,
-        plan_explore: row.partner_axes.plan_explore || null
+        coaching_style: row.partner_axes.coaching_style || null,
+        info_processing: row.partner_axes.info_processing || null,
+        execution_strategy: row.partner_axes.execution_strategy || null,
+        learning_env: row.partner_axes.learning_env || null,
+        support_tag: row.partner_axes.support_tag || null
       };
-      if (typeof row.partner_axes.needs_scores === 'boolean') partner.needs_scores = row.partner_axes.needs_scores;
     }
 
-    if ((!partner.axes_raw || !partner.axes_raw.solve_support) && row.question_responses) {
+    if ((!partner.axes_raw || !partner.axes_raw.coaching_style) && row.question_responses) {
       const computed = computePartnerType(row.question_responses);
       if (computed) {
         partner.axes_raw = computed.axes_raw;
         partner.axes = computed.axes;
-        partner.needs_scores = computed.needs_scores;
       }
     }
 
     if (!partner.axes && partner.axes_raw) {
       partner.axes = {
-        solve_support: partner.axes_raw.solve_support === '해결' ? '해결형' : '지지형',
-        detail_big: partner.axes_raw.detail_big === '디테일' ? '디테일형' : '큰그림형',
-        motive: partner.axes_raw.motive === '성과' ? '성과형' : '성장형',
-        plan_explore: partner.axes_raw.plan_explore === '계획' ? '계획형' : '탐색형'
+        coaching_style: partner.axes_raw.coaching_style,
+        info_processing: partner.axes_raw.info_processing,
+        execution_strategy: partner.axes_raw.execution_strategy,
+        learning_env: partner.axes_raw.learning_env,
+        support_tag: partner.axes_raw.support_tag
       };
-    }
-
-    if (typeof partner.needs_scores !== 'boolean') {
-      partner.needs_scores = !!(partner.axes_raw && partner.axes_raw.detail_big === '디테일' && partner.axes_raw.motive === '성과');
     }
 
     return partner;
   }
 
-  // Fallback: compute from answers.
   if (row.question_responses) return computePartnerType(row.question_responses);
 
   return null;
@@ -4603,7 +4823,11 @@ async function backfillPartnerTypeIfNeeded(personalityRow, partner) {
   if (!partner || !partner.type_code) return;
   if (!personalityRow) return;
 
-  const needsBackfill = !personalityRow.partner_type_code || !personalityRow.partner_type_name || !personalityRow.partner_axes || !personalityRow.partner_version;
+  const needsBackfill =
+    !personalityRow.partner_type_code ||
+    !personalityRow.partner_type_name ||
+    !personalityRow.partner_axes ||
+    Number(personalityRow.partner_version || 0) !== PARTNER_VERSION;
   if (!needsBackfill) return;
 
   const payload = {
@@ -4611,7 +4835,7 @@ async function backfillPartnerTypeIfNeeded(personalityRow, partner) {
     student_id: currentStudent.id,
     partner_type_code: partner.type_code,
     partner_type_name: partner.type_name,
-    partner_axes: { ...(partner.axes_raw || {}), needs_scores: !!partner.needs_scores },
+    partner_axes: { ...(partner.axes_raw || {}) },
     partner_version: PARTNER_VERSION
   };
   if (personalityRow.question_responses) payload.question_responses = personalityRow.question_responses;
@@ -4624,7 +4848,6 @@ async function backfillPartnerTypeIfNeeded(personalityRow, partner) {
     personalityRow.partner_axes = payload.partner_axes;
     personalityRow.partner_version = payload.partner_version;
   } catch (err) {
-    // If DB migration isn't applied yet, keep runtime behavior by computing from answers.
     console.warn('Partner type backfill skipped:', err?.message || err);
   }
 }
@@ -4632,10 +4855,9 @@ async function backfillPartnerTypeIfNeeded(personalityRow, partner) {
 async function ensureStudentPartnerLoaded(opts = {}) {
   const backfill = opts.backfill !== false;
 
-  // Demo mode: session storage only.
   if (isDemoMode) {
     if (!studentPersonality) studentPersonality = loadDemoPersonalityFromStorage();
-    if (studentPersonality) studentPartner = getPartnerFromPersonalityRow(studentPersonality) || (studentPersonality.question_responses ? computePartnerType(studentPersonality.question_responses) : null);
+    if (studentPersonality) studentPartner = getPartnerFromPersonalityRow(studentPersonality);
     return studentPartner;
   }
 
@@ -4655,71 +4877,68 @@ async function ensureStudentPartnerLoaded(opts = {}) {
 const personalityQuestions = [
   {
     id: 1,
-    category: '조언 수용 성향 (개선지향 vs 인정지향)',
-    question: '결과물에 대한 조언을 받을 때 어떤 방식이 더 좋나요?',
-    optionA: { label: 'A', text: '구체적인 개선점과 해결방법' },
-    optionB: { label: 'B', text: '잘한 점 중심의 격려와 응원' }
+    category: '코칭 스타일',
+    question: '시험 결과가 기대보다 낮았을 때, 선생님이 어떻게 말해주면 좋겠어?',
+    optionA: { label: 'A', text: '구체적으로 분석하고 방법을 알려줘' },
+    optionB: { label: 'B', text: '같이 방법 찾아보자고 말해줘' }
   },
   {
     id: 2,
-    category: '결과 정리 방식 선호 (수치/근거형 vs 요약/방향형)',
-    question: '평가 결과를 받을 때, 어떤 형태로 정리되어 있으면 더 도움이 되나요?',
-    optionA: { label: 'A', text: '점수/수치와 근거가 정리된 결과' },
-    optionB: { label: 'B', text: '한눈에 요약된 전체 흐름과 다음 방향' }
+    category: '코칭 스타일',
+    question: '모둠 활동에서 내가 맡은 부분이 부족했을 때, 어떤 반응이 더 도움이 돼?',
+    optionA: { label: 'A', text: '이 부분을 이렇게 고치면 나아져' },
+    optionB: { label: 'B', text: '노력한 건 보여, 다음엔 이 부분만 더 신경 쓰자' }
   },
   {
     id: 3,
-    category: '동기 원천 (결과형 vs 과정형)',
-    question: '공부할 때 무엇이 더 동기부여가 되나요?',
-    optionA: { label: 'A', text: '성적/결과가 오르거나 목표를 달성할 때' },
-    optionB: { label: 'B', text: '새로운 것을 배우는 과정 자체' }
+    category: '정보 처리',
+    question: '새로운 단원을 배울 때, 어떤 게 더 도움이 돼?',
+    optionA: { label: 'A', text: '예시와 풀이를 하나하나 따라가기' },
+    optionB: { label: 'B', text: '왜 배우는지, 전체에서 어디에 해당하는지 먼저 파악' }
   },
   {
     id: 4,
-    category: '실수 이후 회복 스타일 (해결 중심 vs 정서 지지 중심)',
-    question: '잘못했을 때 어떤 말이 더 도움이 되나요?',
-    optionA: { label: 'A', text: '이렇게 하면 더 나아질거야' },
-    optionB: { label: 'B', text: '괜찮아, 다음엔 더 잘할 수 있어' }
+    category: '정보 처리',
+    question: '내 결과물에 대한 피드백을 받을 때, 어떤 형태가 더 좋아?',
+    optionA: { label: 'A', text: '항목별 점수와 구체적 근거' },
+    optionB: { label: 'B', text: '전체적인 흐름 요약과 다음 방향' }
   },
   {
     id: 5,
-    category: '과제 진행 방식 (계획형 vs 유연형)',
-    question: '과제를 할 때 어떤 방식이 더 편한가요?',
-    optionA: { label: 'A', text: '체계적인 계획을 세우고 진행' },
-    optionB: { label: 'B', text: '유연하게 상황에 맞춰 진행' }
+    category: '실행 전략',
+    question: '시험 2주 전, 어떤 공부 방식이 나한테 더 맞아?',
+    optionA: { label: 'A', text: '과목별 계획표를 짜고 매일 체크' },
+    optionB: { label: 'B', text: '일단 시작하고 그날 상태에 따라 조절' }
   },
   {
     id: 6,
-    category: '학습 접근 방식 (가이드형 vs 해보면서형)',
-    question: '새로운 걸 배울 때 어떤 게 더 좋나요?',
-    optionA: { label: 'A', text: '명확한 지침과 단계' },
-    optionB: { label: 'B', text: '일단 해보면서 감을 잡고 방법을 찾아가기' }
+    category: '실행 전략',
+    question: '방학 동안 뭔가를 배우고 싶을 때, 어떻게 시작해?',
+    optionA: { label: 'A', text: '목표와 일정을 먼저 정하고 단계적으로' },
+    optionB: { label: 'B', text: '일단 관심 가는 걸 해보면서 방향을 잡아가기' }
   },
   {
     id: 7,
-    category: '칭찬 선호 방식 (구체 칭찬 vs 전체 칭찬)',
-    question: '좋은 결과가 나왔을 때 어떤 게 기분이 더 좋나요?',
-    optionA: { label: 'A', text: '이 부분이 특히 훌륭했어!' },
-    optionB: { label: 'B', text: '정말 잘했어! 멋져!' }
+    category: '학습 환경',
+    question: '어려운 내용을 이해하고 싶을 때, 어떤 방법이 더 잘 돼?',
+    optionA: { label: 'A', text: '친구나 선생님한테 물어보면서 정리' },
+    optionB: { label: 'B', text: '혼자 자료를 찾아보며 정리' }
   },
   {
     id: 8,
-    category: '스트레스 상황에서 필요한 지원 (문제해결 중심 vs 정서지지 중심)',
-    question: '힘들 때 어떤 말이 더 위로가 되나요?',
-    optionA: { label: 'A', text: '이건 이렇게 바꿔보자' },
-    optionB: { label: 'B', text: '힘내! 넌 할 수 있어' }
+    category: '학습 환경',
+    question: '시험공부 할 때 어떤 환경이 더 집중이 잘 돼?',
+    optionA: { label: 'A', text: '친구와 같이 문제 내고 풀기' },
+    optionB: { label: 'B', text: '조용히 혼자 집중해서 풀기' }
   }
 ];
 
-// 자기평가 초기화
 async function initSelfEvaluation() {
-  // 날짜 초기화 (오늘)
   const selfDateInput = document.getElementById('selfDate');
   if (selfDateInput && !selfDateInput.value) {
     selfDateInput.value = getDefaultQueryDate();
   }
 
-  // 체험 모드: 퀴즈를 ABABABAB으로 미리 세팅
   if (isDemoMode) {
     if (!studentPersonality) studentPersonality = loadDemoPersonalityFromStorage();
     const partner = getPartnerFromPersonalityRow(studentPersonality);
@@ -4732,9 +4951,8 @@ async function initSelfEvaluation() {
       return;
     }
     showPersonalityQuiz();
-    // 미리 ABABABAB 답변 세팅 + UI 표시
     personalityQuestions.forEach(q => {
-      const answer = q.id % 2 === 1 ? 'A' : 'B'; // 홀수=A, 짝수=B
+      const answer = q.id % 2 === 1 ? 'A' : 'B';
       quizAnswers[q.id] = answer;
       const questionEl = document.getElementById(`question${q.id}`);
       if (questionEl) {
@@ -4745,7 +4963,6 @@ async function initSelfEvaluation() {
         options[selectedIndex].classList.add('selected', answer === 'A' ? 'selected-a' : 'selected-b');
       }
     });
-    // 분석 완료 버튼 바로 표시
     document.getElementById('submitQuizBtn').classList.remove('hidden');
     document.getElementById('personalityQuiz').classList.remove('hidden');
     document.getElementById('personalityResult').classList.add('hidden');
@@ -4759,11 +4976,18 @@ async function initSelfEvaluation() {
     if (personality) {
       studentPersonality = personality;
       studentPartner = getPartnerFromPersonalityRow(personality);
-      if (studentPartner) await backfillPartnerTypeIfNeeded(personality, studentPartner);
-      document.getElementById('personalityQuiz').classList.add('hidden');
-      document.getElementById('personalityResult').classList.add('hidden');
-      document.getElementById('selfEvaluationMenu').classList.remove('hidden');
-      switchSelfTab('daily');
+      if (studentPartner) {
+        await backfillPartnerTypeIfNeeded(personality, studentPartner);
+        document.getElementById('personalityQuiz').classList.add('hidden');
+        document.getElementById('personalityResult').classList.add('hidden');
+        document.getElementById('selfEvaluationMenu').classList.remove('hidden');
+        switchSelfTab('daily');
+      } else {
+        showPersonalityQuiz();
+        document.getElementById('personalityQuiz').classList.remove('hidden');
+        document.getElementById('personalityResult').classList.add('hidden');
+        document.getElementById('selfEvaluationMenu').classList.add('hidden');
+      }
     } else {
       showPersonalityQuiz();
       document.getElementById('personalityQuiz').classList.remove('hidden');
@@ -4772,7 +4996,6 @@ async function initSelfEvaluation() {
     }
   } catch (error) {
     console.error('자기평가 초기화 오류:', error);
-    // 오류 시 퀴즈 화면 표시
     showPersonalityQuiz();
     document.getElementById('personalityQuiz').classList.remove('hidden');
     document.getElementById('personalityResult').classList.add('hidden');
@@ -4780,7 +5003,6 @@ async function initSelfEvaluation() {
   }
 }
 
-// 성향 데이터 로드
 async function loadStudentPersonality() {
   try {
     const { data } = await db.from('student_personality')
@@ -4795,7 +5017,6 @@ async function loadStudentPersonality() {
   }
 }
 
-// 성향 진단 퀴즈 표시
 function showPersonalityQuiz() {
   quizAnswers = {};
   const container = document.getElementById('quizContent');
@@ -4824,7 +5045,6 @@ function showPersonalityQuiz() {
   document.getElementById('submitQuizBtn').classList.add('hidden');
 }
 
-// 퀴즈 선택
 function selectQuizOption(questionId, answer) {
   if (isDemoMode) {
     showModal({ type: 'alert', icon: '🔒', title: '체험 모드', message: '체험 모드에서는 답변을 변경할 수 없습니다.<br>아래 분석 완료 버튼을 눌러주세요!' });
@@ -4846,7 +5066,6 @@ function selectQuizOption(questionId, answer) {
   }
 }
 
-// 성향 진단 제출
 async function submitPersonalityQuiz() {
   const partner = computePartnerType(quizAnswers);
   if (!partner) {
@@ -4860,7 +5079,7 @@ async function submitPersonalityQuiz() {
     question_responses: quizAnswers,
     partner_type_code: partner.type_code,
     partner_type_name: partner.type_name,
-    partner_axes: { ...(partner.axes_raw || {}), needs_scores: !!partner.needs_scores },
+    partner_axes: { ...(partner.axes_raw || {}) },
     partner_version: PARTNER_VERSION
   };
 
@@ -4879,7 +5098,6 @@ async function submitPersonalityQuiz() {
     document.getElementById('personalityQuiz').classList.add('hidden');
     document.getElementById('personalityResult').classList.remove('hidden');
   } catch (error) {
-    // If DB migration isn't applied, still keep answers so we can compute runtime.
     try {
       if (!isDemoMode) {
         await db.from('student_personality').upsert({
@@ -4892,138 +5110,53 @@ async function submitPersonalityQuiz() {
 
     const msg = String(error?.message || error);
     const hint = (msg.includes('partner_type_code') || msg.includes('partner_type_name') || msg.includes('partner_axes') || msg.includes('partner_version'))
-      ? '<br><br><small>DB에 16유형 컬럼이 없어요. `supabase_migrations/2026-02-15_add_partner_type_columns.sql`을 적용해 주세요.</small>'
+      ? '<br><br><small>DB에 성장파트너 컬럼이 없어 저장하지 못했어요. `supabase_migrations/2026-02-15_add_partner_type_columns.sql`을 적용해 주세요.</small>'
       : '';
     showModal({ type: 'alert', icon: '❌', title: '오류', message: '성향 저장 실패: ' + msg + hint });
   }
-
-  return;
-
-  const aCount = Object.values(quizAnswers).filter(a => a === 'A').length;
-
-  let personalityType;
-  if (aCount >= 6) {
-    personalityType = 'analytical';
-  } else if (aCount >= 4) {
-    personalityType = 'balanced';
-  } else if (aCount >= 3) {
-    personalityType = 'growth';
-  } else {
-    personalityType = 'empathetic';
-  }
-
-  try {
-    // 체험 모드에서는 DB 저장 생략, UI만 진행
-    if (!isDemoMode) {
-      const { error } = await db.from('student_personality').upsert({
-        class_code: currentClassCode,
-        student_id: currentStudent.id,
-        personality_type: personalityType,
-        question_responses: quizAnswers
-      }, { onConflict: 'class_code,student_id' });
-      if (error) throw error;
-    }
-
-    studentPersonality = { personality_type: personalityType, question_responses: quizAnswers };
-    if (isDemoMode) saveDemoPersonalityToStorage(studentPersonality);
-    showPersonalityResult(personalityType);
-
-    document.getElementById('personalityQuiz').classList.add('hidden');
-    document.getElementById('personalityResult').classList.remove('hidden');
-
-    // "확인" 버튼으로 넘어가도록 (자동 전환 제거)
-
-  } catch (error) {
-    showModal({ type: 'alert', icon: '❌', title: '오류', message: '성향 저장 실패: ' + error.message });
-  }
 }
 
-// 성향 결과 표시
 function showPersonalityResult(type) {
   const partner = (type && typeof type === 'object') ? type : null;
-  if (partner && partner.type_code) {
-    const iconEl = document.getElementById('personalityIcon');
-    const titleEl = document.getElementById('personalityTitle');
+  if (!partner || !partner.type_code) {
     const descEl = document.getElementById('personalityDesc');
-    const cardEl = document.getElementById('personalityCard');
-
-    if (iconEl) iconEl.textContent = partner.emoji || '🧠';
-    if (titleEl) titleEl.textContent = partner.type_name || partner.type_code;
-
-    const lines = [];
-    if (partner.type_code) lines.push(escapeHtml(partner.type_code));
-    if (partner.axes) lines.push(escapeHtml(Object.values(partner.axes).join(' · ')));
-    const baseType = partner.type_code ? PARTNER_TYPE_BY_CODE[partner.type_code] : null;
-    if (baseType && baseType.representative_answers) {
-      const rep = formatRepresentativeAnswers(baseType.representative_answers);
-      if (rep) lines.push('대표 패턴(정석): ' + escapeHtml(rep));
-    }
-    if (partner.style_guide?.tone) lines.push('톤: ' + escapeHtml(partner.style_guide.tone));
-    if (partner.style_guide?.format) lines.push('형식: ' + escapeHtml(partner.style_guide.format));
-    if (descEl) descEl.innerHTML = lines.join('<br>');
-
-    if (cardEl) cardEl.className = 'accent-box personality-result-card';
-
-    const allContainer = document.getElementById('allPersonalityTypes');
-    if (allContainer) {
-      let html = '<div style=\"font-weight:700; font-size:0.85rem; color:var(--text-sub); margin-bottom:10px; text-align:center;\">📌 16가지 성장 파트너 유형</div>';
-      html += '<div style=\"display:grid; grid-template-columns:1fr 1fr; gap:8px;\">';
-      PARTNER_TYPES.forEach(t => {
-        const isMine = t.type_code === partner.type_code;
-        const rep = t.representative_answers ? formatRepresentativeAnswers(t.representative_answers) : '';
-        html += `<div style=\"padding:12px; border-radius:12px; text-align:center; ${isMine ? 'background:var(--primary-light); border:2px solid var(--primary);' : 'background:var(--bg-body); border:2px solid transparent; opacity:0.7;'}\">
-          <div style=\"font-size:1.5rem;\">${t.emoji || '🧠'}</div>
-          <div style=\"font-weight:700; font-size:0.85rem; color:var(--text-main); margin-top:4px;\">${escapeHtml(t.type_name)}${isMine ? ' (나)' : ''}</div>
-          <div style=\"font-size:0.72rem; color:var(--text-sub); margin-top:3px; line-height:1.3;\">${escapeHtml(t.type_code)}</div>
-          ${rep ? `<div style=\"font-size:0.68rem; color:var(--text-sub); margin-top:6px; opacity:0.85;\">대표: ${escapeHtml(rep)}</div>` : ''}
-        </div>`;
-      });
-      html += '</div>';
-      allContainer.innerHTML = html;
-    }
-
+    if (descEl) descEl.textContent = '유형 정보를 불러오지 못했어요. 다시 진단해 주세요.';
     return;
   }
-  const personalities = {
-    analytical: {
-      icon: '🎯',
-      title: '분석형',
-      desc: '구체적이고 논리적인 피드백을 선호하는 당신!\n데이터와 명확한 개선점을 통해 성장하는 스타일이에요.'
-    },
-    balanced: {
-      icon: '⚖️',
-      title: '균형형',
-      desc: '논리와 감정의 균형을 중시하는 당신!\n객관적 분석과 따뜻한 격려를 함께 받고 싶어하는 스타일이에요.'
-    },
-    growth: {
-      icon: '🌱',
-      title: '성장형',
-      desc: '과정과 배움을 중시하는 당신!\n결과보다 성장의 과정 자체에서 의미를 찾는 스타일이에요.'
-    },
-    empathetic: {
-      icon: '💝',
-      title: '감성형',
-      desc: '공감과 격려를 중시하는 당신!\n따뜻한 응원과 긍정적인 피드백에서 힘을 얻는 스타일이에요.'
-    }
-  };
 
-  const p = personalities[type];
-  document.getElementById('personalityIcon').textContent = p.icon;
-  document.getElementById('personalityTitle').textContent = p.title;
-  document.getElementById('personalityDesc').textContent = p.desc;
-  document.getElementById('personalityCard').className = 'accent-box personality-result-card';
+  const iconEl = document.getElementById('personalityIcon');
+  const titleEl = document.getElementById('personalityTitle');
+  const descEl = document.getElementById('personalityDesc');
+  const cardEl = document.getElementById('personalityCard');
 
-  // 다른 유형들도 함께 표시
+  if (iconEl) iconEl.textContent = partner.emoji || '🧠';
+  if (titleEl) {
+    const tagText = partner.axes_raw?.support_tag ? ` ${partner.axes_raw.support_tag}` : '';
+    titleEl.textContent = (partner.type_name || partner.type_code) + tagText;
+  }
+
+  const lines = [];
+  if (partner.description?.feedback_style) lines.push('피드백 스타일: ' + escapeHtml(partner.description.feedback_style));
+  if (partner.description?.action_style) lines.push('실천 방식: ' + escapeHtml(partner.description.action_style));
+  if (partner.description?.encouraging_phrase) lines.push('이런 말이 힘이 돼요: ' + escapeHtml(partner.description.encouraging_phrase));
+  if (partner.style_guide?.tone) lines.push('tone: ' + escapeHtml(partner.style_guide.tone));
+  if (partner.style_guide?.format) lines.push('format: ' + escapeHtml(partner.style_guide.format));
+  if (partner.axes_raw?.support_tag && SUPPORT_TAG_GUIDE[partner.axes_raw.support_tag]) {
+    lines.push(escapeHtml(`${partner.axes_raw.support_tag}: ${SUPPORT_TAG_GUIDE[partner.axes_raw.support_tag]}`));
+  }
+  if (descEl) descEl.innerHTML = lines.join('<br>');
+
+  if (cardEl) cardEl.className = 'accent-box personality-result-card';
+
   const allContainer = document.getElementById('allPersonalityTypes');
   if (allContainer) {
-    let html = '<div style="font-weight:700; font-size:0.85rem; color:var(--text-sub); margin-bottom:10px; text-align:center;">📌 모든 성향 유형</div>';
+    let html = '<div style="font-weight:700; font-size:0.85rem; color:var(--text-sub); margin-bottom:10px; text-align:center;">📌 8가지 성장 파트너 유형</div>';
     html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">';
-    Object.entries(personalities).forEach(([key, val]) => {
-      const isMine = key === type;
+    PARTNER_TYPES.forEach(t => {
+      const isMine = t.type_code === partner.type_code;
       html += `<div style="padding:12px; border-radius:12px; text-align:center; ${isMine ? 'background:var(--primary-light); border:2px solid var(--primary);' : 'background:var(--bg-body); border:2px solid transparent; opacity:0.7;'}">
-        <div style="font-size:1.5rem;">${val.icon}</div>
-        <div style="font-weight:700; font-size:0.85rem; color:var(--text-main); margin-top:4px;">${val.title}${isMine ? ' (나)' : ''}</div>
-        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:3px; line-height:1.3;">${val.desc.split('\n')[1] || val.desc}</div>
+        <div style="font-size:1.5rem;">${t.emoji || '🧠'}</div>
+        <div style="font-weight:700; font-size:0.85rem; color:var(--text-main); margin-top:4px;">${escapeHtml(t.type_name)}${isMine ? ' (나)' : ''}</div>
       </div>`;
     });
     html += '</div>';
@@ -5031,16 +5164,11 @@ function showPersonalityResult(type) {
   }
 }
 
-// 성향 결과 확인 후 메뉴로 이동
 function confirmPersonalityResult() {
   document.getElementById('personalityResult').classList.add('hidden');
   document.getElementById('selfEvaluationMenu').classList.remove('hidden');
   switchSelfTab('daily');
 }
-
-// 재진단
-
-
 // ============================================
 // 성장 대시보드 기능
 // ============================================
@@ -5055,11 +5183,7 @@ async function loadDashboardData() {
       .eq('class_code', currentClassCode)
       .eq('student_id', String(currentStudent.id))
       .order('reflection_date', { ascending: false });
-    let allRecords = recordRows || [];
-    if (isDemoMode && allRecords.length === 0) {
-      allRecords = getDemoFallbackDailyReflections(currentStudent.id)
-        .sort((a, b) => String(b.reflection_date).localeCompare(String(a.reflection_date)));
-    }
+    const allRecords = recordRows || [];
 
     loadGoals(); // 기록이 없어도 목표는 로드
     if (!allRecords || allRecords.length === 0) {
@@ -5123,11 +5247,7 @@ async function loadGoals() {
     .eq('class_code', currentClassCode)
     .eq('student_id', String(currentStudent.id))
     .order('created_at', { ascending: false });
-  let goals = goalRows || [];
-  if (isDemoMode && goals.length === 0) {
-    goals = getDemoFallbackGoals(currentStudent.id)
-      .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
-  }
+  const goals = goalRows || [];
 
   const goalList = document.getElementById('goalList');
   const goalProgress = document.getElementById('goalProgress');
@@ -5389,17 +5509,6 @@ async function generateSummaryReport(period) {
     let projects = (projectRes.status === 'fulfilled' && projectRes.value && Array.isArray(projectRes.value.data)) ? projectRes.value.data : [];
     let goals = (goalsRes.status === 'fulfilled' && goalsRes.value && Array.isArray(goalsRes.value.data)) ? goalsRes.value.data : [];
 
-    // Demo mode: provide fallback content when Supabase has no rows.
-    if (isDemoMode && records.length === 0) {
-      records = getDemoFallbackDailyReflections(currentStudent.id)
-        .filter(r => String(r.reflection_date) >= startStr && String(r.reflection_date) <= endDate)
-        .sort((a, b) => String(a.reflection_date).localeCompare(String(b.reflection_date)));
-    }
-    if (isDemoMode && goals.length === 0) {
-      goals = getDemoFallbackGoals(currentStudent.id)
-        .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
-    }
-
     if (records.length === 0 && projects.length === 0 && goals.length === 0) {
       area.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><div class="empty-desc">이 기간에 기록이 없어요. 먼저 성장일기/프로젝트/목표를 남겨보세요!</div></div>';
       return;
@@ -5459,7 +5568,7 @@ async function generateSummaryReport(period) {
     };
 
     const header1 = '한눈에 보는 이번 기록';
-    const header2 = (partner && partner.axes_raw && partner.axes_raw.detail_big === '디테일')
+    const header2 = (partner && partner.axes_raw && partner.axes_raw.info_processing === '디테일형')
       ? '반복되는 패턴(강점/관심사/근거)'
       : '반복되는 패턴(강점/관심사/변화)';
     const header3 = '다음 성장 실험/계획(실천)';
@@ -5467,13 +5576,13 @@ async function generateSummaryReport(period) {
     const prompt = [
       '[ROLE]',
       "너는 '배움로그'의 AI 성장 파트너다.",
-      "학생의 '성장 파트너 유형(16유형)'에 맞춰, 학생이 남긴 배움 기록(성장일기/프로젝트/목표 등)을 분석해",
+      "학생의 '성장 파트너 유형(8유형 + 보조태그)'에 맞춰, 학생이 남긴 배움 기록(성장일기/프로젝트/목표 등)을 분석해",
       '스스로배움 결과보기(요약 리포트/성장 리포트) 카드에 들어갈 결과를 작성한다.',
       '',
       '[INPUT]',
       JSON.stringify(inputObj, null, 2),
       '',
-      '[16 TYPE LIBRARY]',
+      '[8 TYPE LIBRARY]',
       buildPartnerTypeLibraryText(),
       '',
       '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
@@ -5492,10 +5601,10 @@ async function generateSummaryReport(period) {
       '   - 지지형: 안정 한 줄 + 행동(괜찮아, 다음엔 이렇게 해보자)',
       '   - 디테일형: 단계/체크리스트(최대 3)',
       '   - 큰그림형: 방향 1문장 + 체크 질문 2개',
-      '   - 성과형: 성공 신호(측정 가능) 1개',
-      '   - 성장형: 과정 증거(기록/습관) 1개',
       '   - 계획형: 일정/우선순위 한 줄',
       '   - 탐색형: 작은 실험 제안',
+      '   - #함께 성장형: 협력 활동(설명 연습/모둠 토론/같이 문제 풀기) 포함',
+      '   - #혼자 집중형: 개인 활동(노트 정리/혼자 풀기/조용한 복습) 포함',
       '6) 길이: summary_week/month는 10~16문장(또는 6~10불릿)',
       '7) 한국어로만 작성.',
       ''
@@ -5548,16 +5657,6 @@ async function generateGrowthReport() {
     let records = (dailyRes.status === 'fulfilled' && dailyRes.value && Array.isArray(dailyRes.value.data)) ? dailyRes.value.data : [];
     let projects = (projectRes.status === 'fulfilled' && projectRes.value && Array.isArray(projectRes.value.data)) ? projectRes.value.data : [];
     let goals = (goalsRes.status === 'fulfilled' && goalsRes.value && Array.isArray(goalsRes.value.data)) ? goalsRes.value.data : [];
-
-    // Demo mode fallback
-    if (isDemoMode && records.length === 0) {
-      records = getDemoFallbackDailyReflections(currentStudent.id)
-        .sort((a, b) => String(a.reflection_date).localeCompare(String(b.reflection_date)));
-    }
-    if (isDemoMode && goals.length === 0) {
-      goals = getDemoFallbackGoals(currentStudent.id)
-        .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
-    }
 
     if (records.length < 3 && projects.length === 0 && goals.length === 0) {
       setLoading(false, btn, '🤖 AI 성장 리포트 받기');
@@ -5620,20 +5719,20 @@ async function generateGrowthReport() {
       }
     };
 
-    const header1 = (partner && partner.axes_raw && partner.axes_raw.solve_support === '해결') ? '한눈에 보는 전체 기록(핵심)' : '한눈에 보는 전체 기록';
-    const header2 = (partner && partner.axes_raw && partner.axes_raw.detail_big === '디테일') ? '반복되는 패턴(강점/관심사/근거)' : '반복되는 패턴(강점/관심사/변화)';
+    const header1 = (partner && partner.axes_raw && partner.axes_raw.coaching_style === '해결형') ? '한눈에 보는 전체 기록(핵심)' : '한눈에 보는 전체 기록';
+    const header2 = (partner && partner.axes_raw && partner.axes_raw.info_processing === '디테일형') ? '반복되는 패턴(강점/관심사/근거)' : '반복되는 패턴(강점/관심사/변화)';
     const header3 = '다음 성장 실험/계획(실천)';
 
     const prompt = [
       '[ROLE]',
       "너는 '배움로그'의 AI 성장 파트너다.",
-      "학생의 '성장 파트너 유형(16유형)'에 맞춰, 학생이 남긴 배움 기록(성장일기/프로젝트/목표 등)을 분석해",
+      "학생의 '성장 파트너 유형(8유형 + 보조태그)'에 맞춰, 학생이 남긴 배움 기록(성장일기/프로젝트/목표 등)을 분석해",
       '스스로배움 결과보기(요약 리포트/성장 리포트) 카드에 들어갈 결과를 작성한다.',
       '',
       '[INPUT]',
       JSON.stringify(inputObj, null, 2),
       '',
-      '[16 TYPE LIBRARY]',
+      '[8 TYPE LIBRARY]',
       buildPartnerTypeLibraryText(),
       '',
       '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
@@ -5652,10 +5751,10 @@ async function generateGrowthReport() {
       '   - 지지형: 안정 한 줄 + 행동(괜찮아, 다음엔 이렇게 해보자)',
       '   - 디테일형: 단계/체크리스트(최대 3)',
       '   - 큰그림형: 방향 1문장 + 체크 질문 2개',
-      '   - 성과형: 성공 신호(측정 가능) 1개',
-      '   - 성장형: 과정 증거(기록/습관) 1개',
       '   - 계획형: 일정/우선순위 한 줄',
       '   - 탐색형: 작은 실험 제안',
+      '   - #함께 성장형: 협력 활동(설명 연습/모둠 토론/같이 문제 풀기) 포함',
+      '   - #혼자 집중형: 개인 활동(노트 정리/혼자 풀기/조용한 복습) 포함',
       '6) 길이: growth_all은 12~20문장(또는 8~12불릿)',
       '7) 한국어로만 작성.',
       ''
@@ -5831,5 +5930,18 @@ function openPrivacyModal() {
     message: `<div class="terms-modal-body">${PRIVACY_HTML}</div>`
   });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

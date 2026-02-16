@@ -69,9 +69,497 @@ input[type="date"].class-tone-input {
     border: 1.5px solid #e7e5e4 !important;
 }
 
+/* Student/Onboarding: shared utility classes moved from inline styles */
+.auth-loading-wrap {
+    text-align: center;
+    padding: 40px;
+}
+
+.auth-loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.auth-loading-text {
+    margin-top: 15px;
+    color: var(--text-sub);
+}
+
+.top-action-row-end {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.btn-logout-compact {
+    width: auto;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    background: #C8C1B8;
+    color: var(--text-main);
+    box-shadow: none;
+}
+
+.btn-logout-main {
+    width: auto;
+    padding: 8px 15px;
+    font-size: 0.85rem;
+    background: #C8C1B8;
+    color: var(--text-main);
+    box-shadow: none;
+}
+
+.onboard-desc {
+    text-align: center;
+    color: var(--text-sub);
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.onboard-hint {
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+.btn-onboard-student {
+    background: var(--color-blue) !important;
+}
+
+.btn-onboard-teacher {
+    background: var(--color-teacher) !important;
+}
+
+.student-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.welcome-msg {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.personality-quiz-desc {
+    text-align: center;
+    color: var(--text-sub);
+    line-height: 1.6;
+    margin-bottom: 20px;
+}
+
+.personality-submit-btn {
+    background: var(--color-teacher) !important;
+    margin-top: 20px;
+}
+
+.personality-result-head {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.personality-icon-large {
+    font-size: 4rem;
+    margin-bottom: 10px;
+}
+
+.personality-title {
+    color: var(--color-teacher);
+    margin: 0;
+}
+
+.personality-desc {
+    color: var(--text-sub);
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+.personality-types-wrap {
+    margin-top: 18px;
+}
+
+.personality-result-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.personality-confirm-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    font-size: 0.95rem;
+    padding: 12px 32px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Jua', sans-serif;
+    cursor: pointer;
+}
+
+.personality-reset-btn {
+    background: var(--border);
+    color: var(--text-main);
+    font-size: 0.85rem;
+    padding: 10px 20px;
+    border-radius: 50px;
+    border: none;
+    font-family: 'Jua', sans-serif;
+    cursor: pointer;
+}
+
+.self-date-card {
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.guide-scroll-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    flex-wrap: nowrap;
+    padding: 2px;
+}
+
+.student-note-textarea {
+    min-height: 176px;
+    margin-bottom: 10px;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 12px !important;
+}
+
+.subject-tag-label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.student-tags-wrap {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 5px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-save-daily {
+    background: var(--color-eval) !important;
+}
+
+.ai-feedback-section {
+    margin-top: 20px;
+}
+
+.ai-feedback-card {
+    border-left-color: var(--color-teacher);
+    background: linear-gradient(135deg, #f5f0ff 0%, #ede7ff 100%);
+}
+
+.ai-feedback-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.ai-feedback-icon {
+    font-size: 1.8rem;
+}
+
+.ai-feedback-title {
+    font-weight: 700;
+    color: var(--color-teacher);
+    font-size: 1rem;
+}
+
+.ai-feedback-text {
+    color: var(--text-main);
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.streak-badge-area {
+    text-align: center;
+}
+
+.streak-display {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.badge-container-center {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.dashboard-help-text {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin-bottom: 15px;
+}
+
+.summary-report-card {
+    border-left-color: var(--color-teacher);
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+}
+
+.summary-period-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.summary-period-row .summary-period-btn {
+    flex: 1;
+}
+
+.growth-report-card {
+    border-left-color: var(--text-main);
+    background: var(--bg-body);
+}
+
+.growth-report-label {
+    color: var(--text-main);
+}
+
+.growth-report-desc {
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin-bottom: 15px;
+}
+
+.growth-report-btn {
+    background: var(--text-main) !important;
+    margin-bottom: 15px;
+}
+
+.btn-project-submit {
+    background: var(--color-result) !important;
+}
+
+.objective-area {
+    margin-bottom: 15px;
+}
+
+.objective-label {
+    font-weight: 700;
+    color: var(--color-blue);
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+}
+
+.objective-text {
+    color: var(--text-main);
+}
+
+.task-area {
+    border-top: 1px dashed var(--border);
+    padding-top: 15px;
+}
+
+.reviewer-input-readonly {
+    background: var(--border-light);
+    cursor: not-allowed;
+}
+
+.progress-area {
+    margin-bottom: 15px;
+}
+
+.progress-bar-zero {
+    width: 0%;
+}
+
+.review-content-textarea {
+    margin-bottom: 5px;
+    min-height: 160px;
+}
+
+.char-count-right {
+    text-align: right;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+}
+
+.type-selector-gap-20 {
+    margin-bottom: 20px;
+}
+
+.result-area-gap {
+    margin-top: 30px;
+}
+
+.summary-title-gap {
+    margin-bottom: 8px;
+}
+
+.summary-text-main {
+    color: var(--text-main);
+}
+
+.sub-tab-gap-20 {
+    margin-bottom: 20px;
+}
+
+.target-grid-gap {
+    margin-bottom: 15px;
+}
+
+.type-selector-gap-10 {
+    margin-bottom: 10px;
+}
+
+.textarea-gap-5 {
+    margin-bottom: 5px;
+}
+
+.teacher-message-box-flat {
+    margin-top: 0;
+}
+
+.message-input-gap {
+    margin-top: 15px;
+}
+
+.message-mode-badge {
+    padding: 8px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    margin-bottom: 10px;
+}
+
+.teacher-message-textarea {
+    min-height: 120px;
+    margin-bottom: 12px;
+}
+
+.message-input-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.teacher-msg-send-btn {
+    background: var(--color-teacher) !important;
+    width: auto;
+    padding: 10px 25px;
+    margin: 0;
+}
+
+.student-settings-card {
+    margin-bottom: 15px;
+}
+
+.student-settings-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+#studentSettingsSection .student-class-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--bg-body) !important;
+    border-radius: 12px;
+}
+
+.student-class-info-key {
+    color: var(--text-sub);
+    font-size: 0.9rem;
+}
+
+.student-class-info-value {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.settings-personality-area {
+    margin-top: 10px;
+}
+
+.settings-personality-loading {
+    color: var(--text-sub);
+    text-align: center;
+}
+
+.student-class-change-card {
+    border: 1.5px solid #d1d5db !important;
+    background: #ffffff !important;
+}
+
+.student-class-change-warning {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.student-class-change-field {
+    margin-bottom: 12px;
+}
+
+.student-class-change-input {
+    font-family: 'Jua', sans-serif !important;
+}
+
+.student-class-change-btn {
+    background: #ffffff !important;
+    color: #4b5563 !important;
+    border: 1.5px solid #d1d5db !important;
+}
+
+.student-class-change-btn:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+}
+
+.teacher-top-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.teacher-logout-btn {
+    width: auto;
+    padding: 8px 20px;
+    background: #C8C1B8;
+    color: var(--text-main);
+    box-shadow: none;
+    font-size: 0.85rem;
+}
+
+.teacher-bottom-nav {
+    margin-bottom: 20px;
+    border-radius: 20px !important;
+}
+
 #dailyReflectionTab #learningText {
     background: var(--bg-body) !important;
-    border: none !important;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 12px !important;
 }
 
 #dailyReflectionTab #customSubjectWrap {
@@ -79,10 +567,12 @@ input[type="date"].class-tone-input {
     border: 1.5px solid #e7e5e4 !important;
     border-radius: 12px;
     padding: 8px;
+    margin-top: 8px;
     margin-bottom: 14px;
 }
 
 #dailyReflectionTab #customSubjectInput {
+    width: 100%;
     background: var(--bg-body) !important;
     border: none !important;
 }
@@ -228,6 +718,47 @@ input[type="date"].class-tone-input {
 }
 
 /* Teacher review filter: keep date field single gray border */
+#teacherMain .sub-tab-gap-15 {
+    margin-bottom: 15px !important;
+}
+
+#teacherMain .sub-tab-gap-12 {
+    margin-bottom: 12px !important;
+}
+
+#teacherMain #rankStudentArea.rank-student-area-card {
+    padding: 20px !important;
+    margin-top: 20px !important;
+}
+
+#teacherMain #rankStudentArea .rank-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+}
+
+#teacherMain #rankStudentArea .rank-filter-date-wrap {
+    width: auto;
+    min-width: 150px;
+}
+
+#teacherMain #rankStudentArea .rank-filter-type-selector {
+    display: flex;
+    gap: 0;
+    align-items: center;
+}
+
+#teacherMain #rankStudentArea .rank-filter-option-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Jua', sans-serif;
+    font-size: 1rem;
+    margin: 0;
+}
+
 #rankStudentArea #teacherDate {
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
@@ -246,6 +777,14 @@ input[type="date"].class-tone-input {
     border: 1.5px solid #d1d5db !important;
     border-left: 1.5px solid #d1d5db !important;
     box-shadow: none !important;
+}
+
+#teacherMain #rankingMiniTab .teacher-dashboard-gap {
+    margin-bottom: 20px;
+}
+
+#teacherMain #rankingMiniTab .ranking-table-scroll {
+    overflow-x: auto;
 }
 
 /* Criteria tab: remove warm/red tint and keep neutral gray tone */
@@ -282,6 +821,12 @@ input[type="date"].class-tone-input {
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
     border-left: 1.5px solid #d1d5db !important;
+}
+
+/* Diary overview counters: avoid overly faint global stat-card border */
+#teacherDiaryOverviewTab .stats-summary .stat-card {
+    border: 1.5px solid #d1d5db !important;
+    box-shadow: none !important;
 }
 
 #settingsMiniTab #studentMappingGrid {
@@ -394,11 +939,11 @@ input[type="date"].class-tone-input {
     --bg-body: #FFF9F0;
     /* 따뜻한 크림 */
     --bg-card: #FFFFFF;
-    --bg-soft: #FFF5F5;
+    --bg-soft: #F8FAFC;
     /* 연한 핑크 */
-    --border: #fecdd3;
+    --border: #d1d5db;
     /* 로즈 보더 */
-    --border-light: #ffe4e6;
+    --border-light: #e5e7eb;
     --color-rose: #f43f5e;
 
     /* 그림자 */
@@ -472,8 +1017,8 @@ button:active {
 }
 
 /* 학생용 주요 버튼 */
-.accent-box.box-blue button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn),
-.accent-box.box-violet button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn),
+.accent-box.box-blue button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item),
+.accent-box.box-violet button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item),
 #selfEvaluationSection button[style*="color-blue"],
 #selfEvaluationSection button[onclick*="save"],
 #selfEvaluationSection button[onclick*="submit"],
@@ -744,12 +1289,12 @@ button[onclick*="logout"]:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #fecdd3;
+    background: #d1d5db;
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #fda4af;
+    background: #9ca3af;
 }
 
 /* ── 14. 로딩 스피너 ─────────────────────── */
@@ -806,7 +1351,7 @@ div[style*="border-top-color"] {
 }
 
 .timeline-line {
-    background: #fecdd3 !important;
+    background: #d1d5db !important;
 }
 
 /* ── 20. 선생님 전용 색상 ────────────────── */
@@ -1272,27 +1817,765 @@ input:checked+.switch-slider:before {
 }
 
 #teacherMain #diaryMiniTab .sub-tab-btn.active {
-    color: var(--primary) !important;
+    color: var(--color-teacher) !important;
 }
 
-/* Teacher diary: subject-comment action buttons should not be rainbow. */
-#teacherMain #diaryMiniTab #teacherSubjectCommentGenerateBtn {
-    background: var(--primary) !important;
-}
-
-#teacherMain #diaryMiniTab #teacherSubjectCommentSaveBtn {
-    background: #292524 !important;
-}
-
-#teacherMain #diaryMiniTab #teacherSubjectCommentRegenerateBtn,
-#teacherMain #diaryMiniTab #teacherSubjectCommentCopyBtn,
-#teacherMain #diaryMiniTab #teacherSubjectCommentExportBtn {
+/* Teacher diary: subject-comment uses role-based button hierarchy. */
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection.teacher-subject-comment-card {
     background: #ffffff !important;
-    color: var(--text-main) !important;
+    border: 1px solid #e7e5e4 !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 22px rgba(57, 74, 92, 0.08) !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-settings {
+    gap: 12px !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-student,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-settings,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-period,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-tags {
+    border-radius: 14px !important;
+    padding: 12px !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-student {
+    background: #f8fafc !important;
     border: 1.5px solid #e7e5e4 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-settings,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-period,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-row-tags {
+    background: #ffffff !important;
+    border: 1.5px solid #e7e5e4 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-actions {
+    margin-top: 14px !important;
+    padding-top: 12px !important;
+    border-top: 1px dashed #e7e5e4 !important;
+    gap: 10px !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn {
+    border-radius: 12px !important;
+    border: 1.5px solid transparent !important;
+    box-shadow: none !important;
+    font-weight: 700 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn:hover:not(:disabled) {
+    transform: translateY(-1px) !important;
+    filter: none !important;
+}
+
+/* Teacher diary: "어려움 모아보기" should use calm neutral gray tone. */
+#teacherMain #diaryMiniTab #emotionAlertArea {
+    background: #ffffff !important;
+    border: 1.5px solid #d1d5db !important;
     box-shadow: none !important;
 }
 
-#teacherMain #diaryMiniTab #teacherSubjectCommentRetry button {
-    background: var(--primary) !important;
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item {
+    background: #f8fafc !important;
+    color: var(--text-main) !important;
+    box-shadow: none !important;
 }
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item:hover {
+    background: #f3f4f6 !important;
+    filter: none !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 14px rgba(99, 102, 241, 0.30) !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.02) !important;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.34) !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn-secondary {
+    background: linear-gradient(135deg, #5f8fd0 0%, #4f7eb9 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 3px 10px rgba(79, 126, 185, 0.26) !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn-secondary:hover:not(:disabled) {
+    box-shadow: 0 4px 12px rgba(79, 126, 185, 0.30) !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn-utility {
+    background: #ffffff !important;
+    color: #475569 !important;
+    border: 1.5px solid #d1d5db !important;
+    box-shadow: none !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-btn-utility:hover:not(:disabled) {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .subject-tag-btn {
+    background: #ffffff !important;
+    border: 1.5px solid #e7e5e4 !important;
+    color: #4b5d70 !important;
+    box-shadow: none !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .subject-tag-btn:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .subject-tag-btn.selected {
+    background: #ffffff !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+    box-shadow: none !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-pill,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-seg .seg-btn,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-menu,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-option,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-result-wrap,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection input,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection select {
+    border-color: #e7e5e4 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection input,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection select {
+    border: 1.5px solid #e7e5e4 !important;
+    border-radius: 12px !important;
+    background: #f7f9fc !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-pill,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-trigger {
+    background: #f8fafc !important;
+    border: 1.5px solid #94a3b8 !important;
+    color: #334155 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-trigger::after {
+    color: #64748b !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-trigger.is-empty {
+    color: #64748b !important;
+    opacity: 0.88;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-option:hover:not(:disabled) {
+    background: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #334155 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-option.active {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+}
+
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection input:focus,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection select:focus,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-trigger:focus,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-student-option:focus {
+    border-color: #94a3b8 !important;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.20) !important;
+    outline: none !important;
+}
+
+
+/* Teacher diary: neutral grouping and status chips */
+#teacherMain #diaryMiniTab .diary-overview-stats {
+    margin-top: 15px;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-wrap {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed #e7e5e4;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-label {
+    display: inline-block;
+    margin: 0 0 8px 0;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-summary {
+    font-size: 0.9rem;
+    color: var(--text-main);
+    margin-bottom: 10px;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-count {
+    font-weight: 800;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-count.is-submitted {
+    color: #4b5563;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-count.is-unsubmitted {
+    color: #7f4d4d;
+}
+
+#teacherMain #diaryMiniTab .diary-completion-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    gap: 8px;
+}
+
+#teacherMain #diaryMiniTab .diary-student-chip.submitted {
+    background: #ffffff !important;
+    border-color: #d1d5db !important;
+    color: #4b5563 !important;
+}
+
+#teacherMain #diaryMiniTab .diary-student-chip.unsubmitted {
+    background: #fff8f8 !important;
+    border-color: #e3caca !important;
+    color: #7f4d4d !important;
+}
+
+#teacherMain #diaryMiniTab #diaryStudentSelectorList .diary-student-chip,
+#teacherMain #diaryMiniTab #diaryStudentSelectorList .diary-student-chip.submitted,
+#teacherMain #diaryMiniTab #diaryStudentSelectorList .diary-student-chip.unsubmitted {
+    border-color: #d1d5db !important;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-card {
+    padding: 14px;
+    border-radius: 12px;
+    background: #ffffff;
+    border: 1.5px solid #d1d5db;
+    border-left: 5px solid #8ea2b6;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-card.tone-0 {
+    border-left-color: #8ea2b6;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-card.tone-1 {
+    border-left-color: #9ba3b5;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-card.tone-2 {
+    border-left-color: #93aa9d;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-card.is-unsubmitted {
+    background: #ffffff;
+    border-color: #e3caca;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-title {
+    font-weight: 800;
+    color: #374151;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-meta {
+    font-size: 0.78rem;
+    color: #6b7280;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-message.is-warning {
+    font-size: 0.9rem;
+    color: #7f4d4d;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-body {
+    font-size: 0.92rem;
+    color: var(--text-main);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-tags {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#teacherMain #diaryMiniTab .diary-student-detail-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    font-size: 0.76rem;
+}
+
+/* Teacher diary: "어려움 모아보기" is white outside, soft gray inside */
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-desc {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    margin-bottom: 10px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item {
+    width: 100%;
+    text-align: left;
+    padding: 10px;
+    background: #f9fafb !important;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db;
+    border-left: 3px solid #8ea2b6;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.tone-0 {
+    border-left-color: #8ea2b6;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.tone-1 {
+    border-left-color: #9ba3b5;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.tone-2 {
+    border-left-color: #93aa9d;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-student {
+    font-weight: 800;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-date {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-tags {
+    margin-bottom: 6px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    margin: 2px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-content {
+    font-size: 0.86rem;
+    color: var(--text-main);
+    line-height: 1.45;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #4b5563;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-snippet-list {
+    margin: 0;
+    padding-left: 18px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-snippet-item {
+    margin: 2px 0;
+}
+
+/* Teacher subject comment: keep tag selected state neutral (no filled color) */
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .subject-tag-btn.selected {
+    background: #ffffff !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+    box-shadow: none !important;
+}
+
+/* Teacher praise management */
+#teacherMain #praiseMiniTab .praise-approval-card {
+    margin-bottom: 15px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1.5px solid #d1d5db !important;
+    background: #ffffff !important;
+}
+
+#teacherMain #praiseMiniTab .praise-approval-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#teacherMain #praiseMiniTab .praise-approval-icon {
+    font-size: 1.2rem;
+}
+
+#teacherMain #praiseMiniTab .praise-approval-title {
+    font-weight: 700;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+#teacherMain #praiseMiniTab .praise-approval-desc {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+}
+
+#teacherMain #praiseMiniTab .praise-stats-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+#teacherMain #praiseMiniTab .praise-stat-card {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 14px;
+    border-radius: 12px;
+    border: 1px solid #d1d5db;
+}
+
+#teacherMain #praiseMiniTab .praise-stat-card.is-total {
+    background: #eef2ff;
+    border-color: #c7d2fe;
+}
+
+#teacherMain #praiseMiniTab .praise-stat-card.is-pending {
+    background: #f9fafb;
+}
+
+#teacherMain #praiseMiniTab .praise-stat-card.is-approved {
+    background: #ffffff;
+    border-color: #d1d5db;
+}
+
+#teacherMain #praiseMiniTab .praise-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #4b5563;
+}
+
+#teacherMain #praiseMiniTab .praise-stat-card.is-total .praise-stat-value {
+    color: var(--color-teacher);
+}
+
+#teacherMain #praiseMiniTab .praise-stat-label {
+    font-size: 0.78rem;
+    color: var(--text-sub);
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-item {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db;
+    border-left: 4px solid #9ca3af;
+    background: #ffffff;
+    margin-bottom: 10px;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-item-received {
+    border-left-color: var(--color-teacher);
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-item-pending {
+    border-left-color: #9ca3af;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-item-approved {
+    border-left-color: #6b7280;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-item-head {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-item-head.compact {
+    font-size: 0.85rem;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-sender {
+    font-weight: 700;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-sender-received {
+    color: var(--color-teacher);
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-date {
+    font-size: 0.8rem;
+    color: var(--text-sub);
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-content {
+    color: var(--text-main);
+    line-height: 1.6;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-content.with-gap {
+    margin-bottom: 10px;
+    line-height: 1.5;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-actions {
+    display: flex;
+    gap: 8px;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-action {
+    flex: 1;
+    padding: 8px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    border: 1.5px solid transparent;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-action.approve {
+    background: #5b7fa5;
+    color: #ffffff;
+    border-color: #5b7fa5;
+}
+
+#teacherMain #praiseMiniTab .teacher-praise-action.reject {
+    background: #ffffff;
+    color: #6b7280;
+    border-color: #d1d5db;
+}
+
+#teacherMain .teacher-list-loading {
+    text-align: center;
+    color: var(--text-sub);
+    margin: 0;
+}
+
+#teacherMain #praiseMiniTab .teacher-message-date-wrap {
+    margin-bottom: 15px;
+    padding: 10px 0;
+}
+
+#teacherMain #praiseMiniTab .teacher-message-date-input {
+    width: 100%;
+    font-family: 'Jua', sans-serif !important;
+    font-size: 1.05rem;
+}
+
+#teacherMain #praiseMiniTab .teacher-message-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Teacher settings: mapping list and danger card */
+#teacherMain #settingsMiniTab .teacher-student-auth-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#teacherMain #settingsMiniTab .teacher-student-auth-label {
+    min-width: 45px;
+    margin: 0;
+}
+
+#teacherMain #settingsMiniTab .teacher-student-auth-email {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--color-teacher);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#teacherMain #settingsMiniTab .teacher-student-auth-empty {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--text-sub);
+}
+
+#teacherMain #settingsMiniTab .teacher-student-auth-remove {
+    width: auto;
+    padding: 4px 10px;
+    margin: 0;
+    box-shadow: none;
+    font-size: 0.75rem;
+    background: #ffffff;
+    color: #4b5563;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-student-auth-remove:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #334155;
+}
+
+#teacherMain #settingsMiniTab .teacher-danger-card {
+    border-color: #d1d5db !important;
+    background: #ffffff !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-danger-label {
+    color: #374151 !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-danger-desc {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+#teacherMain #settingsMiniTab .teacher-danger-card #resetBtn {
+    background: #ffffff !important;
+    color: #4b5563 !important;
+    border: 1.5px solid #d1d5db !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-danger-card #resetBtn:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+    color: #334155 !important;
+}
+
+/* Modal inline warning note should be calm (not red) */
+.modal-inline-note {
+    font-size: 0.8rem;
+}
+
+.modal-inline-note-warning {
+    color: #6b7280;
+}
+
+.teacher-message-date-label {
+    display: block;
+    margin-bottom: 8px;
+    font-family: 'Jua', sans-serif;
+}
+
+/* Student page: keep template/tag buttons horizontal and recover readable text size */
+body.student-layout,
+body.teacher-layout {
+    max-width: 1020px !important;
+}
+
+#studentTab #studentMainSection {
+    font-size: 1.04rem;
+}
+
+#studentTab #studentMainSection .box-label {
+    font-size: 1.02rem !important;
+}
+
+#studentTab #studentMainSection label {
+    font-size: 0.95rem !important;
+}
+
+#studentTab #studentMainSection input,
+#studentTab #studentMainSection select,
+#studentTab #studentMainSection textarea {
+    font-size: 1rem !important;
+}
+
+#studentTab #studentMainSection button {
+    font-size: 0.96rem !important;
+}
+
+#studentTab #studentMainSection .sub-tab-btn {
+    font-size: 0.92rem !important;
+}
+
+#studentTab #studentMainSection .nav-label {
+    font-size: 0.84rem !important;
+}
+
+#studentTab #dailyReflectionTab .guide-buttons,
+#studentTab #projectReflectionTab .guide-buttons,
+#studentTab #peerEvaluationSection .feedback-templates {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding: 2px !important;
+}
+
+#studentTab #dailyReflectionTab .subject-tags,
+#studentTab #dailyReflectionTab .student-tags-wrap,
+#studentTab #praiseSection .gratitude-tags {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+#studentTab .template-btn,
+#studentTab .subject-tag-btn,
+#studentTab .tag-btn {
+    width: auto !important;
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#studentTab .template-btn {
+    font-size: 0.92rem !important;
+    padding: 7px 13px !important;
+}
+
+#studentTab .subject-tag-btn {
+    font-size: 0.9rem !important;
+    padding: 7px 12px !important;
+}
+
+#studentTab .tag-btn {
+    font-size: 0.86rem !important;
+    padding: 7px 13px !important;
+}
+
+#studentTab #dailyReflectionTab .subject-tag-label {
+    margin-top: 14px !important;
+    margin-bottom: 4px !important;
+}
+
+#studentTab #dailyReflectionTab .student-tags-wrap {
+    margin-top: 0 !important;
+}
+
