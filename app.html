@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -170,7 +170,7 @@
                                 onchange="syncAllDates(this.value); loadDailyReflection()">
                         </div>
 
-                        <!-- 성장 일기 탭 -->
+                        <!-- 배움 노트 탭 -->
                         <div id="dailyReflectionTab">
                             <div class="accent-box box-blue">
                                 <span class="box-label">📚 오늘의 배움</span>
@@ -231,9 +231,9 @@
                             <div id="aiFeedbackSection" class="hidden ai-feedback-section">
                                 <div class="accent-box ai-feedback-card">
                                     <div class="ai-feedback-head">
-                                        <span class="ai-feedback-icon">🤖</span>
-                                        <span class="ai-feedback-title">AI 맞춤
-                                            피드백</span>
+                                        <span class="ai-feedback-icon">💬</span>
+                                        <span class="ai-feedback-title">성장 파트너의
+                                            한마디</span>
                                     </div>
                                     <div id="aiFeedbackText" class="ai-feedback-text"></div>
                                 </div>
@@ -242,75 +242,72 @@
 
                         <!-- 성장 대시보드 탭 -->
                         <div id="dashboardTab" class="hidden">
-                            <!-- 연속 기록 스트릭 & 뱃지 -->
-                            <div id="streakBadgeArea" class="accent-box streak-badge-area">
-                                <div id="streakDisplay" class="streak-display">
+                            <div class="accent-box dashboard-overview-card">
+                                <span class="box-label">👀 한눈에 보기</span>
+                                <div id="streakBadgeArea" class="streak-badge-area dashboard-overview-streak">
+                                    <div id="streakDisplay" class="streak-display"></div>
+                                    <div id="badgeContainer" class="badge-container-center"></div>
                                 </div>
-                                <div id="badgeContainer" class="badge-container-center"></div>
+                                <div class="dashboard-overview-divider"></div>
+                                <div class="dashboard-overview-keywords">
+                                    <div class="dashboard-overview-subtitle">💡 나의 배움 키워드</div>
+                                    <div id="learningWordCloud" class="word-cloud">
+                                        <div class="empty-state"><span class="empty-icon">💡</span>
+                                            <div class="empty-desc">기록이 쌓이면 자주 등장한 키워드가 보여요!</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
-
-                            <!-- 배움 키워드 워드클라우드 -->
-                            <div class="accent-box box-blue">
-                                <span class="box-label">💡 나의 배움 키워드</span>
-                                <p class="dashboard-help-text">내가 자주 쓴 단어일수록
-                                    크게 표시돼요!</p>
-                                <div id="learningWordCloud" class="word-cloud">
-                                    <div class="empty-state"><span class="empty-icon">📝</span>
-                                        <div class="empty-desc">기록이 쌓이면 키워드가 나타나요!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 과목/활동 분포 -->
-                            <div class="accent-box box-amber">
-                                <span class="box-label">📊 과목별 기록 횟수</span>
-                                <div id="subjectChart" class="subject-chart">
-                                    <div class="empty-state"><span class="empty-icon">📚</span>
-                                        <div class="empty-desc">과목 태그를 선택하면 통계가 나타나요!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 성장 타임라인 -->
-                            <div class="accent-box box-teal">
-                                <span class="box-label">🌱 성장 타임라인</span>
-                                <div id="growthTimeline" class="growth-timeline">
-                                    <div class="empty-state"><span class="empty-icon">🌱</span>
-                                        <div class="empty-desc">기록이 쌓이면 성장 과정이 보여요!</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- 주간/월간 요약 -->
-                            <div class="accent-box summary-report-card">
-                                <span class="box-label">📋 요약 리포트</span>
+                            <div class="accent-box summary-report-card dashboard-ai-card">
+                                <span class="box-label">💬 성장 파트너의 메시지</span>
                                 <div class="summary-period-row">
-                                    <button type="button" class="summary-period-btn active"
-                                        onclick="generateSummaryReport('week')">📅 이번 주 요약</button>
-                                    <button type="button" class="summary-period-btn"
-                                        onclick="generateSummaryReport('month')">📆 이번 달 요약</button>
+                                    <button type="button" class="summary-period-btn active" data-period="week"
+                                        onclick="generatePartnerMessage('week')">📅 이번 주</button>
+                                    <button type="button" class="summary-period-btn" data-period="month"
+                                        onclick="generatePartnerMessage('month')">📆 이번 달</button>
+                                    <button type="button" class="summary-period-btn" data-period="all"
+                                        onclick="generatePartnerMessage('all')">🧭 전체</button>
                                 </div>
                                 <div id="summaryReportArea">
-                                    <div class="empty-state"><span class="empty-icon">📋</span>
-                                        <div class="empty-desc">버튼을 눌러 AI 요약을 받아보세요!</div>
+                                    <div class="empty-state"><span class="empty-icon">💬</span>
+                                        <div class="empty-desc">기간을 선택해 성장 파트너의 메시지를 받아보세요.</div>
+                                    </div>
+                                </div>
+                                <div class="partner-goal-link-row">
+                                    <button type="button" id="partnerMessageGoalBtn" class="partner-goal-link-btn"
+                                        onclick="applyPartnerMessageGoal()" disabled>🎯 이걸 목표로 설정!</button>
+                                    <div id="partnerMessageGoalHint" class="partner-goal-link-hint">AI 메시지를 먼저 받아보세요.
                                     </div>
                                 </div>
                             </div>
-                            <!-- AI 성장 리포트 -->
-                            <div class="accent-box growth-report-card">
-                                <span class="box-label growth-report-label">⭐ AI 성장 리포트</span>
-                                <p class="growth-report-desc">나의 전체 기록을 분석해서
-                                    성장 포인트를 알려줘요!</p>
-                                <button type="button" onclick="generateGrowthReport()" id="growthReportBtn"
-                                    class="growth-report-btn">🤖
-                                    AI 성장 리포트 받기</button>
-                                <div id="growthReportArea">
-                                    <div class="empty-state"><span class="empty-icon">⭐</span>
-                                        <div class="empty-desc">버튼을 눌러 나만의 성장 리포트를 받아보세요!</div>
+
+                            <details class="accent-box dashboard-history-accordion">
+                                <summary class="dashboard-history-summary">
+                                    <span class="dashboard-history-title">📊 나의 기록 히스토리</span>
+                                    <span class="dashboard-history-state" aria-hidden="true"></span>
+                                </summary>
+                                <div class="dashboard-history-content">
+                                    <div class="dashboard-history-panel">
+                                        <div class="dashboard-history-panel-title">과목별 기록</div>
+                                        <div id="subjectChart" class="subject-chart">
+                                            <div class="empty-state"><span class="empty-icon">📚</span>
+                                                <div class="empty-desc">과목 태그를 선택하면 통계가 보여요!</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="dashboard-history-panel">
+                                        <div class="dashboard-history-panel-title">성장 타임라인</div>
+                                        <div id="growthTimeline" class="growth-timeline">
+                                            <div class="empty-state"><span class="empty-icon">🌱</span>
+                                                <div class="empty-desc">기록이 쌓이면 성장 과정이 보이기 시작해요.</div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </details>
                         </div>
 
-                        <!-- 프로젝트 탭 -->
                         <div id="projectReflectionTab" class="hidden">
                             <div class="accent-box box-amber">
                                 <span class="box-label">🌟 프로젝트 돌아보기</span>
@@ -431,7 +428,7 @@
                             <label>조회 날짜</label>
                             <input type="date" id="viewDate" class="class-tone-input diary-date-input" required
                                 onchange="syncAllDates(this.value)">
-                            <button type="button" id="viewResultBtn" onclick="viewMyResult()">내 결과 확인하기</button>
+                            <button type="button" id="viewResultBtn" onclick="viewMyResult()">💬 성장 파트너의 메시지 받기</button>
                         </div>
                         <div id="viewMsg" class="message"></div>
                         <div id="resultArea" class="hidden result-area-gap">
@@ -441,7 +438,7 @@
                                 <div id="barChart" class="bar-chart"></div>
                             </div>
                             <div class="accent-box box-violet">
-                                <span class="box-label summary-title-gap">🤖 AI 요약 리포트</span>
+                                <span class="box-label summary-title-gap">💬 성장 파트너의 메시지</span>
                                 <div id="mySummary" class="summary-text-main"></div>
                             </div>
                         </div>
@@ -1098,7 +1095,7 @@
 
     <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="app.js?v=20260215-subject-comment-1"></script>
+    <script src="app.js?v=20260216-personality-type-fix-1"></script>
 </body>
 
 </html>

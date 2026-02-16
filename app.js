@@ -17,7 +17,9 @@ let currentRatings = {};
 let ratingCriteria = [];
 let currentStudent = null;
 let currentClassCode = '';
-let studentPartner = null; // 8-type growth partner (derived from student_personality.question_responses)
+let studentPartner = null; // 8-type growth partner cache
+
+let latestPartnerGoalSuggestion = ''; // latest actionable goal extracted from partner message
 
 // 교사용(스스로배움) - 교과세특 생성 상태
 let teacherDiarySelectedStudentId = null;
@@ -1014,7 +1016,7 @@ async function loadStudentSettingsData() {
       .maybeSingle();
 
     if (!personality) {
-      area.innerHTML = '<p style="color:var(--text-sub); text-align:center; padding:20px 0;">아직 진단하지 않았어요.<br>자기평가 탭에서 진단을 시작해보세요!</p>';
+      area.innerHTML = '<p class="settings-personality-empty">아직 진단하지 않았어요.<br>자기평가 탭에서 진단을 시작해보세요!</p>';
       return;
     }
 
@@ -1027,51 +1029,52 @@ async function loadStudentSettingsData() {
       const axisBadges = partner.axes ? Object.values(partner.axes) : [];
 
       let html = `
-        <div style="text-align:center; padding:15px 0; margin-bottom:15px; background:var(--primary-light); border:2px solid var(--primary); border-radius:14px;">
-          <div style="font-size:2.5rem; margin-bottom:6px;">${partner.emoji || '🧠'}</div>
-          <div style="font-weight:700; font-size:1.1rem; color:var(--text-main);">나의 성장 파트너: ${escapeHtml(partner.type_name)}</div>
-          ${axisBadges.length ? `<div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:10px;">${axisBadges.map(b => `<span style="font-size:0.72rem; padding:3px 9px; border-radius:999px; background:var(--bg-body); border:1px solid var(--border); color:var(--text-sub);">${escapeHtml(b)}</span>`).join('')}</div>` : ''}
+        <div class="settings-partner-summary">
+          <div class="settings-partner-emoji">${partner.emoji || '🧠'}</div>
+          <div class="settings-partner-title">나의 성장 파트너: ${escapeHtml(partner.type_name)}</div>
+          ${axisBadges.length ? `<div class="settings-partner-badge-list">${axisBadges.map(b => `<span class="settings-partner-badge">${escapeHtml(b)}</span>`).join('')}</div>` : ''}
         </div>
       `;
 
-      html += '<div style="font-weight:700; font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">📌 전체 성장 파트너 유형</div>';
-      html += '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:15px;">';
+      html += '<div class="settings-partner-section-title">📌 전체 성장 파트너 유형</div>';
+      html += '<div class="settings-partner-type-grid">';
       PARTNER_TYPES.forEach(t => {
         const isMine = t.type_code === partner.type_code;
-        html += `<div style="padding:10px; border-radius:12px; text-align:center; ${isMine ? 'background:var(--primary-light); border:2px solid var(--primary);' : 'background:var(--bg-body); border:2px solid transparent; opacity:0.6;'}">
-          <div style="font-size:1.4rem;">${t.emoji || '🧠'}</div>
-          <div style="font-weight:700; font-size:0.82rem; color:var(--text-main); margin-top:3px;">${escapeHtml(t.type_name)}${isMine ? ' ✓' : ''}</div>
+        html += `<div class="settings-partner-type-item${isMine ? ' is-mine' : ''}">
+          <div class="settings-partner-type-emoji">${t.emoji || '🧠'}</div>
+          <div class="settings-partner-type-name">${escapeHtml(t.type_name)}${isMine ? ' ✓' : ''}</div>
         </div>`;
       });
       html += '</div>';
 
       // 질문별 응답 표시
       if (personality.question_responses) {
-        html += '<div style="font-weight:700; font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">📋 나의 응답</div>';
+        html += '<div class="settings-partner-section-title">📋 나의 응답</div>';
         personalityQuestions.forEach(q => {
           const answer = personality.question_responses[q.id];
           if (answer) {
             const chosen = answer === 'A' ? q.optionA : q.optionB;
             const notChosen = answer === 'A' ? q.optionB : q.optionA;
             html += `
-              <div style="padding:10px 12px; margin-bottom:8px; background:var(--bg-body); border-radius:10px; font-size:0.82rem;">
-                <div style="color:var(--text-sub); margin-bottom:6px;">Q${q.id}. ${q.question}</div>
-                <div style="color:var(--primary); font-weight:700;">✓ ${answer}. ${chosen.text}</div>
-                <div style="color:var(--text-sub); opacity:0.5; margin-top:3px; font-size:0.78rem;">${answer === 'A' ? 'B' : 'A'}. ${notChosen.text}</div>
+              <div class="settings-partner-answer-item">
+                <div class="settings-partner-question">Q${q.id}. ${q.question}</div>
+                <div class="settings-partner-selected">✓ ${answer}. ${chosen.text}</div>
+                <div class="settings-partner-unselected">${answer === 'A' ? 'B' : 'A'}. ${notChosen.text}</div>
               </div>
             `;
           }
         });
       }
 
-      html += '<button type="button" onclick="resetPersonalityFromSettings()" style="background:var(--border); color:var(--text-main); font-size:0.85rem; padding:10px 20px; margin-top:12px; border-radius:50px; border:none; font-family:Jua,sans-serif; cursor:pointer;">다시 진단하기</button>';
+      html += '<button type="button" onclick="resetPersonalityFromSettings()" class="settings-partner-reset-btn">다시 진단하기</button>';
 
       area.innerHTML = html;
       return;
-    }    area.innerHTML = '<p style="color:var(--text-sub); text-align:center; padding:20px 0;">저장된 진단이 현재 버전과 달라요.<br>자기평가 탭에서 다시 진단해 주세요.</p>';
+    }
+    area.innerHTML = '<p class="settings-personality-empty">저장된 진단이 현재 버전과 달라요.<br>자기평가 탭에서 다시 진단해 주세요.</p>';
   } catch (err) {
     console.error('성향 정보 로드 오류:', err);
-    area.innerHTML = '<p style="color:var(--text-sub); text-align:center;">성향 정보를 불러올 수 없습니다.</p>';
+    area.innerHTML = '<p class="settings-personality-empty">성향 정보를 불러올 수 없습니다.</p>';
   }
 }
 
@@ -2915,6 +2918,12 @@ async function callGemini(promptText, config = {}) {
     return { ok: false, code: 'network_error', error: '네트워크 오류: 연결 상태를 확인해 주세요.' };
   }
 }
+function getExecutionStrategyHeader(partner) {
+  const executionStrategy = partner?.axes_raw?.execution_strategy || partner?.axes?.execution_strategy || null;
+  if (executionStrategy === '계획형' || executionStrategy === 'plan') return '다음 성장 계획(실천)';
+  if (executionStrategy === '탐색형' || executionStrategy === 'explore') return '다음 성장 실험(도전)';
+  return '다음 성장 계획/실험(실천)';
+}
 async function generateSummary(reviews, opts = {}) {
   if (!reviews || reviews.length === 0) return '요약할 리뷰 데이터가 없습니다.';
 
@@ -2928,17 +2937,17 @@ async function generateSummary(reviews, opts = {}) {
       review_count: reviews.length
     };
 
-  // Always include the raw texts for grouping.
   evaluation_context.review_texts = Array.isArray(evaluation_context.review_texts) ? evaluation_context.review_texts : reviews;
 
   const header1 = (partner?.axes_raw?.coaching_style === '해결형') ? '핵심 진단' : '핵심 요약';
-  const header2 = (partner?.axes_raw?.info_processing === '디테일형') ? '친구 피드백에서 반복된 강점/근거' : '친구 피드백에서 반복된 강점/패턴';
-  const header3 = (partner?.axes_raw?.coaching_style === '해결형') ? '다음 처방(실천)' : '다음 걸음(실천)';
+  const header2 = (partner?.axes_raw?.info_processing === '디테일형') ? '근거와 구체 포인트' : '패턴과 변화 흐름';
+  const header3 = getExecutionStrategyHeader(partner);
 
   const student_partner = partner ? {
     type_code: partner.type_code,
     type_name: partner.type_name,
     axes: partner.axes || null,
+    axes_raw: partner.axes_raw || null,
     style_guide: partner.style_guide || null
   } : null;
 
@@ -2947,8 +2956,8 @@ async function generateSummary(reviews, opts = {}) {
   const prompt = [
     '[ROLE]',
     "너는 '배움로그'의 AI 성장 파트너다.",
-    "학생의 '성장 파트너 유형(8유형 + 보조태그)'에 맞춰, 친구들이 남긴 피드백 텍스트와 (필요한 경우에만) 점수 요약을 바탕으로",
-    "학생이 가장 잘 받아들이는 톤/구조로 '동료평가 결과'를 정리해준다.",
+    '학생에게 1:1로 말하는 톤으로, 반말은 쓰지 않되 딱딱하지 않은 친근한 존댓말(해요체)을 사용한다.',
+    "교사가 아니라 '옆에서 같이 고민해주는 파트너' 느낌으로 작성한다.",
     '',
     '[INPUT]',
     JSON.stringify(inputObj, null, 2),
@@ -2957,86 +2966,24 @@ async function generateSummary(reviews, opts = {}) {
     buildPartnerTypeLibraryText(),
     '',
     '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
-    '- 아래 헤더 3개를 기본으로 쓰되, student_partner 성향에 맞게 제목 단어는 약간 바꿔도 된다.',
-    '- 다만 헤더는 3개로 고정한다.',
-    '',
     `## ${header1}`,
     `## ${header2}`,
     `## ${header3}`,
     '',
     '[작성 규칙]',
-    '1) 서론/인사말/자기소개 없이 바로 본문부터.',
-    '2) review_texts는 의미가 비슷한 것끼리 묶어서 3~5개 포인트로 정리한다.',
-    '3) 부정 피드백은 그대로 때리지 말고 개선하면 더 강해지는 지점으로 전환한다.',
-    '4) 점수는 순위/비교/누가 썼는지 추정 금지.',
-    '   - class_total_avg 또는 class_avg와의 차이를 참고용으로 완곡하게 말하는 건 가능(예: 평균보다 약간 높게 나온 편). 숫자 그대로 노출은 피한다.',
-    '5) 근거 제시는 친구들이 자주 쓴 표현 정도로만 아주 짧게(따옴표 1~2개, 각 8~12자 이내).',
-    '6) 실천(헤더3)은 1개 또는 2개까지 가능.',
-    '   - 해결형: 구체 행동 중심으로 제안',
-    '   - 지지형: 안정/격려 한 줄 + 행동 제안',
-    '   - 디테일형: 단계/체크리스트(최대 3)',
-    '   - 큰그림형: 방향 1문장 + 체크 질문 2개',
-    '   - 계획형: 일정/우선순위 한 줄 포함',
-    '   - 탐색형: 작은 실험 형태로 제안',
-    '   - #함께 성장형: 협력 활동(설명 연습/모둠 토론/같이 문제 풀기) 포함',
-    '   - #혼자 집중형: 개인 활동(노트 정리/혼자 풀기/조용한 복습) 포함',
-    '7) 전체 길이는 짧지만 빈약하지 않게 12~18문장(또는 6~10개 불릿 이내).',
-    '8) 한국어로만 작성.',
-    ''
+    '1) 인사말 없이 바로 시작.',
+    '2) review_texts를 의미별로 묶어 핵심 포인트로 정리.',
+    '3) 부정 피드백은 그대로 전달하지 말고, "이 부분이 더 좋아지면 좋겠어" 같은 성장 포인트로 전환.',
+    '4) student_partner의 3개 축(coaching_style/info_processing/execution_strategy)을 모두 조합 적용.',
+    '5) #함께 성장형은 협력 활동, #혼자 집중형은 개인 활동을 실천 제안에 포함.',
+    '6) 해당 유형의 "이런 말이 힘이 돼요" 톤을 참고해 작성.',
+    '7) 한국어로만 작성, 12~18문장 내외.'
   ].join('\n');
 
   const result = await callGemini(prompt, { generationConfig: { temperature: 0.45, maxOutputTokens: 1200 } });
   if (!result.ok) return 'AI summary failed [' + (result.code || 'unknown') + ']: ' + (result.error || 'No details');
 
-  let output = sanitizeAiSummaryText(result.text);
-  if (String(result.finishReason || '').toUpperCase() === 'MAX_TOKENS') {
-    const continuationPrompt = [
-      '아래 텍스트의 마지막 부분부터 자연스럽게 이어서 완성하라.',
-      '기존 내용 반복 금지, 헤더 반복 금지, 새 헤더 추가 금지.',
-      '반드시 본문만 출력하라.',
-      '',
-      '[현재 텍스트]',
-      output
-    ].join('\n');
-    const cont = await callGemini(continuationPrompt, { generationConfig: { temperature: 0.35, maxOutputTokens: 320 } });
-    if (cont.ok && cont.text) {
-      output = sanitizeAiSummaryText(output + '\n' + cont.text);
-    }
-  }
-  if (looksLikeCutOffKorean(output)) {
-    const fixPrompt = [
-      '아래 텍스트는 문장이 중간에 끊겼을 수 있다.',
-      '원래 내용/톤/헤더 구조를 유지하고, 끊긴 문장만 자연스럽게 완결하라.',
-      '새 정보를 크게 추가하지 말고, 문장 종결만 정리하라.',
-      '작업용 라벨([수정본], [TEXT])은 절대 출력하지 말고 본문만 출력하라.',
-      '',
-      '[TEXT]',
-      output,
-      '',
-      '[수정본]'
-    ].join('\n');
-    const fixed = await callGemini(fixPrompt, { generationConfig: { temperature: 0.2, maxOutputTokens: 350 } });
-    if (fixed.ok && fixed.text) output = sanitizeAiSummaryText(fixed.text);
-  }
-
-  if (isWeakSummaryOutput(output)) {
-    const regenPrompt = [
-      '아래 요구를 엄격히 지켜 요약을 다시 작성하라.',
-      '- 헤더는 반드시 3개(##) 모두 출력',
-      '- 각 헤더 아래 문장은 끊기지 않게 완결',
-      '- 너무 짧지 않게(최소 8문장 수준)',
-      '- 작업용 라벨([수정본], [TEXT]) 절대 출력 금지',
-      '',
-      '[원문 리뷰]',
-      (evaluation_context.review_texts || []).join('\n- ')
-    ].join('\n');
-    const regen = await callGemini(regenPrompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 900 } });
-    if (regen.ok && regen.text) {
-      const regenerated = sanitizeAiSummaryText(regen.text);
-      if (!isWeakSummaryOutput(regenerated)) output = regenerated;
-    }
-  }
-  return output;
+  return sanitizeAiSummaryText(result.text);
 }
 
 // ============================================
@@ -3749,26 +3696,67 @@ async function submitDailyReflection() {
 async function generateAiFeedback(learning, subjects) {
   const feedbackSection = document.getElementById('aiFeedbackSection');
   const feedbackText = document.getElementById('aiFeedbackText');
+  if (!feedbackSection || !feedbackText) return;
+
   feedbackSection.classList.remove('hidden');
   feedbackText.innerHTML = '<span style="color:var(--text-sub);">🤖 AI가 피드백을 작성 중...</span>';
 
-  const subjectInfo = subjects.length > 0 ? '과목/활동: ' + subjects.join(', ') : '';
   const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
-  const personalityInfo = partner ? ('학생 성장 파트너: ' + partner.type_code + ' | ' + partner.type_name) : '';
 
-  const prompt = '당신은 초등학생의 성장 일기에 따뜻한 맞춤 피드백을 주는 담임선생님입니다.\n\n[학생 기록]\n배운 것: ' + (learning || '(미작성)') + '\n' + subjectInfo + '\n' + personalityInfo + '\n\n[피드백 규칙]\n1. 해요체로 부드럽게 3~4문장 이내로 작성\n2. 학생이 쓴 내용을 구체적으로 언급하며 칭찬\n3. 배운 것에 대해 "다음에 이렇게 해보면 더 좋겠다"는 조언 한 가지\n4. 따뜻하고 응원하는 어조\n5. 이모지 적절히 사용\n6. 절대 5문장을 넘기지 말것';
+  const prompt = [
+    '[ROLE]',
+    "너는 '배움로그'의 AI 성장 파트너다.",
+    '학생에게 1:1로 말하는 톤으로, 반말은 쓰지 않되 딱딱하지 않은 친근한 존댓말(해요체)을 사용한다.',
+    "교사가 아니라 '옆에서 같이 고민해주는 파트너' 느낌으로 작성한다.",
+    '',
+    '[INPUT]',
+    JSON.stringify({
+      student_partner: partner ? {
+        type_code: partner.type_code,
+        type_name: partner.type_name,
+        axes_raw: partner.axes_raw || null,
+        style_guide: partner.style_guide || null
+      } : null,
+      today_record: {
+        learning_text: learning,
+        subject_tags: subjects
+      }
+    }, null, 2),
+    '',
+    '[8 TYPE LIBRARY]',
+    buildPartnerTypeLibraryText(),
+    '',
+    '[작성 규칙]',
+    '1) 오늘 배움 노트에 대한 짧은 반응이다. 3~5문장으로 작성.',
+    '2) 첫 문장: 학생이 쓴 내용 중 구체적인 부분을 언급하며 반응.',
+    '3) 중간: 성향에 맞는 한 마디.',
+    '   - 해결형: 배운 것을 더 깊게 만드는 구체적 팁 1개',
+    '   - 지지형: 기록한 것 자체를 인정 + 작은 격려',
+    '   - 디테일형: 오늘 배운 것의 핵심 포인트를 짚어주기',
+    '   - 큰그림형: 오늘 배운 것이 전체에서 어떤 의미인지 한 줄',
+    '4) 마지막: 내일 또 기록하고 싶게 만드는 마무리.',
+    '   - 계획형: "내일은 ~를 기록해보면 좋겠어요"',
+    '   - 탐색형: "내일은 어떤 발견이 있을지 궁금해요"',
+    '   - #함께 성장형: 협력 활동 연결 ("친구한테 오늘 배운 거 설명해보면 더 기억에 남아요")',
+    '   - #혼자 집중형: 개인 활동 연결 ("오늘 배운 걸 노트에 한 줄 정리해두면 나중에 큰 힘이 돼요")',
+    '5) 해당 유형의 "이런 말이 힘이 돼요" 예시를 참고해 비슷한 톤으로 작성.',
+    '6) 이모지는 1~2개만 자연스럽게.',
+    '7) 절대 5문장을 넘기지 말 것.',
+    '8) 한국어로만 작성.'
+  ].join('\n');
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.7, maxOutputTokens: 300 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.55, maxOutputTokens: 360 } });
 
-  if (result.ok) {
+  if (result.ok && result.text) {
     feedbackText.innerHTML = formatMarkdown(result.text);
-    // DB에 피드백 저장
     const kr = new Date(new Date().getTime() + (9 * 60 * 60 * 1000));
     const today = kr.toISOString().split('T')[0];
     await db.from('daily_reflections').update({ ai_feedback: result.text })
-      .eq('class_code', currentClassCode).eq('student_id', String(currentStudent.id)).eq('reflection_date', today);
+      .eq('class_code', currentClassCode)
+      .eq('student_id', String(currentStudent.id))
+      .eq('reflection_date', today);
   } else {
-    feedbackText.textContent = '오늘도 성장 일기를 쓴 너, 정말 멋져요! 매일 조금씩 성장하고 있어요 🌟';
+    feedbackText.textContent = '오늘 기록 자체가 이미 성장입니다. 내일도 한 줄만 더 남겨봐요 🙂';
   }
 }
 
@@ -4209,12 +4197,12 @@ async function loadReceivedPraises() {
   container.innerHTML = praises.map(p => {
     const sender = p.is_anonymous ? '\uD83C\uDFAD \uC775\uBA85\uC758 \uCE5C\uAD6C' : (p.sender_id + '\uBC88 \uCE5C\uAD6C');
     const date = new Date(p.created_at).toLocaleDateString('ko-KR');
-    return '<div class="teacher-praise-item teacher-praise-item-received">' +
-      '<div class="teacher-praise-item-head">' +
-      '<span class="teacher-praise-sender teacher-praise-sender-received">' + sender + '</span>' +
-      '<span class="teacher-praise-date">' + date + '</span>' +
+    return '<div class="student-praise-item">' +
+      '<div class="student-praise-item-head">' +
+      '<span class="student-praise-sender">' + sender + '</span>' +
+      '<span class="student-praise-date">' + date + '</span>' +
       '</div>' +
-      '<div class="teacher-praise-content">' + escapeHtml(p.message_content) + '</div>' +
+      '<div class="student-praise-content">' + escapeHtml(p.message_content) + '</div>' +
       '</div>';
   }).join('');
 }
@@ -4734,8 +4722,56 @@ function computePartnerType(answers) {
   return { type_code, type_name, emoji, axes_raw, axes, style_guide, description, partner_version: PARTNER_VERSION };
 }
 
+function collectPersonalityTypeCandidates(partner, existingType, sampledTypes) {
+  const out = [];
+  const push = (v) => {
+    const s = String(v || '').trim();
+    if (!s) return;
+    if (!out.includes(s)) out.push(s);
+  };
+  push(existingType);
+  push(studentPersonality && studentPersonality.personality_type);
+  push(partner && partner.type_name);
+  push(partner && partner.type_code);
+  if (Array.isArray(sampledTypes)) sampledTypes.forEach(push);
+  return out;
+}
+
+async function sampleExistingPersonalityTypes() {
+  if (!currentClassCode) return [];
+  try {
+    const { data } = await db.from('student_personality')
+      .select('personality_type')
+      .eq('class_code', currentClassCode)
+      .not('personality_type', 'is', null)
+      .limit(20);
+    return (data || []).map(r => r && r.personality_type).filter(Boolean);
+  } catch (_) {
+    return [];
+  }
+}
+
+async function upsertStudentPersonalityWithFallback(basePayload, typeCandidates) {
+  const candidates = Array.isArray(typeCandidates) ? typeCandidates.filter(Boolean) : [];
+  const tryList = candidates.length > 0 ? candidates : [String((basePayload && basePayload.personality_type) || '').trim() || ''];
+
+  let lastErr = null;
+  for (const personalityType of tryList) {
+    const payload = { ...basePayload, personality_type: personalityType };
+    const { error } = await db.from('student_personality').upsert(payload, { onConflict: 'class_code,student_id' });
+    if (!error) return payload;
+
+    const msg = String(error.message || '');
+    const isTypeIssue = msg.includes('personality_type') || msg.includes('student_personality_personality_type_check');
+    if (!isTypeIssue) throw error;
+    lastErr = error;
+  }
+
+  throw (lastErr || new Error('student_personality upsert failed'));
+}
+
 function buildPartnerTypeLibraryText() {
-  return PARTNER_TYPES.map(t => {
+  const typeLibrary = PARTNER_TYPES.map(t => {
     return [
       `${t.type_code} | ${t.type_name}`,
       `- 대표 응답(Q1~Q6): ${formatRepresentativeAnswers(t.representative_answers)}`,
@@ -4746,6 +4782,14 @@ function buildPartnerTypeLibraryText() {
       `- format: ${t.style_guide?.format || '-'}`
     ].join('\n');
   }).join('\n\n');
+
+  const supportTagGuide = [
+    '[보조태그 가이드]',
+    '#함께 성장형: 실천 제안 시 협력 활동 포함 (친구와 설명 연습, 모둠 토론, 같이 문제 풀기)',
+    '#혼자 집중형: 실천 제안 시 개인 활동 포함 (노트 정리, 혼자 풀어보기, 조용히 복습)'
+  ].join('\n');
+
+  return `${typeLibrary}\n\n${supportTagGuide}`;
 }
 
 function formatRepresentativeAnswers(rep) {
@@ -4837,8 +4881,10 @@ async function backfillPartnerTypeIfNeeded(personalityRow, partner) {
   if (personalityRow.question_responses) payload.question_responses = personalityRow.question_responses;
 
   try {
-    const { error } = await db.from('student_personality').upsert(payload, { onConflict: 'class_code,student_id' });
-    if (error) throw error;
+    const sampledTypes = await sampleExistingPersonalityTypes();
+    const candidates = collectPersonalityTypeCandidates(partner, personalityRow.personality_type, sampledTypes);
+    const saved = await upsertStudentPersonalityWithFallback(payload, candidates);
+    personalityRow.personality_type = saved.personality_type;
     personalityRow.partner_type_code = payload.partner_type_code;
     personalityRow.partner_type_name = payload.partner_type_name;
     personalityRow.partner_axes = payload.partner_axes;
@@ -5078,11 +5124,13 @@ async function submitPersonalityQuiz() {
     partner_axes: { ...(partner.axes_raw || {}) },
     partner_version: PARTNER_VERSION
   };
+  const sampledTypes = await sampleExistingPersonalityTypes();
+  const personalityTypeCandidates = collectPersonalityTypeCandidates(partner, studentPersonality && studentPersonality.personality_type, sampledTypes);
 
   try {
     if (!isDemoMode) {
-      const { error } = await db.from('student_personality').upsert(payload, { onConflict: 'class_code,student_id' });
-      if (error) throw error;
+      const saved = await upsertStudentPersonalityWithFallback(payload, personalityTypeCandidates);
+      payload.personality_type = saved.personality_type;
     }
 
     studentPersonality = { ...(studentPersonality || {}), ...payload };
@@ -5096,11 +5144,13 @@ async function submitPersonalityQuiz() {
   } catch (error) {
     try {
       if (!isDemoMode) {
-        await db.from('student_personality').upsert({
+        const minimalPayload = {
           class_code: currentClassCode,
           student_id: currentStudent?.id,
           question_responses: quizAnswers
-        }, { onConflict: 'class_code,student_id' });
+        };
+        const saved = await upsertStudentPersonalityWithFallback(minimalPayload, personalityTypeCandidates);
+        minimalPayload.personality_type = saved.personality_type;
       }
     } catch (_) { }
 
@@ -5621,21 +5671,110 @@ function renderGrowthTimeline(records) {
 }
 
 // 주간/월간 AI 요약
-async function generateSummaryReport(period) {
+function activatePartnerMessageTab(period) {
+  document.querySelectorAll('.summary-period-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.period === period);
+  });
+}
+
+function extractPartnerGoalSuggestion(markdownText) {
+  const plain = String(markdownText || '')
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/^#+\s*/gm, '')
+    .replace(/[*_`>-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!plain) return '';
+
+  const sentences = plain.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+  const candidate = sentences.find((s) => /다음|실천|계획|시도|해보|기록/.test(s) && s.length >= 12 && s.length <= 90);
+  if (candidate) return candidate;
+
+  const first = sentences[0] || plain;
+  return first.length > 90 ? (first.slice(0, 90) + '...') : first;
+}
+
+function setPartnerGoalSuggestion(markdownText) {
+  latestPartnerGoalSuggestion = extractPartnerGoalSuggestion(markdownText);
+
+  const btn = document.getElementById('partnerMessageGoalBtn');
+  const hint = document.getElementById('partnerMessageGoalHint');
+  if (!btn || !hint) return;
+
+  if (!latestPartnerGoalSuggestion) {
+    btn.disabled = true;
+    hint.textContent = 'AI 메시지를 먼저 받아보세요.';
+    return;
+  }
+
+  btn.disabled = false;
+  hint.textContent = `추천 실천: ${latestPartnerGoalSuggestion}`;
+}
+
+async function applyPartnerMessageGoal() {
+  const hint = document.getElementById('partnerMessageGoalHint');
+  const btn = document.getElementById('partnerMessageGoalBtn');
+
+  if (!latestPartnerGoalSuggestion) {
+    if (hint) hint.textContent = '먼저 성장 파트너 메시지를 받아주세요.';
+    return;
+  }
+  if (!currentStudent || !currentClassCode) {
+    if (hint) hint.textContent = '학생 정보가 없어 목표를 저장할 수 없습니다.';
+    return;
+  }
+  if (isDemoMode) {
+    showDemoBlockModal();
+    return;
+  }
+
+  const period = document.querySelector('.summary-period-btn.active')?.dataset.period || 'week';
+  const goalType = period === 'month' ? 'monthly' : 'weekly';
+
+  if (btn) btn.disabled = true;
+  try {
+    await db.from('student_goals').insert({
+      class_code: currentClassCode,
+      student_id: String(currentStudent.id),
+      goal_text: latestPartnerGoalSuggestion,
+      goal_type: goalType
+    });
+
+    if (hint) hint.textContent = '목표로 저장되었습니다. 🎯';
+    if (typeof loadGoals === 'function') loadGoals();
+  } catch (error) {
+    if (hint) hint.textContent = '목표 저장 중 오류가 발생했습니다.';
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function generatePartnerMessage(period = 'week') {
+  const p = (period === 'month' || period === 'all') ? period : 'week';
+  activatePartnerMessageTab(p);
+
+  if (p === 'all') {
+    return generateGrowthReport({ targetAreaId: 'summaryReportArea', suppressButtonLoading: true });
+  }
+  return generateSummaryReport(p, { targetAreaId: 'summaryReportArea', skipTabActivation: true });
+}
+
+async function generateSummaryReport(period, options = {}) {
   if (!currentStudent || !currentClassCode) return;
 
-  // 버튼 스타일 토글
-  document.querySelectorAll('.summary-period-btn').forEach(btn => btn.classList.remove('active'));
-  const btnIndex = period === 'week' ? 0 : 1;
-  document.querySelectorAll('.summary-period-btn')[btnIndex].classList.add('active');
+  const p = (period === 'month') ? 'month' : 'week';
+  if (!options.skipTabActivation) activatePartnerMessageTab(p);
 
-  const area = document.getElementById('summaryReportArea');
-  area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">🤖 AI가 요약을 작성 중...</div>';
+  const area = document.getElementById(options.targetAreaId || 'summaryReportArea');
+  if (!area) return;
+
+  area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">🤖 성장 파트너가 메시지를 작성 중...</div>';
+  setPartnerGoalSuggestion('');
 
   const kr = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
   const endDate = kr.toISOString().split('T')[0];
   const startDate = new Date(kr);
-  startDate.setDate(startDate.getDate() - (period === 'week' ? 7 : 30));
+  startDate.setDate(startDate.getDate() - (p === 'week' ? 7 : 30));
   const startStr = startDate.toISOString().split('T')[0];
 
   try {
@@ -5663,12 +5802,12 @@ async function generateSummaryReport(period) {
         .order('created_at', { ascending: false })
     ]);
 
-    let records = (dailyRes.status === 'fulfilled' && dailyRes.value && Array.isArray(dailyRes.value.data)) ? dailyRes.value.data : [];
-    let projects = (projectRes.status === 'fulfilled' && projectRes.value && Array.isArray(projectRes.value.data)) ? projectRes.value.data : [];
-    let goals = (goalsRes.status === 'fulfilled' && goalsRes.value && Array.isArray(goalsRes.value.data)) ? goalsRes.value.data : [];
+    const records = (dailyRes.status === 'fulfilled' && Array.isArray(dailyRes.value?.data)) ? dailyRes.value.data : [];
+    const projects = (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) ? projectRes.value.data : [];
+    const goals = (goalsRes.status === 'fulfilled' && Array.isArray(goalsRes.value?.data)) ? goalsRes.value.data : [];
 
     if (records.length === 0 && projects.length === 0 && goals.length === 0) {
-      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><div class="empty-desc">이 기간에 기록이 없어요. 먼저 성장일기/프로젝트/목표를 남겨보세요!</div></div>';
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><div class="empty-desc">이 기간에 기록이 없어요. 먼저 배움 노트를 남겨보세요!</div></div>';
       return;
     }
 
@@ -5677,31 +5816,6 @@ async function generateSummaryReport(period) {
       const t = String(s).replace(/\s+/g, ' ').trim();
       return t.length > maxLen ? (t.slice(0, maxLen) + '...') : t;
     };
-
-    const report_kind = period === 'week' ? 'summary_week' : 'summary_month';
-    const date_range = startStr + ' ~ ' + endDate;
-
-    const dailySample = records.slice(-10).map(r => ({
-      date: r.reflection_date,
-      learning_text: clip(r.learning_text, 220) || null,
-      gratitude_text: clip(r.gratitude_text, 120) || null,
-      subject_tags: Array.isArray(r.subject_tags) ? r.subject_tags : [],
-      gratitude_tags: Array.isArray(r.gratitude_tags) ? r.gratitude_tags : []
-    }));
-
-    const projectSample = projects.slice(0, 5).map(p => ({
-      date: p.reflection_date,
-      project_name: p.project_name || '',
-      stars: (typeof p.star_rating === 'number' && p.star_rating >= 1 && p.star_rating <= 5) ? p.star_rating : null,
-      comment: clip(p.comment, 180) || null
-    }));
-
-    const goalsSnapshot = goals.slice(0, 8).map(g => ({
-      goal: g.goal_text || '',
-      status: g.is_completed ? 'done' : 'ongoing',
-      created_at: String(g.created_at || '').slice(0, 10) || null,
-      completed_at: g.completed_at ? String(g.completed_at).slice(0, 10) : null
-    }));
 
     const inputObj = {
       student_partner: partner ? {
@@ -5712,30 +5826,41 @@ async function generateSummaryReport(period) {
         style_guide: partner.style_guide || null
       } : null,
       self_context: {
-        report_kind,
-        date_range,
+        report_kind: p === 'week' ? 'summary_week' : 'summary_month',
+        date_range: `${startStr} ~ ${endDate}`,
         record_counts: {
           daily_reflections: records.length,
           project_reflections: projects.length,
           goals: goals.length
         },
-        daily_reflections_sample: dailySample,
-        project_reflections_sample: projectSample,
-        goals_snapshot: goalsSnapshot
+        daily_reflections_sample: records.slice(-10).map(r => ({
+          date: r.reflection_date,
+          learning_text: clip(r.learning_text, 220) || null,
+          subject_tags: Array.isArray(r.subject_tags) ? r.subject_tags : []
+        })),
+        project_reflections_sample: projects.slice(0, 5).map(pj => ({
+          date: pj.reflection_date,
+          project_name: pj.project_name || '',
+          comment: clip(pj.comment, 180) || null
+        })),
+        goals_snapshot: goals.slice(0, 8).map(g => ({
+          goal: g.goal_text || '',
+          status: g.is_completed ? 'done' : 'ongoing'
+        }))
       }
     };
 
-    const header1 = '한눈에 보는 이번 기록';
-    const header2 = (partner && partner.axes_raw && partner.axes_raw.info_processing === '디테일형')
-      ? '반복되는 패턴(강점/관심사/근거)'
-      : '반복되는 패턴(강점/관심사/변화)';
-    const header3 = '다음 성장 실험/계획(실천)';
+    const header1 = '이번 주/이번 달 돌아보기';
+    const header2 = (partner?.axes_raw?.info_processing === '디테일형')
+      ? '근거와 구체 포인트'
+      : '패턴과 변화 흐름';
+    const header3 = getExecutionStrategyHeader(partner);
 
     const prompt = [
       '[ROLE]',
       "너는 '배움로그'의 AI 성장 파트너다.",
-      "학생의 '성장 파트너 유형(8유형 + 보조태그)'에 맞춰, 학생이 남긴 배움 기록(성장일기/프로젝트/목표 등)을 분석해",
-      '스스로배움 결과보기(요약 리포트/성장 리포트) 카드에 들어갈 결과를 작성한다.',
+      '학생에게 1:1로 말하는 톤으로, 반말은 쓰지 않되 딱딱하지 않은 친근한 존댓말(해요체)을 사용한다.',
+      "교사가 아니라 '옆에서 같이 고민해주는 파트너' 느낌으로 작성한다.",
       '',
       '[INPUT]',
       JSON.stringify(inputObj, null, 2),
@@ -5744,52 +5869,46 @@ async function generateSummaryReport(period) {
       buildPartnerTypeLibraryText(),
       '',
       '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
-      '- 헤더는 3개로 고정(단, 성향에 맞게 제목 단어는 조절 가능)',
-      '## ' + header1,
-      '## ' + header2,
-      '## ' + header3,
+      `## ${header1}`,
+      `## ${header2}`,
+      `## ${header3}`,
       '',
       '[작성 규칙]',
       '1) 인사말 없이 바로 시작.',
-      '2) 데이터가 많아도 사용자는 카드에서 읽는다: 핵심만 뽑되, 빈약하게 1문장으로 끝내지 말 것.',
-      '3) report_kind별 강조: summary_week/month는 이번 기간의 하이라이트 + 반복 패턴 + 다음 1~2개 실천',
-      '4) 부정/아쉬운 지점은 반드시 발전 가능성 형태로 변환한다.',
-      '5) 학생 성향 반영(필수):',
-      '   - 해결형: 조언을 구체 행동으로(다음엔 이렇게 해봐)',
-      '   - 지지형: 안정 한 줄 + 행동(괜찮아, 다음엔 이렇게 해보자)',
-      '   - 디테일형: 단계/체크리스트(최대 3)',
-      '   - 큰그림형: 방향 1문장 + 체크 질문 2개',
-      '   - 계획형: 일정/우선순위 한 줄',
-      '   - 탐색형: 작은 실험 제안',
-      '   - #함께 성장형: 협력 활동(설명 연습/모둠 토론/같이 문제 풀기) 포함',
-      '   - #혼자 집중형: 개인 활동(노트 정리/혼자 풀기/조용한 복습) 포함',
-      '6) 길이: summary_week/month는 10~16문장(또는 6~10불릿)',
-      '7) 한국어로만 작성.',
-      ''
+      '2) student_partner의 3개 축(coaching_style/info_processing/execution_strategy)을 반드시 조합 적용.',
+      '3) #함께 성장형이면 협력 활동, #혼자 집중형이면 개인 활동을 실천 제안에 포함.',
+      '4) 기록이 짧거나 부족해도 비판하지 말고, 기록한 것 자체를 인정한 뒤 다음 단계를 제안.',
+      '5) 해당 유형의 "이런 말이 힘이 돼요" 예시를 참고해 유사 톤으로 작성.',
+      '6) 한국어로만 작성, 10~16문장 내외.'
     ].join('\n');
 
     const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 900 } });
 
-    if (result.ok) {
-      area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(result.text) + '</div>';
-    } else {
-      const periodLabel = period === 'week' ? '이번 주' : '이번 달';
-      area.innerHTML = '<div style="color:var(--text-sub);">' + periodLabel + ' 기록이 차곡차곡 쌓였어요. 다음엔 한 가지 실천만 더 붙여보자!</div>';
-    }
+    const output = (result.ok && result.text)
+      ? String(result.text)
+      : (p === 'week'
+        ? '## 이번 주/이번 달 돌아보기\n이번 주 기록이 잘 쌓였어요.\n\n## 패턴과 변화 흐름\n반복되는 강점이 보이고 있어요.\n\n## 다음 성장 계획(실천)\n이번 주에는 실천 한 가지를 정해서 기록해보세요.'
+        : '## 이번 주/이번 달 돌아보기\n이번 달 기록이 잘 쌓였어요.\n\n## 패턴과 변화 흐름\n반복되는 강점이 보이고 있어요.\n\n## 다음 성장 계획(실천)\n다음 달에는 실천 한 가지를 정해서 기록해보세요.');
+
+    area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
+    setPartnerGoalSuggestion(output);
   } catch (error) {
-    area.innerHTML = '<div style="color:var(--color-danger);">요약 생성 중 오류가 발생했습니다.</div>';
+    area.innerHTML = '<div style="color:var(--color-danger);">메시지 생성 중 오류가 발생했습니다.</div>';
+    setPartnerGoalSuggestion('');
   }
 }
 
-// AI 성장 리포트
-async function generateGrowthReport() {
+async function generateGrowthReport(options = {}) {
   if (!currentStudent || !currentClassCode) return;
 
-  const btn = document.getElementById('growthReportBtn');
-  const area = document.getElementById('growthReportArea');
+  const area = document.getElementById(options.targetAreaId || 'growthReportArea');
+  if (!area) return;
 
-  setLoading(true, btn, '🤖 분석 중...');
+  const btn = document.getElementById('growthReportBtn');
+  if (btn && !options.suppressButtonLoading) setLoading(true, btn, '🤖 분석 중...');
+
   area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">전체 기록을 분석하고 있어요...</div>';
+  setPartnerGoalSuggestion('');
 
   try {
     const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
@@ -5812,13 +5931,13 @@ async function generateGrowthReport() {
         .order('created_at', { ascending: false })
     ]);
 
-    let records = (dailyRes.status === 'fulfilled' && dailyRes.value && Array.isArray(dailyRes.value.data)) ? dailyRes.value.data : [];
-    let projects = (projectRes.status === 'fulfilled' && projectRes.value && Array.isArray(projectRes.value.data)) ? projectRes.value.data : [];
-    let goals = (goalsRes.status === 'fulfilled' && goalsRes.value && Array.isArray(goalsRes.value.data)) ? goalsRes.value.data : [];
+    const records = (dailyRes.status === 'fulfilled' && Array.isArray(dailyRes.value?.data)) ? dailyRes.value.data : [];
+    const projects = (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) ? projectRes.value.data : [];
+    const goals = (goalsRes.status === 'fulfilled' && Array.isArray(goalsRes.value?.data)) ? goalsRes.value.data : [];
 
-    if (records.length < 3 && projects.length === 0 && goals.length === 0) {
-      setLoading(false, btn, '🤖 AI 성장 리포트 받기');
-      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-desc">최소 3일 이상 기록해야 리포트를 받을 수 있어요!</div></div>';
+    if (records.length < 1 && projects.length === 0 && goals.length === 0) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-desc">분석할 기록이 아직 없어요.</div></div>';
+      if (btn && !options.suppressButtonLoading) setLoading(false, btn, '🤖 AI 성장 리포트 받기');
       return;
     }
 
@@ -5830,30 +5949,7 @@ async function generateGrowthReport() {
 
     const firstDate = records.length ? records[0].reflection_date : null;
     const lastDate = records.length ? records[records.length - 1].reflection_date : null;
-    const date_range = (firstDate && lastDate) ? (firstDate + ' ~ ' + lastDate) : (getDefaultQueryDate() + ' ~ ' + getDefaultQueryDate());
-
-    const dailySampleRaw = (records.length <= 10) ? records : records.slice(0, 3).concat(records.slice(-7));
-    const dailySample = dailySampleRaw.map(r => ({
-      date: r.reflection_date,
-      learning_text: clip(r.learning_text, 220) || null,
-      gratitude_text: clip(r.gratitude_text, 120) || null,
-      subject_tags: Array.isArray(r.subject_tags) ? r.subject_tags : [],
-      gratitude_tags: Array.isArray(r.gratitude_tags) ? r.gratitude_tags : []
-    }));
-
-    const projectSample = projects.slice(0, 5).map(p => ({
-      date: p.reflection_date,
-      project_name: p.project_name || '',
-      stars: (typeof p.star_rating === 'number' && p.star_rating >= 1 && p.star_rating <= 5) ? p.star_rating : null,
-      comment: clip(p.comment, 180) || null
-    }));
-
-    const goalsSnapshot = goals.slice(0, 8).map(g => ({
-      goal: g.goal_text || '',
-      status: g.is_completed ? 'done' : 'ongoing',
-      created_at: String(g.created_at || '').slice(0, 10) || null,
-      completed_at: g.completed_at ? String(g.completed_at).slice(0, 10) : null
-    }));
+    const date_range = (firstDate && lastDate) ? `${firstDate} ~ ${lastDate}` : getDefaultQueryDate();
 
     const inputObj = {
       student_partner: partner ? {
@@ -5871,21 +5967,34 @@ async function generateGrowthReport() {
           project_reflections: projects.length,
           goals: goals.length
         },
-        daily_reflections_sample: dailySample,
-        project_reflections_sample: projectSample,
-        goals_snapshot: goalsSnapshot
+        daily_reflections_sample: records.slice(-14).map(r => ({
+          date: r.reflection_date,
+          learning_text: clip(r.learning_text, 220) || null,
+          subject_tags: Array.isArray(r.subject_tags) ? r.subject_tags : []
+        })),
+        project_reflections_sample: projects.slice(0, 6).map(pj => ({
+          date: pj.reflection_date,
+          project_name: pj.project_name || '',
+          comment: clip(pj.comment, 180) || null
+        })),
+        goals_snapshot: goals.slice(0, 10).map(g => ({
+          goal: g.goal_text || '',
+          status: g.is_completed ? 'done' : 'ongoing'
+        }))
       }
     };
 
-    const header1 = (partner && partner.axes_raw && partner.axes_raw.coaching_style === '해결형') ? '한눈에 보는 전체 기록(핵심)' : '한눈에 보는 전체 기록';
-    const header2 = (partner && partner.axes_raw && partner.axes_raw.info_processing === '디테일형') ? '반복되는 패턴(강점/관심사/근거)' : '반복되는 패턴(강점/관심사/변화)';
-    const header3 = '다음 성장 실험/계획(실천)';
+    const header1 = '나의 전체 성장 분석';
+    const header2 = (partner?.axes_raw?.info_processing === '디테일형')
+      ? '근거와 구체 포인트'
+      : '패턴과 변화 흐름';
+    const header3 = getExecutionStrategyHeader(partner);
 
     const prompt = [
       '[ROLE]',
       "너는 '배움로그'의 AI 성장 파트너다.",
-      "학생의 '성장 파트너 유형(8유형 + 보조태그)'에 맞춰, 학생이 남긴 배움 기록(성장일기/프로젝트/목표 등)을 분석해",
-      '스스로배움 결과보기(요약 리포트/성장 리포트) 카드에 들어갈 결과를 작성한다.',
+      '학생에게 1:1로 말하는 톤으로, 반말은 쓰지 않되 딱딱하지 않은 친근한 존댓말(해요체)을 사용한다.',
+      "교사가 아니라 '옆에서 같이 고민해주는 파트너' 느낌으로 작성한다.",
       '',
       '[INPUT]',
       JSON.stringify(inputObj, null, 2),
@@ -5894,42 +6003,33 @@ async function generateGrowthReport() {
       buildPartnerTypeLibraryText(),
       '',
       '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
-      '- 헤더는 3개로 고정(단, 성향에 맞게 제목 단어는 조절 가능)',
-      '## ' + header1,
-      '## ' + header2,
-      '## ' + header3,
+      `## ${header1}`,
+      `## ${header2}`,
+      `## ${header3}`,
       '',
       '[작성 규칙]',
       '1) 인사말 없이 바로 시작.',
-      '2) 데이터가 많아도 사용자는 카드에서 읽는다: 핵심만 뽑되, 빈약하게 1문장으로 끝내지 말 것.',
-      '3) report_kind별 강조: growth_all은 초기 vs 최근 변화(근거 포함) + 강점 축적 + 다음 실천',
-      '4) 부정/아쉬운 지점은 반드시 발전 가능성 형태로 변환한다.',
-      '5) 학생 성향 반영(필수):',
-      '   - 해결형: 조언을 구체 행동으로(다음엔 이렇게 해봐)',
-      '   - 지지형: 안정 한 줄 + 행동(괜찮아, 다음엔 이렇게 해보자)',
-      '   - 디테일형: 단계/체크리스트(최대 3)',
-      '   - 큰그림형: 방향 1문장 + 체크 질문 2개',
-      '   - 계획형: 일정/우선순위 한 줄',
-      '   - 탐색형: 작은 실험 제안',
-      '   - #함께 성장형: 협력 활동(설명 연습/모둠 토론/같이 문제 풀기) 포함',
-      '   - #혼자 집중형: 개인 활동(노트 정리/혼자 풀기/조용한 복습) 포함',
-      '6) 길이: growth_all은 12~20문장(또는 8~12불릿)',
-      '7) 한국어로만 작성.',
-      ''
+      '2) student_partner의 3개 축(coaching_style/info_processing/execution_strategy)을 반드시 조합 적용.',
+      '3) #함께 성장형이면 협력 활동, #혼자 집중형이면 개인 활동을 실천 제안에 포함.',
+      '4) 기록이 짧거나 부족해도 비판하지 말고, 기록한 것 자체를 인정한 뒤 다음 단계를 제안.',
+      '5) 해당 유형의 "이런 말이 힘이 돼요" 예시를 참고해 유사 톤으로 작성.',
+      '6) 한국어로만 작성, 12~20문장 내외.'
     ].join('\n');
 
     const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 1100 } });
 
-    setLoading(false, btn, '🤖 AI 성장 리포트 받기');
+    const output = (result.ok && result.text)
+      ? String(result.text)
+      : '## 나의 전체 성장 분석\n지금까지의 기록이 잘 쌓이고 있어요.\n\n## 패턴과 변화 흐름\n반복되는 강점이 분명히 보입니다.\n\n## 다음 성장 계획(실천)\n이번 주에는 한 가지 실천을 정해서 꾸준히 기록해보세요.';
 
-    if (result.ok) {
-      area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(result.text) + '</div>';
-    } else {
-      area.innerHTML = '<div style="color:var(--text-main);">기록이 쌓인 만큼 성장도 쌓였어요. 다음엔 한 가지 실천을 정해서 더 선명하게 만들어보자!</div>';
-    }
+    area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
+    setPartnerGoalSuggestion(output);
   } catch (error) {
-    setLoading(false, btn, '🤖 AI 성장 리포트 받기');
     area.innerHTML = '<div style="color:var(--color-danger);">리포트 생성 중 오류가 발생했습니다.</div>';
+    setPartnerGoalSuggestion('');
+  } finally {
+    const btn = document.getElementById('growthReportBtn');
+    if (btn && !options.suppressButtonLoading) setLoading(false, btn, '🤖 AI 성장 리포트 받기');
   }
 }
 
@@ -6088,6 +6188,8 @@ function openPrivacyModal() {
     message: `<div class="terms-modal-body">${PRIVACY_HTML}</div>`
   });
 }
+
+
 
 
 
