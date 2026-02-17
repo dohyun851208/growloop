@@ -42,6 +42,7 @@ const PRESET_SUBJECT_TAGS = [
 
 let quizAnswers = {}; // 성향 진단 답변 저장
 let studentPersonality = null; // 학생 성향 정보
+let lastKnownPersonalityType = null; // legacy personality_type compatibility cache
 
 // 체험 모드 전역 변수
 let isDemoMode = false;
@@ -91,6 +92,13 @@ function getKstTodayStr() {
 
 function getDefaultQueryDate() {
   return isDemoMode ? DEMO_FIXED_QUERY_DATE : getKstTodayStr();
+}
+
+function isAbortLikeError(error) {
+  const msg = String(error?.message || error || '').toLowerCase();
+  return (error?.name === 'AbortError')
+    || msg.includes('aborted')
+    || msg.includes('signal is aborted');
 }
 
 function setAppLayoutMode(mode = 'default') {
@@ -235,7 +243,7 @@ function syncCustomSubjectInputVisibility({ clearOnHide = false, focusOnShow = f
 // ============================================
 
 // 페이지 로드 시 인증 및 역할 확인
-async function checkAuthAndRoute() {
+async function checkAuthAndRoute(retryCount = 0) {
   try {
     // --- 체험 모드 감지 ---
     const demoParams = new URLSearchParams(window.location.search);
@@ -472,6 +480,10 @@ async function checkAuthAndRoute() {
       }
     }
   } catch (error) {
+    if (isAbortLikeError(error) && retryCount < 2) {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      return checkAuthAndRoute(retryCount + 1);
+    }
     console.error('Initial routing error:', error);
     const loadingSec = document.getElementById('authLoadingSection');
     loadingSec.classList.remove('hidden');
@@ -1205,6 +1217,8 @@ async function resetPersonalityFromSettings() {
   if (isDemoMode) { showDemoBlockModal(); return; }
   showCustomConfirm('성향 진단을 초기화하고 다시 진단하시겠습니까?', async () => {
     try {
+      const savedType = normalizePersonalityTypeCandidate(studentPersonality?.personality_type);
+      if (savedType) lastKnownPersonalityType = savedType;
       await db.from('student_personality')
         .delete()
         .eq('class_code', currentClassCode)
@@ -1747,6 +1761,65 @@ async function fetchTeacherLearningNotes({ studentId, start, end }) {
   return data || [];
 }
 
+async function previewTeacherSubjectCommentSources() {
+  const btn = document.getElementById('teacherSubjectCommentPreviewBtn');
+  const wrap = document.getElementById('teacherSubjectCommentSourceWrap');
+  const list = document.getElementById('teacherSubjectCommentSourceList');
+  const noteCountEl = document.getElementById('teacherSubjectCommentNoteCount');
+  if (!btn || !wrap || !list) return;
+
+  const { start, end, subject, rawSubject, customSubject, studentId } = getTeacherSubjectCommentUIValues();
+  if (!studentId) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '먼저 학생을 선택해 주세요.' }); return; }
+  if (!start || !end) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '기간(시작일/종료일)을 선택해 주세요.' }); return; }
+  if (start > end) { showModal({ type: 'alert', icon: '⚠️', title: '기간 오류', message: '시작일이 종료일보다 늦습니다. 기간을 확인해 주세요.' }); return; }
+  if (!subject) { showModal({ type: 'alert', icon: '⚠️', title: '선택 필요', message: '과목 태그를 1개 선택해 주세요.' }); return; }
+
+  setLoading(true, btn, '조회 중...');
+  if (noteCountEl) noteCountEl.textContent = '-';
+  list.innerHTML = '<div class="teacher-list-loading">원문을 불러오는 중...</div>';
+  wrap.classList.remove('hidden');
+
+  try {
+    const records = await fetchTeacherLearningNotes({ studentId, start, end });
+    const filtered = (records || []).filter(r => {
+      const tags = Array.isArray(r.subject_tags) ? r.subject_tags.map(String) : [];
+      return isTeacherSubjectCommentTagMatch(tags, { rawSubject, subject, customSubject })
+        && String(r.learning_text || '').trim().length > 0;
+    });
+    if (noteCountEl) noteCountEl.textContent = String(filtered.length);
+
+    if (filtered.length === 0) {
+      list.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span><div class="empty-desc">선택한 기간/과목에 해당하는 원문이 없습니다.</div></div>';
+      return;
+    }
+
+    list.innerHTML = filtered.map(r => {
+      const sid = String(r.student_id || '').trim();
+      const date = escapeHtml(String(r.reflection_date || ''));
+      const tags = Array.isArray(r.subject_tags) ? r.subject_tags.filter(Boolean) : [];
+      const tagsHtml = tags.length
+        ? `<div class="teacher-subject-comment-source-tags">${tags.map(t => `<span class="teacher-subject-comment-source-tag">${escapeHtml(String(t))}</span>`).join('')}</div>`
+        : '';
+      return `
+        <article class="teacher-subject-comment-source-item">
+          <div class="teacher-subject-comment-source-meta">
+            <span>${escapeHtml(sid)}번</span>
+            <span>${date}</span>
+          </div>
+          ${tagsHtml}
+          <div class="teacher-subject-comment-source-text">${escapeHtml(String(r.learning_text || ''))}</div>
+        </article>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('source preview error:', err);
+    if (noteCountEl) noteCountEl.textContent = '-';
+    list.innerHTML = '<div class="message error">원문 조회 중 오류가 발생했습니다.</div>';
+  } finally {
+    setLoading(false, btn, '조회하기');
+  }
+}
+
 function setTeacherSubjectCommentStatus(text) {
   const el = document.getElementById('teacherSubjectCommentStatus');
   if (!el) return;
@@ -1786,14 +1859,20 @@ function validateSubjectCommentOutput(text, schoolLevel) {
   const t = String(text || '').trim();
   if (!t) return { ok: false, reasons: ['empty'] };
 
-  const lines = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  // Split by newlines first; if only 1 line, fall back to splitting by Korean period
+  let lines = t.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (lines.length === 1) {
+    lines = t.split(/(?<=[함임음됨])\.\s*/).map(s => s.trim()).filter(Boolean);
+  }
+
   const lvl = normalizeSchoolLevel(schoolLevel);
   const range = (lvl === '초') ? [2, 4] : (lvl === '중') ? [3, 5] : [4, 6];
 
   const reasons = [];
   if (lines.length < range[0] || lines.length > range[1]) reasons.push('sentence_count');
 
-  const firstPersonRe = /(나|저|제가|나는|저는|내가|내\s|제\s|우리|저의|우리의)/;
+  // Match actual first-person standalone pronouns only (not 나 inside 나타남/나아감 etc.)
+  const firstPersonRe = /(?:^|[\s,.(])(?:나는|나의|저는|저의|제가|내가|우리는|우리의|우리가)(?:[\s,.)~]|$)/;
   const endingRe = /(함|임|음|됨)\s*$/;
 
   const competencyKeywords = [
@@ -1804,7 +1883,7 @@ function validateSubjectCommentOutput(text, schoolLevel) {
   for (const l of lines) {
     const line = l.replace(/[.。]\s*$/, '').trim();
     if (!endingRe.test(line)) reasons.push('ending');
-    if (firstPersonRe.test(line)) reasons.push('first_person');
+    if (firstPersonRe.test(l)) reasons.push('first_person');
     competencyKeywords.forEach(k => { if (line.includes(k)) foundCompetencies.add(k); });
   }
   if (foundCompetencies.size < 2) reasons.push('competency');
@@ -2892,14 +2971,22 @@ async function callGemini(promptText, config = {}) {
     };
   }
   try {
-    const res = await fetch('/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        promptText,
-        ...(config.generationConfig ? { generationConfig: config.generationConfig } : {})
-      })
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 50000);
+    let res;
+    try {
+      res = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          promptText,
+          ...(config.generationConfig ? { generationConfig: config.generationConfig } : {})
+        }),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timer);
+    }
     const data = await res.json().catch(() => null);
     const apiError = repairMojibakeText(data?.error || '');
     const apiText = repairMojibakeText(data?.text || '');
@@ -2908,14 +2995,18 @@ async function callGemini(promptText, config = {}) {
       const code = data?.code || 'provider_error';
       if (code === 'auth_error') return { ok: false, code, error: apiError || 'AI authentication error.' };
       if (code === 'quota_exceeded') return { ok: false, code, error: 'AI 사용량 초과: 잠시 후 다시 시도해 주세요.' };
-      if (code === 'network_error') return { ok: false, code, error: '네트워크 오류: 연결 상태를 확인해 주세요.' };
+      if (code === 'network_error') return { ok: false, code, error: '네트워크 오류: 인터넷 연결 상태를 확인하거나 잠시 후 다시 시도해 주세요.' };
+      if (code === 'provider_unavailable') return { ok: false, code, error: 'AI 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.' };
       return { ok: false, code, error: apiError || ('HTTP ' + res.status) };
     }
 
     const text = apiText;
     return text ? { ok: true, text } : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
   } catch (e) {
-    return { ok: false, code: 'network_error', error: '네트워크 오류: 연결 상태를 확인해 주세요.' };
+    if (isAbortLikeError(e)) {
+      return { ok: false, code: 'timeout', error: 'AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' };
+    }
+    return { ok: false, code: 'network_error', error: '네트워크 오류: 인터넷 연결 상태를 확인하거나 잠시 후 다시 시도해 주세요.' };
   }
 }
 function getExecutionStrategyHeader(partner) {
@@ -3733,7 +3824,7 @@ async function generateAiFeedback(learning, subjects) {
     '   - 해결형: 배운 것을 더 깊게 만드는 구체적 팁 1개',
     '   - 지지형: 기록한 것 자체를 인정 + 작은 격려',
     '   - 디테일형: 오늘 배운 것의 핵심 포인트를 짚어주기',
-    '   - 큰그림형: 오늘 배운 것이 전체에서 어떤 의미인지 한 줄',
+    '   - 큰 그림형: 오늘 배운 것이 전체에서 어떤 의미인지 한 줄',
     '4) 마지막: 내일 또 기록하고 싶게 만드는 마무리.',
     '   - 계획형: "내일은 ~를 기록해보면 좋겠어요"',
     '   - 탐색형: "내일은 어떤 발견이 있을지 궁금해요"',
@@ -4134,7 +4225,9 @@ async function loadPraiseData() {
   if (!currentStudent || !currentClassCode) return;
   // 대상 그리드 렌더링
   const settings = await getClassSettings();
-  const maxCount = currentStudent.type === 'group' ? settings.groupCount : settings.studentCount;
+  const maxCount = currentStudent.type === 'group'
+    ? (Number(settings.groupCount) || 0)
+    : (Number(settings.studentCount) || 0);
   const grid = document.getElementById('praiseTargetGrid');
   grid.innerHTML = '';
   for (let i = 1; i <= maxCount; i++) {
@@ -4446,6 +4539,8 @@ function renderMessageList(messages) {
     const badgeClass = msg.is_anonymous ? 'badge-anonymous' : 'badge-named';
     const date = new Date(msg.created_at);
     const timeStr = date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    const createdDate = date.toLocaleDateString('ko-KR');
+    const reflectionDate = msg.daily_reflections?.reflection_date || createdDate;
 
     html += `
       <div class="message-card">
@@ -4454,7 +4549,7 @@ function renderMessageList(messages) {
         </div>
         <div class="message-card-content">${escapeHtml(msg.message_content)}</div>
         <div class="message-card-meta">
-          <span>📅 ${msg.daily_reflections?.reflection_date || '날짜 미상'}</span>
+          <span>📅 ${reflectionDate}</span>
           <span>🕐 ${timeStr}</span>
         </div>
       </div>
@@ -4541,7 +4636,7 @@ const PARTNER_TYPES = [
   },
   {
     type_code: '해결큰그림계획',
-    type_name: '큰그림형 계획가',
+    type_name: '큰 그림형 계획가',
     emoji: '🗺',
     representative_answers: { 1: 'A', 2: 'A', 3: 'B', 4: 'B', 5: 'A', 6: 'A' },
     description: {
@@ -4556,7 +4651,7 @@ const PARTNER_TYPES = [
   },
   {
     type_code: '해결큰그림탐색',
-    type_name: '큰그림형 도전가',
+    type_name: '큰 그림형 도전가',
     emoji: '🚀',
     representative_answers: { 1: 'A', 2: 'A', 3: 'B', 4: 'B', 5: 'B', 6: 'B' },
     description: {
@@ -4639,6 +4734,17 @@ const SUPPORT_TAG_GUIDE = {
 const PARTNER_TYPE_BY_CODE = {};
 PARTNER_TYPES.forEach(t => { PARTNER_TYPE_BY_CODE[t.type_code] = t; });
 
+const LEGACY_PARTNER_CODE_BY_CURRENT = {
+  '해결디테일계획': 'solver_detail_plan',
+  '해결디테일탐색': 'solver_detail_explore',
+  '해결큰그림계획': 'solver_big_plan',
+  '해결큰그림탐색': 'solver_big_explore',
+  '지지디테일계획': 'support_detail_plan',
+  '지지디테일탐색': 'support_detail_explore',
+  '지지큰그림계획': 'support_big_plan',
+  '지지큰그림탐색': 'support_big_explore'
+};
+
 function getQuizAnswer(answers, qid) {
   if (!answers) return null;
   return answers[qid] || answers[String(qid)] || null;
@@ -4683,7 +4789,7 @@ function computeLearningEnvAndTag(answers) {
 
 function computePartnerAxes(answers) {
   const coaching_style = resolveAxisWithPriority(answers, 1, 2, (ans) => ans === 'A' ? '해결형' : '지지형');
-  const info_processing = resolveAxisWithPriority(answers, 3, 4, (ans) => ans === 'A' ? '디테일형' : '큰그림형');
+  const info_processing = resolveAxisWithPriority(answers, 3, 4, (ans) => ans === 'A' ? '디테일형' : '큰 그림형');
   const execution_strategy = resolveAxisWithPriority(answers, 5, 6, (ans) => ans === 'A' ? '계획형' : '탐색형');
   const env = computeLearningEnvAndTag(answers);
 
@@ -4722,52 +4828,102 @@ function computePartnerType(answers) {
   return { type_code, type_name, emoji, axes_raw, axes, style_guide, description, partner_version: PARTNER_VERSION };
 }
 
+function normalizePersonalityTypeCandidate(value) {
+  if (value === null || value === undefined) return null;
+  const normalized = String(value).trim();
+  return normalized ? normalized : null;
+}
+
 function collectPersonalityTypeCandidates(partner, existingType, sampledTypes) {
-  const out = [];
-  const push = (v) => {
-    const s = String(v || '').trim();
-    if (!s) return;
-    if (!out.includes(s)) out.push(s);
+  const candidates = [];
+  const push = (value) => {
+    const normalized = normalizePersonalityTypeCandidate(value);
+    if (!normalized) return;
+    if (!candidates.includes(normalized)) candidates.push(normalized);
   };
+
   push(existingType);
-  push(studentPersonality && studentPersonality.personality_type);
-  push(partner && partner.type_name);
-  push(partner && partner.type_code);
-  if (Array.isArray(sampledTypes)) sampledTypes.forEach(push);
-  return out;
+  (Array.isArray(sampledTypes) ? sampledTypes : []).forEach(push);
+
+  if (partner && typeof partner === 'object') {
+    const code = normalizePersonalityTypeCandidate(partner.type_code);
+    push(partner.type_name);
+    push(code);
+    if (code) push(LEGACY_PARTNER_CODE_BY_CURRENT[code]);
+  }
+
+  PARTNER_TYPES.forEach(t => {
+    push(t.type_name);
+    push(t.type_code);
+    push(LEGACY_PARTNER_CODE_BY_CURRENT[t.type_code]);
+  });
+
+  return candidates;
 }
 
 async function sampleExistingPersonalityTypes() {
-  if (!currentClassCode) return [];
+  if (isDemoMode || !currentClassCode) return [];
   try {
-    const { data } = await db.from('student_personality')
+    const { data, error } = await db.from('student_personality')
       .select('personality_type')
       .eq('class_code', currentClassCode)
       .not('personality_type', 'is', null)
-      .limit(20);
-    return (data || []).map(r => r && r.personality_type).filter(Boolean);
+      .limit(50);
+    if (error) throw error;
+    const values = Array.isArray(data) ? data.map(row => row?.personality_type) : [];
+    return Array.from(new Set(values.map(normalizePersonalityTypeCandidate).filter(Boolean)));
   } catch (_) {
     return [];
   }
 }
 
+function isPersonalityTypeConstraintError(error) {
+  const text = [
+    error?.message,
+    error?.details,
+    error?.hint,
+    error?.constraint
+  ].filter(Boolean).join(' ').toLowerCase();
+  if (!text) return false;
+  if (text.includes('student_personality_personality_type_check')) return true;
+  return text.includes('personality_type') && (
+    text.includes('check constraint') ||
+    text.includes('violates')
+  );
+}
+
 async function upsertStudentPersonalityWithFallback(basePayload, typeCandidates) {
-  const candidates = Array.isArray(typeCandidates) ? typeCandidates.filter(Boolean) : [];
-  const tryList = candidates.length > 0 ? candidates : [String((basePayload && basePayload.personality_type) || '').trim() || ''];
+  const base = { ...(basePayload || {}) };
+  const candidates = Array.from(new Set(
+    (Array.isArray(typeCandidates) ? typeCandidates : [])
+      .map(normalizePersonalityTypeCandidate)
+      .filter(Boolean)
+  ));
 
-  let lastErr = null;
-  for (const personalityType of tryList) {
-    const payload = { ...basePayload, personality_type: personalityType };
+  const baseType = normalizePersonalityTypeCandidate(base.personality_type);
+  if (baseType && !candidates.includes(baseType)) candidates.unshift(baseType);
+
+  const attemptTypes = [null, ...candidates];
+  let lastError = null;
+
+  for (let i = 0; i < attemptTypes.length; i++) {
+    const personalityType = attemptTypes[i];
+    const payload = { ...base };
+    if (personalityType) payload.personality_type = personalityType;
+    else delete payload.personality_type;
+
     const { error } = await db.from('student_personality').upsert(payload, { onConflict: 'class_code,student_id' });
-    if (!error) return payload;
+    if (!error) {
+      const savedType = normalizePersonalityTypeCandidate(payload.personality_type);
+      if (savedType) lastKnownPersonalityType = savedType;
+      return payload;
+    }
 
-    const msg = String(error.message || '');
-    const isTypeIssue = msg.includes('personality_type') || msg.includes('student_personality_personality_type_check');
-    if (!isTypeIssue) throw error;
-    lastErr = error;
+    lastError = error;
+    if (!isPersonalityTypeConstraintError(error)) break;
   }
 
-  throw (lastErr || new Error('student_personality upsert failed'));
+  throw lastError || new Error('student_personality upsert failed');
 }
 
 function buildPartnerTypeLibraryText() {
@@ -4806,10 +4962,8 @@ function getPartnerFromPersonalityRow(row) {
   if (!row || typeof row !== 'object') return null;
 
   const rowVersion = Number(row.partner_version || 0);
-  if (rowVersion !== PARTNER_VERSION) return null;
-
   const code = row.partner_type_code;
-  if (code && PARTNER_TYPE_BY_CODE[code]) {
+  if (rowVersion === PARTNER_VERSION && code && PARTNER_TYPE_BY_CODE[code]) {
     const base = PARTNER_TYPE_BY_CODE[code];
     const type_name = row.partner_type_name || base.type_name;
     const partner = {
@@ -4879,12 +5033,14 @@ async function backfillPartnerTypeIfNeeded(personalityRow, partner) {
     partner_version: PARTNER_VERSION
   };
   if (personalityRow.question_responses) payload.question_responses = personalityRow.question_responses;
+  const typeCandidates = collectPersonalityTypeCandidates(
+    partner,
+    normalizePersonalityTypeCandidate(personalityRow.personality_type) || lastKnownPersonalityType,
+    []
+  );
 
   try {
-    const sampledTypes = await sampleExistingPersonalityTypes();
-    const candidates = collectPersonalityTypeCandidates(partner, personalityRow.personality_type, sampledTypes);
-    const saved = await upsertStudentPersonalityWithFallback(payload, candidates);
-    personalityRow.personality_type = saved.personality_type;
+    await upsertStudentPersonalityWithFallback(payload, typeCandidates);
     personalityRow.partner_type_code = payload.partner_type_code;
     personalityRow.partner_type_name = payload.partner_type_name;
     personalityRow.partner_axes = payload.partner_axes;
@@ -4922,26 +5078,26 @@ const personalityQuestions = [
     category: '코칭 스타일',
     question: '시험 결과가 기대보다 낮았을 때, 선생님이 어떻게 말해주면 좋겠어?',
     optionA: { label: 'A', text: '구체적으로 분석하고 방법을 알려줘' },
-    optionB: { label: 'B', text: '같이 방법 찾아보자고 말해줘' }
+    optionB: { label: 'B', text: '같이 방법을 찾아보자고 말해줘' }
   },
   {
     id: 2,
     category: '코칭 스타일',
-    question: '모둠 활동에서 내가 맡은 부분이 부족했을 때, 어떤 반응이 더 도움이 돼?',
-    optionA: { label: 'A', text: '이 부분을 이렇게 고치면 나아져' },
-    optionB: { label: 'B', text: '노력한 건 보여, 다음엔 이 부분만 더 신경 쓰자' }
+    question: '모둠 활동에서 내가 맡기로 한 부분의 완성도가 떨어질 때, 어떤 반응이 더 너에게 도움이 되는 것 같아?',
+    optionA: { label: 'A', text: '이 부분은 이렇게 고치면 좋을 것 같아.' },
+    optionB: { label: 'B', text: '고생많았어. 다음엔 이 부분을 신경 써줘.' }
   },
   {
     id: 3,
     category: '정보 처리',
     question: '새로운 단원을 배울 때, 어떤 게 더 도움이 돼?',
-    optionA: { label: 'A', text: '예시와 풀이를 하나하나 따라가기' },
-    optionB: { label: 'B', text: '왜 배우는지, 전체에서 어디에 해당하는지 먼저 파악' }
+    optionA: { label: 'A', text: '개념을 읽고 문제 풀이 과정을 쭉 따라가기.' },
+    optionB: { label: 'B', text: '내가 왜 이 단원을 배우는지 전체 흐름 중 어디에 해당하는지 먼저 파악' }
   },
   {
     id: 4,
     category: '정보 처리',
-    question: '내 결과물에 대한 피드백을 받을 때, 어떤 형태가 더 좋아?',
+    question: '내 결과물에 대한 조언을 받을 때, 어떤 형식이 더 좋아?',
     optionA: { label: 'A', text: '항목별 점수와 구체적 근거' },
     optionB: { label: 'B', text: '전체적인 흐름 요약과 다음 방향' }
   },
@@ -4962,7 +5118,7 @@ const personalityQuestions = [
   {
     id: 7,
     category: '학습 환경',
-    question: '어려운 내용을 이해하고 싶을 때, 어떤 방법이 더 잘 돼?',
+    question: '어려운 내용을 이해하고 싶을 때, 어떤 방법이 더 좋아하는 방식이야?',
     optionA: { label: 'A', text: '친구나 선생님한테 물어보면서 정리' },
     optionB: { label: 'B', text: '혼자 자료를 찾아보며 정리' }
   },
@@ -5052,6 +5208,8 @@ async function loadStudentPersonality() {
       .eq('class_code', currentClassCode)
       .eq('student_id', currentStudent.id)
       .maybeSingle();
+    const savedType = normalizePersonalityTypeCandidate(data?.personality_type);
+    if (savedType) lastKnownPersonalityType = savedType;
     return data;
   } catch (error) {
     console.error('Error loading personality:', error);
@@ -5115,6 +5273,10 @@ async function submitPersonalityQuiz() {
     return;
   }
 
+  const existingType = normalizePersonalityTypeCandidate(studentPersonality?.personality_type) || lastKnownPersonalityType;
+  const sampledTypes = await sampleExistingPersonalityTypes();
+  const typeCandidates = collectPersonalityTypeCandidates(partner, existingType, sampledTypes);
+
   const payload = {
     class_code: currentClassCode,
     student_id: currentStudent?.id,
@@ -5124,13 +5286,9 @@ async function submitPersonalityQuiz() {
     partner_axes: { ...(partner.axes_raw || {}) },
     partner_version: PARTNER_VERSION
   };
-  const sampledTypes = await sampleExistingPersonalityTypes();
-  const personalityTypeCandidates = collectPersonalityTypeCandidates(partner, studentPersonality && studentPersonality.personality_type, sampledTypes);
-
   try {
     if (!isDemoMode) {
-      const saved = await upsertStudentPersonalityWithFallback(payload, personalityTypeCandidates);
-      payload.personality_type = saved.personality_type;
+      await upsertStudentPersonalityWithFallback(payload, typeCandidates);
     }
 
     studentPersonality = { ...(studentPersonality || {}), ...payload };
@@ -5149,8 +5307,7 @@ async function submitPersonalityQuiz() {
           student_id: currentStudent?.id,
           question_responses: quizAnswers
         };
-        const saved = await upsertStudentPersonalityWithFallback(minimalPayload, personalityTypeCandidates);
-        minimalPayload.personality_type = saved.personality_type;
+        await upsertStudentPersonalityWithFallback(minimalPayload, typeCandidates);
       }
     } catch (_) { }
 
@@ -5199,7 +5356,7 @@ function getPartnerToneClass(typeCode) {
   const code = String(typeCode || '').trim();
   if (!code) return 'tone-blue';
   if (code.startsWith('해결디테일')) return 'tone-blue';     // 구체적인
-  if (code.startsWith('해결큰그림')) return 'tone-purple';   // 큰그림형
+  if (code.startsWith('해결큰그림')) return 'tone-purple';   // 큰 그림형
   if (code.startsWith('지지디테일')) return 'tone-green';    // 함께하는
   if (code.startsWith('지지큰그림')) return 'tone-orange';   // 공감하는
   return 'tone-blue';

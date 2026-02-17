@@ -139,10 +139,21 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, code: 'bad_request', error: 'promptText must be a non-empty string.' });
   }
 
-  const payload = {
+  const payloadBase = {
     contents: [{ parts: [{ text: promptText }] }],
     ...(generationConfig ? { generationConfig } : {})
   };
+
+  // Build a fallback payload without responseMimeType for models that don't support it.
+  const hasResponseMimeType = !!generationConfig?.responseMimeType;
+  let payloadWithoutMime = payloadBase;
+  if (hasResponseMimeType) {
+    const { responseMimeType, ...restConfig } = generationConfig;
+    payloadWithoutMime = {
+      contents: payloadBase.contents,
+      ...(Object.keys(restConfig).length > 0 ? { generationConfig: restConfig } : {})
+    };
+  }
 
   const models = getModelCandidates(DEFAULT_MODEL);
   let lastNetworkError = null;
@@ -151,50 +162,58 @@ export default async function handler(req, res) {
   for (const model of models) {
     const urls = getApiCandidates(model);
     for (const url of urls) {
-      for (let attempt = 0; attempt < 2; attempt++) {
-        try {
-          const providerRes = await postJsonText(url, apiKey, payload, 15000);
-          const raw = providerRes.text;
-          const data = safeJsonParse(raw);
+      // Try with original payload first, then without responseMimeType on 400.
+      const payloadsToTry = hasResponseMimeType ? [payloadBase, payloadWithoutMime] : [payloadBase];
 
-          if (!providerRes.ok) {
-            const providerMessage = data?.error?.message;
-            const mapped = mapProviderError(providerRes.status, providerMessage);
-            lastProviderError = { status: providerRes.status, mapped };
+      for (const payload of payloadsToTry) {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const providerRes = await postJsonText(url, apiKey, payload, 30000);
+            const raw = providerRes.text;
+            const data = safeJsonParse(raw);
 
-            // Auth/quota errors won't be fixed by retrying model/version.
-            if (providerRes.status === 401 || providerRes.status === 403 || providerRes.status === 429) {
-              return res.status(providerRes.status).json({ ok: false, ...mapped });
+            if (!providerRes.ok) {
+              const providerMessage = data?.error?.message;
+              const mapped = mapProviderError(providerRes.status, providerMessage);
+              lastProviderError = { status: providerRes.status, mapped };
+
+              // Auth/quota errors won't be fixed by retrying model/version.
+              if (providerRes.status === 401 || providerRes.status === 403 || providerRes.status === 429) {
+                return res.status(providerRes.status).json({ ok: false, ...mapped });
+              }
+
+              // Retry once for transient provider failures.
+              if (providerRes.status >= 500 && attempt === 0) continue;
+
+              // 400 with responseMimeType: try fallback payload without it.
+              if (providerRes.status === 400 && payload === payloadBase && hasResponseMimeType) break;
+
+              // Try next model/url for likely model/version mismatch.
+              if (providerRes.status === 404 || providerRes.status === 400) break;
+
+              // Otherwise keep exploring candidates; return the last error if all fail.
+              break;
             }
 
-            // Retry once for transient provider failures.
-            if (providerRes.status >= 500 && attempt === 0) continue;
+            const candidate = data?.candidates?.[0];
+            const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
+            const text = parts
+              .map((p) => (p && typeof p.text === 'string' ? p.text : ''))
+              .join('')
+              .trim();
+            const finishReason = candidate?.finishReason || null;
 
-            // Try next model/url for likely model/version mismatch.
-            if (providerRes.status === 404 || providerRes.status === 400) break;
+            if (!text || typeof text !== 'string') {
+              lastProviderError = { status: 502, mapped: { code: 'empty_response', error: 'Gemini returned an empty response.' } };
+              break;
+            }
 
-            // Otherwise keep exploring candidates; return the last error if all fail.
-            break;
+            return res.status(200).json({ ok: true, text, finishReason });
+          } catch (error) {
+            lastNetworkError = error;
+            // retry once for transient network failures
+            if (attempt === 0) continue;
           }
-
-          const candidate = data?.candidates?.[0];
-          const parts = Array.isArray(candidate?.content?.parts) ? candidate.content.parts : [];
-          const text = parts
-            .map((p) => (p && typeof p.text === 'string' ? p.text : ''))
-            .join('')
-            .trim();
-          const finishReason = candidate?.finishReason || null;
-
-          if (!text || typeof text !== 'string') {
-            lastProviderError = { status: 502, mapped: { code: 'empty_response', error: 'Gemini returned an empty response.' } };
-            break;
-          }
-
-          return res.status(200).json({ ok: true, text, finishReason });
-        } catch (error) {
-          lastNetworkError = error;
-          // retry once for transient network failures
-          if (attempt === 0) continue;
         }
       }
     }

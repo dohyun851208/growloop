@@ -1347,6 +1347,20 @@ input[type="date"].class-tone-input {
     font-weight: 500;
 }
 
+#dailyReflectionTab #learningText,
+#projectReflectionTab #projectComment {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-weight: 500;
+    line-height: 1.72;
+    letter-spacing: -0.01em;
+}
+
+#dailyReflectionTab #learningText::placeholder,
+#projectReflectionTab #projectComment::placeholder {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-weight: 500;
+}
+
 #praiseSendTab #praiseContent {
     background: var(--bg-body) !important;
     border: none !important;
@@ -1506,6 +1520,18 @@ input[type="date"].class-tone-input {
     margin: 0;
 }
 
+#teacherMain #rankStudentArea .rank-filter-type-selector .rank-filter-option-label {
+    min-height: 44px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+#studentTab #peerEvaluationSection .type-selector label {
+    min-height: 44px;
+    justify-content: center;
+    white-space: nowrap;
+}
+
 #rankStudentArea #teacherDate {
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
@@ -1532,6 +1558,38 @@ input[type="date"].class-tone-input {
 
 #teacherMain #rankingMiniTab .ranking-table-scroll {
     overflow-x: auto;
+}
+
+@media (max-width: 640px) {
+    #studentTab #peerEvaluationSection .type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+
+    #teacherMain #rankStudentArea .rank-filter-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    #teacherMain #rankStudentArea .rank-filter-date-wrap {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #teacherMain #rankStudentArea .rank-filter-date-wrap .diary-date-input {
+        width: 100%;
+    }
+
+    #teacherMain #rankStudentArea .rank-filter-type-selector {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
 }
 
 /* Criteria tab: remove warm/red tint and keep neutral gray tone */
@@ -2404,7 +2462,8 @@ input:checked+.switch-slider:before {
     border-radius: 12px !important;
     padding: 6px 12px !important;
     font-size: 0.85rem !important;
-    font-family: 'Jua', sans-serif !important;
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-weight: 600 !important;
     color: #64748b !important;
     cursor: pointer !important;
     transition: all 0.2s ease !important;

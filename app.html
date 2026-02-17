@@ -190,7 +190,7 @@
 
                                 </div>
                                 <textarea id="learningText"
-                                    placeholder="예: 오늘 수학 시간에 분수의 나눗셈을 배웠는데 처음엔 어려웠지만 연습하니까 이해됐다"
+                                    placeholder="✅ 내가 잘한 점: 분수 나눗셈에서 약분을 먼저 해서 계산 실수를 줄였어.&#10;😵 어려웠던 점: 문장제에서 어떤 식으로 바꿔야 할지 잠깐 헷갈렸어.&#10;💡 이해/해결 방법: 문제 문장을 줄마다 끊어서 핵심 수를 먼저 찾았어.&#10;❓ 아직 헷갈리는 점: 단위를 바꿔서 비교하는 문제는 더 연습이 필요해.&#10;🌱 일상에 적용해볼 점: 간식 나누기처럼 실제 상황으로 한 번 더 계산해볼래."
                                     class="student-note-textarea"></textarea>
                                 <label class="subject-tag-label">과목/활동 태그 (여러 개 선택 가능)</label>
                                 <div class="subject-tags student-tags-wrap">
@@ -329,7 +329,7 @@
                                     <button type="button" class="template-btn"
                                         onclick="insertTemplate('🎯 다음을 위한 팁: \n', 'projectComment')">🎯 다음 팁</button>
                                 </div>
-                                <textarea id="projectComment" placeholder="이번 프로젝트에서 느낀 점이나 배운 것"
+                                <textarea id="projectComment" placeholder="👍 잘된 점: 역할을 나눠 일정에 맞춰 자료를 모았어.&#10;🤔 아쉬운 점/어려웠던 점: 발표 자료에서 핵심 문장이 길어서 전달력이 약했어.&#10;✨ 인상적인 순간/배운 점: 친구 설명을 듣고 같은 자료도 관점에 따라 다르게 해석된다는 걸 배웠어.&#10;💪 다음 도전: 결론 먼저 말하고 근거를 붙이는 방식으로 다시 구성해볼래.&#10;🎯 다음을 위한 팁: 슬라이드마다 핵심 문장을 한 줄로 먼저 쓰고 시작하면 좋아."
                                     class="student-note-textarea"></textarea>
                             </div>
                             <button type="button" id="submitProjectBtn" onclick="submitProjectReflection()"
@@ -405,7 +405,7 @@
                                         onclick="insertTemplate('💪 다음에는 이런 점을 시도해보면 좋겠어: \n')">💪 다음 도전</button>
                                 </div>
                                 <textarea id="reviewContent"
-                                    placeholder="👍 잘한 점:&#10;💡 이렇게 하면 더 좋아질 것 같아:&#10;✨ 특히 인상적이었던 부분은&#10;💪 다음에는 이런 점을 시도해보면 좋겠어:" required
+                                    placeholder="👍 잘한 점: 역할 분담이 분명해서 진행이 빨랐어.&#10;💡 이렇게 하면 더 좋을 것 같아: 근거 자료를 1개만 더 넣으면 설득력이 커질 것 같아.&#10;✨ 특히 인상적이었던 부분은: 서로 의견이 다를 때 바로 정리해서 방향을 잡은 점이 좋았어.&#10;💪 다음에는 이런 점을 시도해보면 좋겠어: 결론을 먼저 말하고 세부 내용을 붙이는 방식으로 발표해봐." required
                                     minlength="100" oninput="updateCharCount()"
                                     class="review-content-textarea"></textarea>
                                 <div id="charCount" class="char-count-right">
@@ -612,8 +612,7 @@
                                     onchange="loadTeacherData()"> 👤 개인</label>
                             <label class="rank-filter-option-label">
                                 <input type="radio" name="teacherEvalType" value="group" onchange="loadTeacherData()">
-                                👥
-                                모둠</label>
+                                👥 모둠</label>
                         </div>
                     </div>
                 </div>
@@ -633,7 +632,7 @@
                     <div class="sub-tab-container sub-tab-gap-15">
                         <button type="button" class="sub-tab-btn active" onclick="switchTeacherDiarySubTab('overview')">📊 참여현황</button>
                         <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('student')">📝 개별보기</button>
-                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('comment')">🧑‍🏫 교과세특</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('comment')">🧑‍🏫 세특생성</button>
                     </div>
 
                     <div id="teacherDiaryOverviewTab">
@@ -752,6 +751,7 @@
                         </div>
 
                         <div class="teacher-subject-comment-actions">
+                            <button type="button" id="teacherSubjectCommentPreviewBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary" onclick="previewTeacherSubjectCommentSources()">조회하기</button>
                             <button type="button" id="teacherSubjectCommentGenerateBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-primary" onclick="generateTeacherSubjectComment(false)">생성하기</button>
                             <div class="teacher-subject-comment-action-row">
                                 <button type="button" id="teacherSubjectCommentRegenerateBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary" onclick="generateTeacherSubjectComment(true)">재생성</button>
@@ -767,6 +767,10 @@
                             <div class="teacher-subject-comment-meta">
                                 <span>배움노트 <strong id="teacherSubjectCommentNoteCount">-</strong>건</span>
                                 <span id="teacherSubjectCommentStatus" class="teacher-subject-comment-status"></span>
+                            </div>
+                            <div id="teacherSubjectCommentSourceWrap" class="hidden teacher-subject-comment-source-wrap">
+                                <div class="teacher-subject-comment-source-head">📚 선택 과목 원문 조회</div>
+                                <div id="teacherSubjectCommentSourceList" class="teacher-subject-comment-source-list"></div>
                             </div>
                             <div id="teacherSubjectCommentEmpty" class="empty-state teacher-subject-comment-empty">
                                 <span class="empty-icon">📚</span>

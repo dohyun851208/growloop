@@ -1377,6 +1377,7 @@ button:disabled {
     height: 46px;
     display: flex;
     align-items: center;
+    gap: 0;
     background: transparent
 }
 
@@ -1515,7 +1516,8 @@ button:disabled {
 
     #rankStudentArea .type-selector {
         flex-direction: row;
-        height: auto
+        height: auto;
+        gap: 0
     }
 
     #rankStudentArea .type-selector label {
@@ -2422,6 +2424,70 @@ button:disabled {
     font-size: 0.95rem;
     color: var(--text-main);
     font-family: 'Jua', sans-serif;
+}
+
+.teacher-subject-comment-source-wrap {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #e3e8ef;
+    border-radius: 12px;
+    background: #f9fbfe;
+}
+
+.teacher-subject-comment-source-head {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #42576d;
+    margin-bottom: 8px;
+}
+
+.teacher-subject-comment-source-list {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.teacher-subject-comment-source-item {
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #e1e8f0;
+    border-radius: 10px;
+}
+
+.teacher-subject-comment-source-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    color: var(--text-sub);
+}
+
+.teacher-subject-comment-source-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 6px;
+}
+
+.teacher-subject-comment-source-tag {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid #d7e0ea;
+    background: #f3f7fb;
+    font-size: 0.74rem;
+    color: #50657a;
+}
+
+.teacher-subject-comment-source-text {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .teacher-subject-comment-error {
