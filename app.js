@@ -103,6 +103,7 @@ const DEMO_PERSONALITY_STORAGE_KEY = 'demo_student_personality_v2';
 const DEMO_PERSONALITY_STORAGE_KEY_LEGACY = 'demo_student_personality_v1';
 const DEMO_TEACHER_GROUP_MAPPING_STORAGE_KEY = 'demo_teacher_group_mapping_v1';
 const LOGIN_ROLE_HINT_KEY = 'baeumlog_pending_role';
+let demoStudentOneDbLoaded = false;
 
 function normalizeRoleHint(value) {
   return (value === 'student' || value === 'teacher') ? value : null;
@@ -163,6 +164,24 @@ function loadDemoTeacherGroupMappingFromStorage() {
   } catch (_) {
     return {};
   }
+}
+
+function isDemoStudentOne() {
+  return isDemoMode && demoRole === 'student' && String(currentStudent?.id || '') === '1';
+}
+
+async function loadDemoPersonalityWithStudentOneDbPriority() {
+  if (isDemoStudentOne()) {
+    if (!demoStudentOneDbLoaded || !studentPersonality) {
+      const fromDb = await loadStudentPersonality();
+      demoStudentOneDbLoaded = true;
+      if (fromDb) return fromDb;
+    } else {
+      return studentPersonality;
+    }
+  }
+
+  return loadDemoPersonalityFromStorage();
 }
 
 function saveDemoTeacherGroupMappingToStorage(mapping) {
@@ -395,7 +414,7 @@ async function ensureGroupAssignedOrBlock({ showAlert = true, persistFallback = 
       type: 'alert',
       icon: '🔒',
       title: '모둠 미배정',
-      message: '선생님이 모둠을 배정하기 전에는 모둠평가를 사용할 수 없습니다.<br>지금은 개인평가로 전환됩니다.'
+      message: '선생님이 모둠을 배정하기 전입니다.<br>모둠 평가를 사용할 수 없습니다.<br>지금은 개인평가로 전환됩니다.'
     });
   }
   return false;
@@ -753,7 +772,8 @@ function initDemoMode(role) {
       name: '1',
       isLegacyGroupAccount: false
     };
-    studentPersonality = loadDemoPersonalityFromStorage();
+    demoStudentOneDbLoaded = false;
+    studentPersonality = isDemoStudentOne() ? null : loadDemoPersonalityFromStorage();
 
     // 학생 UI 표시
     document.getElementById('studentTab').classList.remove('hidden');
@@ -3393,7 +3413,7 @@ async function generateTeacherSubjectCommentTextFromNotes({ filteredNotes, schoo
     return { ok: false, type: 'unknown', noteCount, selectedCount };
   }
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 1500 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 3000 } });
   if (!result.ok) return { ok: false, type: 'api', noteCount, selectedCount, error: result.error || 'AI 생성 실패' };
 
   let out = String(result.text || '').trim();
@@ -4078,7 +4098,15 @@ function renderTargetGrid(maxCount, myId, completedList, type) {
 
   // Demo mode: auto-focus first available target so score buttons look pre-filled immediately.
   if (isDemoMode) {
-    const firstSelectable = grid.querySelector('.target-btn.done, .target-btn:not(.disabled)');
+    let firstSelectable = null;
+    const inSubmitTab = !document.getElementById('studentSubmitTab')?.classList.contains('hidden');
+    const isDemoStudentOne = String(getStudentNumber()) === '1';
+    if (inSubmitTab && type === 'individual' && isDemoStudentOne) {
+      const preferred = Array.from(grid.querySelectorAll('.target-btn'))
+        .find((btn) => btn.textContent.trim() === '19번' && !btn.classList.contains('disabled'));
+      if (preferred) firstSelectable = preferred;
+    }
+    if (!firstSelectable) firstSelectable = grid.querySelector('.target-btn.done, .target-btn:not(.disabled)');
     if (firstSelectable) firstSelectable.click();
   }
 }
@@ -4517,7 +4545,7 @@ async function generateSummary(reviews, opts = {}) {
     '3) 실천(헤더3)은 1~2개. 전체 12~18문장.'
   ].join('\n');
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.45, maxOutputTokens: 1200 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.45, maxOutputTokens: 4000 } });
   if (!result.ok) return 'AI summary failed [' + (result.code || 'unknown') + ']: ' + (result.error || 'No details');
 
   return sanitizeAiSummaryText(result.text);
@@ -5336,7 +5364,7 @@ async function generateCriteriaAI(btn) {
 
   const generationConfig = {
     temperature: 0.1,
-    maxOutputTokens: 1024,
+    maxOutputTokens: 1500,
     responseMimeType: 'application/json'
   };
 
@@ -5658,7 +5686,7 @@ async function generateAiFeedback(learning, subjects) {
     '8) 한국어로만 작성.'
   ].join('\n');
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.55, maxOutputTokens: 360 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.55, maxOutputTokens: 3000 } });
 
   if (result.ok && result.text) {
     feedbackText.innerHTML = formatMarkdown(result.text);
@@ -6933,7 +6961,12 @@ const SUPPORT_TAG_GUIDE = {
 };
 
 const PARTNER_TYPE_BY_CODE = {};
-PARTNER_TYPES.forEach(t => { PARTNER_TYPE_BY_CODE[t.type_code] = t; });
+const PARTNER_TYPE_BY_NAME = {};
+PARTNER_TYPES.forEach(t => {
+  PARTNER_TYPE_BY_CODE[t.type_code] = t;
+  PARTNER_TYPE_BY_NAME[t.type_name] = t;
+  PARTNER_TYPE_BY_NAME[t.type_name.replace(/\s+/g, '')] = t;
+});
 
 const LEGACY_PARTNER_CODE_BY_CURRENT = {
   '해결디테일계획': 'solver_detail_plan',
@@ -6945,6 +6978,10 @@ const LEGACY_PARTNER_CODE_BY_CURRENT = {
   '지지큰그림계획': 'support_big_plan',
   '지지큰그림탐색': 'support_big_explore'
 };
+const CURRENT_PARTNER_CODE_BY_LEGACY = {};
+Object.entries(LEGACY_PARTNER_CODE_BY_CURRENT).forEach(([currentCode, legacyCode]) => {
+  CURRENT_PARTNER_CODE_BY_LEGACY[legacyCode] = currentCode;
+});
 
 function getQuizAnswer(answers, qid) {
   if (!answers) return null;
@@ -7179,14 +7216,61 @@ function formatRepresentativeAnswers(rep) {
   return parts.join('');
 }
 
+function resolvePartnerTypeFromRow(row) {
+  if (!row || typeof row !== 'object') return null;
+
+  const rawCode = normalizePersonalityTypeCandidate(row.partner_type_code);
+  if (rawCode) {
+    const currentCode = PARTNER_TYPE_BY_CODE[rawCode]
+      ? rawCode
+      : CURRENT_PARTNER_CODE_BY_LEGACY[rawCode];
+    if (currentCode && PARTNER_TYPE_BY_CODE[currentCode]) return PARTNER_TYPE_BY_CODE[currentCode];
+  }
+
+  const candidates = [
+    normalizePersonalityTypeCandidate(row.partner_type_name),
+    normalizePersonalityTypeCandidate(row.personality_type)
+  ];
+
+  for (let i = 0; i < candidates.length; i++) {
+    const value = candidates[i];
+    if (!value) continue;
+
+    const byName = PARTNER_TYPE_BY_NAME[value] || PARTNER_TYPE_BY_NAME[value.replace(/\s+/g, '')];
+    if (byName) return byName;
+
+    const codeByValue = PARTNER_TYPE_BY_CODE[value]
+      ? value
+      : CURRENT_PARTNER_CODE_BY_LEGACY[value];
+    if (codeByValue && PARTNER_TYPE_BY_CODE[codeByValue]) return PARTNER_TYPE_BY_CODE[codeByValue];
+  }
+
+  return null;
+}
+
+function inferPartnerAxesFromTypeCode(typeCode, prevAxes = null) {
+  const code = normalizePersonalityTypeCandidate(typeCode);
+  if (!code) return null;
+
+  const axes = {
+    coaching_style: code.startsWith('해결') ? '해결형' : (code.startsWith('지지') ? '지지형' : null),
+    info_processing: code.includes('디테일') ? '디테일형' : (code.includes('큰그림') ? '큰 그림형' : null),
+    execution_strategy: code.endsWith('계획') ? '계획형' : (code.endsWith('탐색') ? '탐색형' : null),
+    learning_env: prevAxes?.learning_env || null,
+    support_tag: prevAxes?.support_tag || null
+  };
+
+  if (!axes.coaching_style || !axes.info_processing || !axes.execution_strategy) return null;
+  return axes;
+}
+
 function getPartnerFromPersonalityRow(row) {
   if (!row || typeof row !== 'object') return null;
 
-  const rowVersion = Number(row.partner_version || 0);
-  const code = row.partner_type_code;
-  if (rowVersion === PARTNER_VERSION && code && PARTNER_TYPE_BY_CODE[code]) {
-    const base = PARTNER_TYPE_BY_CODE[code];
-    const type_name = row.partner_type_name || base.type_name;
+  const base = resolvePartnerTypeFromRow(row);
+  if (base) {
+    const code = base.type_code;
+    const type_name = base.type_name;
     const partner = {
       type_code: code,
       type_name,
@@ -7206,12 +7290,15 @@ function getPartnerFromPersonalityRow(row) {
       };
     }
 
-    if ((!partner.axes_raw || !partner.axes_raw.coaching_style) && row.question_responses) {
-      const computed = computePartnerType(row.question_responses);
-      if (computed) {
-        partner.axes_raw = computed.axes_raw;
-        partner.axes = computed.axes;
-      }
+    const inferredAxes = inferPartnerAxesFromTypeCode(code, partner.axes_raw || null);
+    if (inferredAxes) {
+      partner.axes_raw = { ...(partner.axes_raw || {}), ...inferredAxes };
+    }
+
+    if (row.question_responses && partner.axes_raw && (!partner.axes_raw.learning_env || !partner.axes_raw.support_tag)) {
+      const env = computeLearningEnvAndTag(row.question_responses);
+      if (!partner.axes_raw.learning_env && env.learning_env) partner.axes_raw.learning_env = env.learning_env;
+      if (!partner.axes_raw.support_tag && env.support_tag) partner.axes_raw.support_tag = env.support_tag;
     }
 
     if (!partner.axes && partner.axes_raw) {
@@ -7276,7 +7363,11 @@ async function ensureStudentPartnerLoaded(opts = {}) {
   const backfill = opts.backfill !== false;
 
   if (isDemoMode) {
-    if (!studentPersonality) studentPersonality = loadDemoPersonalityFromStorage();
+    if (isDemoStudentOne()) {
+      studentPersonality = await loadDemoPersonalityWithStudentOneDbPriority();
+    } else if (!studentPersonality) {
+      studentPersonality = loadDemoPersonalityFromStorage();
+    }
     if (studentPersonality) studentPartner = getPartnerFromPersonalityRow(studentPersonality);
     return studentPartner;
   }
@@ -7360,7 +7451,7 @@ async function initSelfEvaluation() {
   }
 
   if (isDemoMode) {
-    if (!studentPersonality) studentPersonality = loadDemoPersonalityFromStorage();
+    studentPersonality = await loadDemoPersonalityWithStudentOneDbPriority();
     const partner = getPartnerFromPersonalityRow(studentPersonality);
     if (partner && partner.type_code) {
       studentPartner = partner;
@@ -8225,6 +8316,24 @@ function computeGrowthSignals(records, partner, options = {}) {
   };
 }
 
+function bindLearningSignalAccordion(container) {
+  if (!container) return;
+  const cards = Array.from(container.querySelectorAll('.learning-signal-card'));
+  if (cards.length === 0) return;
+
+  // Ensure collapsed-by-default state on each render.
+  cards.forEach((card) => { card.open = false; });
+
+  cards.forEach((card) => {
+    card.addEventListener('toggle', () => {
+      if (!card.open) return;
+      cards.forEach((other) => {
+        if (other !== card && other.open) other.open = false;
+      });
+    });
+  });
+}
+
 function renderLearningSignals(records, partner, options = {}) {
   const container = document.getElementById('learningWordCloud');
   if (!container) return;
@@ -8281,6 +8390,7 @@ function renderLearningSignals(records, partner, options = {}) {
       <div class="learning-signals-grid">${cardsHtml}</div>
     </div>
   `;
+  bindLearningSignalAccordion(container);
 }
 
 function renderLearningWordCloud(records, partner, options = {}) {
@@ -8896,7 +9006,7 @@ async function generateDailyPartnerMessage() {
     const partnerTypeText = buildPartnerTypeText(partner);
     const prevSummary = buildPrevSummaryFromRecentNotes(records, todayKey, 2);
     const prompt = buildDailyPartnerPromptExact({ partnerTypeText, prevSummary, todayNote });
-    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 450 } });
+    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 3000 } });
 
     if (!(result.ok && result.text)) {
       area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">성장 파트너의 메세지를 받지 못했어요. 다시 눌러주세요.</div></div>';
@@ -9113,7 +9223,7 @@ async function generateComparePartnerMessage() {
     const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
     const partnerTypeText = buildPartnerTypeText(partner);
     const prompt = buildComparePartnerPromptExact({ partnerTypeText, dateA, noteA, dateB, noteB });
-    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 900 } });
+    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 3000 } });
 
     if (!(result.ok && result.text)) {
       area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">성장 파트너의 메세지를 받지 못했어요. 다시 눌러주세요.</div></div>';

@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="images/Gemini_Generated_Image_d19ctrd19ctrd19c.png">
     <link rel="apple-touch-icon" href="images/Gemini_Generated_Image_d19ctrd19ctrd19c.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=20260217-1">
+    <link rel="stylesheet" href="style.css?v=20260217-2">
     <link rel="stylesheet" href="style_theme.css?v=20260217-1">
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
@@ -27,12 +27,12 @@
         <!-- 학생 온보딩 (첫 사용자) -->
         <div id="studentOnboardingSection" class="hidden">
             <h1 class="app-title">
-                <img class="floating-emoji app-brand-icon" src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
+                <img class="floating-emoji app-brand-icon"
+                    src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
                 <span class="app-title-text">배움로그</span>
             </h1>
             <div class="top-action-row-end">
-                <button onclick="logoutGoogle()"
-                    class="btn-logout-compact">로그아웃</button>
+                <button onclick="logoutGoogle()" class="btn-logout-compact">로그아웃</button>
             </div>
             <div class="accent-box box-blue">
                 <span class="box-label">👩‍🎓 학급 설정 (처음 1회만)</span>
@@ -54,12 +54,12 @@
         <!-- 교사 온보딩 (첫 사용자) -->
         <div id="teacherOnboardingSection" class="hidden">
             <h1 class="app-title">
-                <img class="floating-emoji app-brand-icon" src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
+                <img class="floating-emoji app-brand-icon"
+                    src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
                 <span class="app-title-text">배움로그</span>
             </h1>
             <div class="top-action-row-end">
-                <button onclick="logoutGoogle()"
-                    class="btn-logout-compact">로그아웃</button>
+                <button onclick="logoutGoogle()" class="btn-logout-compact">로그아웃</button>
             </div>
             <div class="accent-box box-violet">
                 <span class="box-label">👨‍🏫 클래스 만들기 (처음 1회만)</span>
@@ -81,14 +81,14 @@
         <!-- 학생 메인 (기존 사용자 / 온보딩 후) -->
         <div id="studentTab" class="hidden">
             <h1 class="app-title">
-                <img class="floating-emoji app-brand-icon" src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
+                <img class="floating-emoji app-brand-icon"
+                    src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
                 <span class="app-title-text">배움로그</span>
             </h1>
             <div id="studentMainSection" class="hidden">
                 <div class="student-header-row">
                     <span id="welcomeMsg" class="welcome-msg"></span>
-                    <button onclick="logoutGoogle()"
-                        class="btn-logout-main">로그아웃</button>
+                    <button onclick="logoutGoogle()" class="btn-logout-main">로그아웃</button>
                 </div>
                 <!-- 기존 탭 내비게이션 (롤백용 주석 처리) -->
                 <!-- <div class="mini-tab-container">
@@ -129,7 +129,8 @@
                                 조언 스타일을 찾아요!
                             </p>
                             <div id="quizContent"></div>
-                            <button id="submitQuizBtn" class="hidden personality-submit-btn" onclick="submitPersonalityQuiz()">분석 완료</button>
+                            <button id="submitQuizBtn" class="hidden personality-submit-btn"
+                                onclick="submitPersonalityQuiz()">분석 완료</button>
                         </div>
                     </div>
 
@@ -143,11 +144,9 @@
                             </div>
                             <div id="allPersonalityTypes" class="personality-types-wrap"></div>
                             <div class="personality-result-actions">
-                                <button onclick="confirmPersonalityResult()"
-                                    class="personality-confirm-btn">확인하고
+                                <button onclick="confirmPersonalityResult()" class="personality-confirm-btn">확인하고
                                     시작하기</button>
-                                <button onclick="resetPersonalityFromSettings()"
-                                    class="personality-reset-btn">다시
+                                <button onclick="resetPersonalityFromSettings()" class="personality-reset-btn">다시
                                     진단하기</button>
                             </div>
                         </div>
@@ -172,17 +171,23 @@
                                 <span class="box-label">📚 오늘의 배움</span>
                                 <div class="guide-buttons guide-scroll-row">
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('\uC624\uB298 \uBC30\uC6B4 \uB0B4\uC6A9: \n', 'learningText')">&#x1F4D8; &#xC624;&#xB298; &#xBC30;&#xC6B4; &#xB0B4;&#xC6A9;</button>
+                                        onclick="insertTemplate('\uC624\uB298 \uBC30\uC6B4 \uB0B4\uC6A9: \n', 'learningText')">&#x1F4D8;
+                                        &#xC624;&#xB298; &#xBC30;&#xC6B4; &#xB0B4;&#xC6A9;</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('\uB0B4\uAC00 \uC798\uD55C \uC810: \n', 'learningText')">&#x2705; &#xB0B4;&#xAC00; &#xC798;&#xD55C; &#xC810;</button>
+                                        onclick="insertTemplate('\uB0B4\uAC00 \uC798\uD55C \uC810: \n', 'learningText')">&#x2705;
+                                        &#xB0B4;&#xAC00; &#xC798;&#xD55C; &#xC810;</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('\uC5B4\uB824\uC6E0\uB358 \uC810: \n', 'learningText')">&#x1F635; &#xC5B4;&#xB824;&#xC6E0;&#xB358; &#xC810;</button>
+                                        onclick="insertTemplate('\uC5B4\uB824\uC6E0\uB358 \uC810: \n', 'learningText')">&#x1F635;
+                                        &#xC5B4;&#xB824;&#xC6E0;&#xB358; &#xC810;</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('\uC774\uD574/\uD574\uACB0 \uBC29\uBC95: \n', 'learningText')">&#x1F4A1; &#xC774;&#xD574;/&#xD574;&#xACB0; &#xBC29;&#xBC95;</button>
+                                        onclick="insertTemplate('\uC774\uD574/\uD574\uACB0 \uBC29\uBC95: \n', 'learningText')">&#x1F4A1;
+                                        &#xC774;&#xD574;/&#xD574;&#xACB0; &#xBC29;&#xBC95;</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('\uC544\uC9C1 \uD5F7\uAC08\uB9AC\uB294 \uC810: \n', 'learningText')">&#x2753; &#xC544;&#xC9C1; &#xD5F7;&#xAC08;&#xB9AC;&#xB294; &#xC810;</button>
+                                        onclick="insertTemplate('\uC544\uC9C1 \uD5F7\uAC08\uB9AC\uB294 \uC810: \n', 'learningText')">&#x2753;
+                                        &#xC544;&#xC9C1; &#xD5F7;&#xAC08;&#xB9AC;&#xB294; &#xC810;</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('\uC77C\uC0C1\uC5D0 \uC801\uC6A9\uD574\uBCFC \uC810: \n', 'learningText')">&#x1F331; &#xC77C;&#xC0C1;&#xC5D0; &#xC801;&#xC6A9;&#xD574;&#xBCFC; &#xC810;</button>
+                                        onclick="insertTemplate('\uC77C\uC0C1\uC5D0 \uC801\uC6A9\uD574\uBCFC \uC810: \n', 'learningText')">&#x1F331;
+                                        &#xC77C;&#xC0C1;&#xC5D0; &#xC801;&#xC6A9;&#xD574;&#xBCFC; &#xC810;</button>
 
                                 </div>
                                 <textarea id="learningText"
@@ -279,16 +284,14 @@
                                         </div>
                                         <div class="partner-compare-month-row">
                                             <button type="button" class="partner-compare-month-btn"
-                                                onclick="navigatePartnerCompareMonth(-1)"
-                                                aria-label="이전 달">‹</button>
+                                                onclick="navigatePartnerCompareMonth(-1)" aria-label="이전 달">‹</button>
                                             <span id="partnerCompareMonthLabel"
                                                 class="partner-compare-month-label">-</span>
                                             <select id="partnerCompareMonthSelect" class="partner-compare-month-select"
                                                 onchange="setPartnerCompareMonth(this.value)"
                                                 aria-label="비교 달 선택"></select>
                                             <button type="button" class="partner-compare-month-btn"
-                                                onclick="navigatePartnerCompareMonth(1)"
-                                                aria-label="다음 달">›</button>
+                                                onclick="navigatePartnerCompareMonth(1)" aria-label="다음 달">›</button>
                                         </div>
                                     </div>
                                     <div id="partnerCompareCalendar" class="partner-compare-calendar">
@@ -380,7 +383,8 @@
                                     <button type="button" class="template-btn"
                                         onclick="insertTemplate('🎯 다음을 위한 팁: \n', 'projectComment')">🎯 다음 팁</button>
                                 </div>
-                                <textarea id="projectComment" placeholder="👍 잘된 점: 프로젝트에서 국어·사회 자료를 비교해 핵심을 정리하고, 수학·과학 근거를 넣어 설명 흐름이 또렷했어.&#10;🤔 아쉬운 점/어려웠던 점: 영어 표현, 음악·미술 사례, 체육·도덕·실과 연결 포인트를 한 번에 담으려다 문장이 길어졌어.&#10;✨ 인상적인 순간/배운 점: 토론으로 의견을 모으고 모둠활동 발표에서 역할을 나눴더니 전달이 훨씬 안정적이었어.&#10;💪 다음 도전: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 모두 반영한 1페이지 요약본을 만들래.&#10;🎯 다음을 위한 팁: 슬라이드마다 결론 한 줄 → 근거 두 줄 순서로 고정하면 메시지가 더 선명해져."
+                                <textarea id="projectComment"
+                                    placeholder="👍 잘된 점: 프로젝트에서 국어·사회 자료를 비교해 핵심을 정리하고, 수학·과학 근거를 넣어 설명 흐름이 또렷했어.&#10;🤔 아쉬운 점/어려웠던 점: 영어 표현, 음악·미술 사례, 체육·도덕·실과 연결 포인트를 한 번에 담으려다 문장이 길어졌어.&#10;✨ 인상적인 순간/배운 점: 토론으로 의견을 모으고 모둠활동 발표에서 역할을 나눴더니 전달이 훨씬 안정적이었어.&#10;💪 다음 도전: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 모두 반영한 1페이지 요약본을 만들래.&#10;🎯 다음을 위한 팁: 슬라이드마다 결론 한 줄 → 근거 두 줄 순서로 고정하면 메시지가 더 선명해져."
                                     class="student-note-textarea"></textarea>
                             </div>
                             <button type="button" id="submitProjectBtn" onclick="submitProjectReflection()"
@@ -456,8 +460,8 @@
                                         onclick="insertTemplate('💪 다음에는 이런 점을 시도해보면 좋겠어: \n')">💪 다음 도전</button>
                                 </div>
                                 <textarea id="reviewContent"
-                                    placeholder="👍 잘한 점: 국어·토론·발표에서 핵심을 먼저 말하고, 사회·과학 근거를 붙여서 듣는 사람이 이해하기 쉬웠어.&#10;💡 이렇게 하면 더 좋을 것 같아: 수학·영어 표현을 한 줄 더 보완하고, 음악·미술 예시를 짧게 넣으면 메시지가 더 풍부해질 것 같아.&#10;✨ 특히 인상적이었던 부분은: 체육·도덕·실과 활동 내용을 모둠활동으로 연결해 역할 분담을 끝까지 지킨 점이 좋았어.&#10;💪 다음에는 이런 점을 시도해보면 좋겠어: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 체크한 뒤 피드백을 작성해봐." required
-                                    minlength="100" oninput="updateCharCount()"
+                                    placeholder="👍 잘한 점: 국어·토론·발표에서 핵심을 먼저 말하고, 사회·과학 근거를 붙여서 듣는 사람이 이해하기 쉬웠어.&#10;💡 이렇게 하면 더 좋을 것 같아: 수학·영어 표현을 한 줄 더 보완하고, 음악·미술 예시를 짧게 넣으면 메시지가 더 풍부해질 것 같아.&#10;✨ 특히 인상적이었던 부분은: 체육·도덕·실과 활동 내용을 모둠활동으로 연결해 역할 분담을 끝까지 지킨 점이 좋았어.&#10;💪 다음에는 이런 점을 시도해보면 좋겠어: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 체크한 뒤 피드백을 작성해봐."
+                                    required minlength="100" oninput="updateCharCount()"
                                     class="review-content-textarea"></textarea>
                                 <div id="charCount" class="char-count-right">
                                     0자 /
@@ -515,8 +519,7 @@
                             </div>
                             <textarea id="praiseContent" placeholder="친구에게 전하고 싶은 칭찬이나 감사의 말을 써주세요! (최소 10자)"
                                 minlength="10" class="textarea-gap-5" oninput="updatePraiseCharCount()"></textarea>
-                            <div id="praiseCharCount"
-                                class="char-count-right">0자 / 최소 10자</div>
+                            <div id="praiseCharCount" class="char-count-right">0자 / 최소 10자</div>
                             <button type="button" id="praiseSendBtn" onclick="sendPraise()">칭찬 보내기 💝</button>
                             <div id="praiseMsg" class="message"></div>
                         </div>
@@ -604,8 +607,8 @@
                             <input type="text" id="newClassCodeInput" placeholder="이동할 학급 코드 입력"
                                 class="student-class-change-input">
                         </div>
-                        <button type="button" onclick="changeClassAndReset()"
-                            class="student-class-change-btn">학급 변경하기</button>
+                        <button type="button" onclick="changeClassAndReset()" class="student-class-change-btn">학급
+                            변경하기</button>
                     </div>
                 </div>
             </div>
@@ -615,13 +618,13 @@
         <!-- 교사 메인 (기존 사용자 / 온보딩 후) -->
         <div id="teacherTab" class="hidden">
             <h1 class="app-title">
-                <img class="floating-emoji app-brand-icon" src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
+                <img class="floating-emoji app-brand-icon"
+                    src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘">
                 <span class="app-title-text">배움로그</span>
             </h1>
             <div id="teacherMain" class="hidden">
                 <div class="teacher-top-actions">
-                    <button onclick="logoutGoogle()"
-                        class="teacher-logout-btn">로그아웃</button>
+                    <button onclick="logoutGoogle()" class="teacher-logout-btn">로그아웃</button>
                 </div>
                 <!-- 새로운 하단 내비게이션 바 (교사용) -->
                 <nav class="bottom-nav teacher-bottom-nav">
@@ -681,180 +684,223 @@
                 </div>
                 <div id="diaryMiniTab" class="hidden">
                     <div class="sub-tab-container sub-tab-gap-15">
-                        <button type="button" class="sub-tab-btn active" onclick="switchTeacherDiarySubTab('overview')">📊 참여현황</button>
-                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('student')">📝 개별보기</button>
-                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('hint')">🧭 수업 개선 단서</button>
-                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('comment')">🧑‍🏫 세특생성</button>
+                        <button type="button" class="sub-tab-btn active"
+                            onclick="switchTeacherDiarySubTab('overview')">📊 참여현황</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('student')">📝
+                            개별보기</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('hint')">🧭 수업 개선
+                            단서</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('comment')">🧑‍🏫
+                            세특생성</button>
                     </div>
 
                     <div id="teacherDiaryOverviewTab">
-                    <div class="accent-box box-violet">
-                        <span class="box-label">📊 배움노트 참여 현황</span>
-                        <div class="diary-date-filter-wrap">
-                            <label class="diary-date-label">📅 조회 날짜</label>
-                            <input type="date" id="diaryViewDate" class="class-tone-input diary-date-input"
-                                onchange="handleTeacherDiaryDateChange('diaryViewDate')">
-                        </div>
-                        <div class="stats-summary diary-overview-stats">
-                            <div class="stat-card">
-                                <span class="stat-number" id="totalReflections">0</span>
-                                <span class="stat-label">총 작성 수</span>
+                        <div class="accent-box box-violet">
+                            <span class="box-label">📊 배움노트 참여 현황</span>
+                            <div class="diary-date-filter-wrap">
+                                <label class="diary-date-label">📅 조회 날짜</label>
+                                <input type="date" id="diaryViewDate" class="class-tone-input diary-date-input"
+                                    onchange="handleTeacherDiaryDateChange('diaryViewDate')">
                             </div>
-                            <div class="stat-card blue">
-                                <span class="stat-number" id="todayReflections">0</span>
-                                <span class="stat-label">선택 날짜 작성</span>
+                            <div class="stats-summary diary-overview-stats">
+                                <div class="stat-card">
+                                    <span class="stat-number" id="totalReflections">0</span>
+                                    <span class="stat-label">총 작성 수</span>
+                                </div>
+                                <div class="stat-card blue">
+                                    <span class="stat-number" id="todayReflections">0</span>
+                                    <span class="stat-label">선택 날짜 작성</span>
+                                </div>
+                            </div>
+                            <div class="diary-completion-wrap">
+                                <span class="box-label diary-completion-label">🧾 배움노트 제출 확인</span>
+                                <div id="diaryCompletionSummary" class="diary-completion-summary"></div>
+                                <div id="diaryCompletionList" class="diary-completion-list"></div>
                             </div>
                         </div>
-                        <div class="diary-completion-wrap">
-                            <span class="box-label diary-completion-label">🧾 배움노트 제출 확인</span>
-                            <div id="diaryCompletionSummary" class="diary-completion-summary"></div>
-                            <div id="diaryCompletionList" class="diary-completion-list"></div>
-                        </div>
-                    </div>
                     </div>
 
                     <div id="teacherDiaryStudentTab" class="hidden">
-                    <div class="accent-box box-teal">
-                        <span class="box-label">👤 개별 배움노트</span>
-                        <div class="diary-date-filter-wrap">
-                            <label class="diary-date-label">📅 조회 날짜</label>
-                            <input type="date" id="diaryStudentViewDate" class="class-tone-input diary-date-input"
-                                onchange="handleTeacherDiaryDateChange('diaryStudentViewDate')">
-                        </div>
-                        <div class="diary-student-selector-wrap">
-                            <label class="form-label">학생 번호 선택</label>
-                            <div id="diaryStudentSelectorList" class="diary-student-selector-grid"></div>
-                        </div>
-                        <div id="diaryStudentDetail" class="diary-student-detail">
-                            <div class="empty-state">
-                                <span class="empty-icon">📝</span>
-                                <div class="empty-desc">학생 번호를 누르면 해당 학생이 오늘 쓴 배움노트를 볼 수 있습니다.</div>
+                        <div class="accent-box box-teal">
+                            <span class="box-label">👤 개별 배움노트</span>
+                            <div class="diary-date-filter-wrap">
+                                <label class="diary-date-label">📅 조회 날짜</label>
+                                <input type="date" id="diaryStudentViewDate" class="class-tone-input diary-date-input"
+                                    onchange="handleTeacherDiaryDateChange('diaryStudentViewDate')">
+                            </div>
+                            <div class="diary-student-selector-wrap">
+                                <label class="form-label">학생 번호 선택</label>
+                                <div id="diaryStudentSelectorList" class="diary-student-selector-grid"></div>
+                            </div>
+                            <div id="diaryStudentDetail" class="diary-student-detail">
+                                <div class="empty-state">
+                                    <span class="empty-icon">📝</span>
+                                    <div class="empty-desc">학생 번호를 누르면 해당 학생이 오늘 쓴 배움노트를 볼 수 있습니다.</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     </div>
 
                     <div id="teacherDiaryHintTab" class="hidden">
-                    <div id="emotionAlertArea" class="accent-box box-violet hidden">
-                        <span class="box-label">🧭 수업 개선 단서</span>
-                        <div class="diary-date-filter-wrap">
-                            <label class="diary-date-label">📅 조회 날짜</label>
-                            <input type="date" id="diaryHintViewDate" class="class-tone-input diary-date-input"
-                                onchange="handleTeacherHintDateChange()">
-                        </div>
-                        <p class="emotion-alert-desc">
-                            1단계 날짜(이 탭 조회 날짜) → 2단계 과목 → 3단계 단서 유형(어려운 점/헷갈리는 점/아직 미해결) 순서로 확인합니다. (카드를 누르면 해당 학생 노트로 이동)
-                        </p>
-                        <div class="difficulty-map-filter-split">
-                            <div class="difficulty-map-filter-col">
-                                <div class="difficulty-map-filter-col-title">2단계 과목</div>
-                                <div id="difficultyMapTagSummary" class="difficulty-map-tag-summary"></div>
+                        <div id="emotionAlertArea" class="accent-box box-violet hidden">
+                            <span class="box-label">🧭 수업 개선 단서</span>
+                            <div class="diary-date-filter-wrap">
+                                <label class="diary-date-label">📅 조회 날짜</label>
+                                <input type="date" id="diaryHintViewDate" class="class-tone-input diary-date-input"
+                                    onchange="handleTeacherHintDateChange()">
                             </div>
-                            <div class="difficulty-map-filter-col">
-                                <div class="difficulty-map-filter-col-title">3단계 단서 유형</div>
-                                <div id="difficultyMapSignalSummary" class="difficulty-map-tag-summary difficulty-map-signal-summary"></div>
+                            <p class="emotion-alert-desc">
+                                1단계 날짜(이 탭 조회 날짜) → 2단계 과목 → 3단계 단서 유형(어려운 점/헷갈리는 점/아직 미해결) 순서로 확인합니다. (카드를 누르면 해당 학생
+                                노트로 이동)
+                            </p>
+                            <div class="difficulty-map-filter-split">
+                                <div class="difficulty-map-filter-col">
+                                    <div class="difficulty-map-filter-col-title">2단계 과목</div>
+                                    <div id="difficultyMapTagSummary" class="difficulty-map-tag-summary"></div>
+                                </div>
+                                <div class="difficulty-map-filter-col">
+                                    <div class="difficulty-map-filter-col-title">3단계 단서 유형</div>
+                                    <div id="difficultyMapSignalSummary"
+                                        class="difficulty-map-tag-summary difficulty-map-signal-summary"></div>
+                                </div>
                             </div>
+                            <div id="difficultyMapFilterHint" class="difficulty-map-filter-hint hidden"></div>
+                            <div id="emotionAlertList"></div>
                         </div>
-                        <div id="difficultyMapFilterHint" class="difficulty-map-filter-hint hidden"></div>
-                        <div id="emotionAlertList"></div>
-                    </div>
                     </div>
 
                     <!-- 교과세특(평어) 생성: 배움노트 기반 -->
 
                     <div id="teacherDiaryCommentTab" class="hidden">
-                    <div id="teacherSubjectCommentSection" class="teacher-subject-comment-card">
-                        <span class="box-label">🧑‍🏫 배움노트 기반 교과세특 (평어) 생성</span>
-                        <p class="teacher-subject-comment-desc">
-                            학생이 한 학기 동안 쓴 배움노트를 근거로, 생활기록부 속 교과 세부 특기 사항 문장을 생성합니다.
-                        </p>
+                        <div id="teacherSubjectCommentSection" class="teacher-subject-comment-card">
+                            <span class="box-label">🧑‍🏫 배움노트 기반 교과세특 (평어) 생성</span>
+                            <p class="teacher-subject-comment-desc">
+                                학생이 한 학기 동안 쓴 배움노트를 근거로, 생활기록부 속 교과 세부 특기 사항 문장을 생성합니다.
+                            </p>
 
-                        <div class="teacher-subject-comment-settings">
-                            <div class="teacher-subject-comment-row teacher-subject-comment-row-single teacher-subject-comment-row-student">
-                                <div class="teacher-subject-comment-field">
-                                    <label class="form-label">현재 선택 학생</label>
-                                    <div id="teacherSubjectCommentStudentPicker" class="teacher-subject-comment-student-picker">
-                                        <button type="button" id="teacherSubjectCommentStudent" class="teacher-subject-comment-pill teacher-subject-comment-student-trigger" onclick="toggleTeacherSubjectCommentStudentMenu()">미선택</button>
-                                        <div id="teacherSubjectCommentStudentMenu" class="teacher-subject-comment-student-menu hidden"></div>
+                            <div class="teacher-subject-comment-settings">
+                                <div
+                                    class="teacher-subject-comment-row teacher-subject-comment-row-single teacher-subject-comment-row-student">
+                                    <div class="teacher-subject-comment-field">
+                                        <label class="form-label">현재 선택 학생</label>
+                                        <div id="teacherSubjectCommentStudentPicker"
+                                            class="teacher-subject-comment-student-picker">
+                                            <button type="button" id="teacherSubjectCommentStudent"
+                                                class="teacher-subject-comment-pill teacher-subject-comment-student-trigger"
+                                                onclick="toggleTeacherSubjectCommentStudentMenu()">미선택</button>
+                                            <div id="teacherSubjectCommentStudentMenu"
+                                                class="teacher-subject-comment-student-menu hidden"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="teacher-subject-comment-row teacher-subject-comment-row-half teacher-subject-comment-row-settings">
+                                    <div class="teacher-subject-comment-field">
+                                        <label class="form-label">학교급</label>
+                                        <select id="teacherSubjectCommentSchoolLevel"
+                                            class="class-tone-input teacher-subject-comment-input">
+                                            <option value="">선택하세요</option>
+                                            <option value="초">초</option>
+                                            <option value="중">중</option>
+                                            <option value="고">고</option>
+                                        </select>
+                                    </div>
+                                    <div class="teacher-subject-comment-field">
+                                        <label class="form-label">학기</label>
+                                        <div class="teacher-subject-comment-seg">
+                                            <button type="button" id="teacherSubjectCommentSemester1"
+                                                class="seg-btn active"
+                                                onclick="setTeacherSubjectCommentSemester(1)">1학기</button>
+                                            <button type="button" id="teacherSubjectCommentSemester2" class="seg-btn"
+                                                onclick="setTeacherSubjectCommentSemester(2)">2학기</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="teacher-subject-comment-row teacher-subject-comment-row-half teacher-subject-comment-row-period">
+                                    <div class="teacher-subject-comment-field">
+                                        <label class="form-label">기간 시작일</label>
+                                        <input type="date" id="teacherSubjectCommentStart"
+                                            class="class-tone-input teacher-subject-comment-input">
+                                    </div>
+                                    <div class="teacher-subject-comment-field">
+                                        <label class="form-label">기간 종료일</label>
+                                        <input type="date" id="teacherSubjectCommentEnd"
+                                            class="class-tone-input teacher-subject-comment-input">
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="teacher-subject-comment-row teacher-subject-comment-row-single teacher-subject-comment-row-tags">
+                                    <div class="teacher-subject-comment-field">
+                                        <label class="form-label">과목 태그 (1개 선택)</label>
+                                        <div id="teacherSubjectCommentSubjectTags"
+                                            class="subject-tags teacher-subject-comment-tags"></div>
+                                        <div id="teacherSubjectCommentCustomSubjectWrap"
+                                            class="teacher-subject-comment-custom-wrap hidden">
+                                            <input type="text" id="teacherSubjectCommentCustomSubjectInput"
+                                                class="class-tone-input teacher-subject-comment-input"
+                                                placeholder="기타 과목명 입력 (예: 물리, 지리, 프로그래밍)">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="teacher-subject-comment-row teacher-subject-comment-row-half teacher-subject-comment-row-settings">
-                                <div class="teacher-subject-comment-field">
-                                    <label class="form-label">학교급</label>
-                                    <select id="teacherSubjectCommentSchoolLevel" class="class-tone-input teacher-subject-comment-input">
-                                        <option value="">선택하세요</option>
-                                        <option value="초">초</option>
-                                        <option value="중">중</option>
-                                        <option value="고">고</option>
-                                    </select>
+                            <div class="teacher-subject-comment-actions">
+                                <button type="button" id="teacherSubjectCommentPreviewBtn"
+                                    class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary"
+                                    onclick="previewTeacherSubjectCommentSources()">조회하기</button>
+                                <button type="button" id="teacherSubjectCommentGenerateBtn"
+                                    class="teacher-subject-comment-btn teacher-subject-comment-btn-primary"
+                                    onclick="generateTeacherSubjectComment(false)">생성하기</button>
+                                <div class="teacher-subject-comment-action-row">
+                                    <button type="button" id="teacherSubjectCommentRegenerateBtn"
+                                        class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary"
+                                        onclick="generateTeacherSubjectComment(true)">재생성</button>
+                                    <button type="button" id="teacherSubjectCommentSaveBtn"
+                                        class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary"
+                                        onclick="saveTeacherSubjectComment(this)">저장</button>
                                 </div>
-                                <div class="teacher-subject-comment-field">
-                                    <label class="form-label">학기</label>
-                                    <div class="teacher-subject-comment-seg">
-                                        <button type="button" id="teacherSubjectCommentSemester1" class="seg-btn active" onclick="setTeacherSubjectCommentSemester(1)">1학기</button>
-                                        <button type="button" id="teacherSubjectCommentSemester2" class="seg-btn" onclick="setTeacherSubjectCommentSemester(2)">2학기</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="teacher-subject-comment-row teacher-subject-comment-row-half teacher-subject-comment-row-period">
-                                <div class="teacher-subject-comment-field">
-                                    <label class="form-label">기간 시작일</label>
-                                    <input type="date" id="teacherSubjectCommentStart" class="class-tone-input teacher-subject-comment-input">
-                                </div>
-                                <div class="teacher-subject-comment-field">
-                                    <label class="form-label">기간 종료일</label>
-                                    <input type="date" id="teacherSubjectCommentEnd" class="class-tone-input teacher-subject-comment-input">
+                                <div class="teacher-subject-comment-action-row">
+                                    <button type="button" id="teacherSubjectCommentCopyBtn"
+                                        class="teacher-subject-comment-btn teacher-subject-comment-btn-utility"
+                                        onclick="copyTeacherSubjectComment()">복사</button>
+                                    <button type="button" id="teacherSubjectCommentExportBtn"
+                                        class="teacher-subject-comment-btn teacher-subject-comment-btn-utility"
+                                        onclick="openTeacherSubjectCommentExportModal()">.xlsx 다운로드</button>
                                 </div>
                             </div>
 
-                            <div class="teacher-subject-comment-row teacher-subject-comment-row-single teacher-subject-comment-row-tags">
-                                <div class="teacher-subject-comment-field">
-                                    <label class="form-label">과목 태그 (1개 선택)</label>
-                                    <div id="teacherSubjectCommentSubjectTags" class="subject-tags teacher-subject-comment-tags"></div>
-                                    <div id="teacherSubjectCommentCustomSubjectWrap" class="teacher-subject-comment-custom-wrap hidden">
-                                        <input type="text" id="teacherSubjectCommentCustomSubjectInput" class="class-tone-input teacher-subject-comment-input" placeholder="기타 과목명 입력 (예: 물리, 지리, 프로그래밍)">
-                                    </div>
+                            <div id="teacherSubjectCommentResultWrap" class="teacher-subject-comment-result-wrap">
+                                <div class="teacher-subject-comment-meta">
+                                    <span>배움노트 <strong id="teacherSubjectCommentNoteCount">-</strong>건</span>
+                                    <span id="teacherSubjectCommentStatus"
+                                        class="teacher-subject-comment-status"></span>
+                                </div>
+                                <div id="teacherSubjectCommentSourceWrap"
+                                    class="hidden teacher-subject-comment-source-wrap">
+                                    <div class="teacher-subject-comment-source-head">📚 선택 과목 원문 조회</div>
+                                    <div id="teacherSubjectCommentSourceList"
+                                        class="teacher-subject-comment-source-list"></div>
+                                </div>
+                                <div id="teacherSubjectCommentEmpty" class="empty-state teacher-subject-comment-empty">
+                                    <span class="empty-icon">📚</span>
+                                    <div class="empty-title">설정을 선택해 생성해보세요</div>
+                                    <div class="empty-desc">학생/학기/기간/과목/학교급을 선택한 후 생성하기를 눌러주세요.</div>
+                                </div>
+                                <pre id="teacherSubjectCommentResult"
+                                    class="teacher-subject-comment-result hidden"></pre>
+                                <div id="teacherSubjectCommentError"
+                                    class="message error teacher-subject-comment-error"></div>
+                                <div id="teacherSubjectCommentRetry" class="hidden teacher-subject-comment-retry">
+                                    <button type="button"
+                                        class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary teacher-subject-comment-retry-btn"
+                                        onclick="generateTeacherSubjectComment(true)">다시 시도</button>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="teacher-subject-comment-actions">
-                            <button type="button" id="teacherSubjectCommentPreviewBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary" onclick="previewTeacherSubjectCommentSources()">조회하기</button>
-                            <button type="button" id="teacherSubjectCommentGenerateBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-primary" onclick="generateTeacherSubjectComment(false)">생성하기</button>
-                            <div class="teacher-subject-comment-action-row">
-                                <button type="button" id="teacherSubjectCommentRegenerateBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary" onclick="generateTeacherSubjectComment(true)">재생성</button>
-                                <button type="button" id="teacherSubjectCommentSaveBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary" onclick="saveTeacherSubjectComment(this)">저장</button>
-                            </div>
-                            <div class="teacher-subject-comment-action-row">
-                                <button type="button" id="teacherSubjectCommentCopyBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-utility" onclick="copyTeacherSubjectComment()">복사</button>
-                                <button type="button" id="teacherSubjectCommentExportBtn" class="teacher-subject-comment-btn teacher-subject-comment-btn-utility" onclick="openTeacherSubjectCommentExportModal()">.xlsx 다운로드</button>
-                            </div>
-                        </div>
-
-                        <div id="teacherSubjectCommentResultWrap" class="teacher-subject-comment-result-wrap">
-                            <div class="teacher-subject-comment-meta">
-                                <span>배움노트 <strong id="teacherSubjectCommentNoteCount">-</strong>건</span>
-                                <span id="teacherSubjectCommentStatus" class="teacher-subject-comment-status"></span>
-                            </div>
-                            <div id="teacherSubjectCommentSourceWrap" class="hidden teacher-subject-comment-source-wrap">
-                                <div class="teacher-subject-comment-source-head">📚 선택 과목 원문 조회</div>
-                                <div id="teacherSubjectCommentSourceList" class="teacher-subject-comment-source-list"></div>
-                            </div>
-                            <div id="teacherSubjectCommentEmpty" class="empty-state teacher-subject-comment-empty">
-                                <span class="empty-icon">📚</span>
-                                <div class="empty-title">설정을 선택해 생성해보세요</div>
-                                <div class="empty-desc">학생/학기/기간/과목/학교급을 선택한 후 생성하기를 눌러주세요.</div>
-                            </div>
-                            <pre id="teacherSubjectCommentResult" class="teacher-subject-comment-result hidden"></pre>
-                            <div id="teacherSubjectCommentError" class="message error teacher-subject-comment-error"></div>
-                            <div id="teacherSubjectCommentRetry" class="hidden teacher-subject-comment-retry">
-                                <button type="button" class="teacher-subject-comment-btn teacher-subject-comment-btn-secondary teacher-subject-comment-retry-btn" onclick="generateTeacherSubjectComment(true)">다시 시도</button>
-                            </div>
-                        </div>
-                    </div>
                     </div>
                 </div>
                 <div id="praiseMiniTab" class="hidden">
@@ -865,79 +911,80 @@
                             onclick="switchTeacherPraiseSubTab('letter')">편지 관리</button>
                     </div>
                     <div id="teacherPraiseManagePanel">
-                    <!-- 자동 승인 설정 -->
-                    <div class="accent-box praise-approval-card">
-                        <div class="praise-approval-head">
-                            <span class="praise-approval-icon">✨</span>
-                            <div>
-                                <div class="praise-approval-title">칭찬 자동 승인 모드
+                        <!-- 자동 승인 설정 -->
+                        <div class="accent-box praise-approval-card">
+                            <div class="praise-approval-head">
+                                <span class="praise-approval-icon">✨</span>
+                                <div>
+                                    <div class="praise-approval-title">칭찬 자동 승인 모드
+                                    </div>
+                                    <div class="praise-approval-desc">활성화하면 학생들의 칭찬이 대기 없이 즉시
+                                        전달됩니다.
+                                    </div>
                                 </div>
-                                <div class="praise-approval-desc">활성화하면 학생들의 칭찬이 대기 없이 즉시
-                                    전달됩니다.
+                            </div>
+                            <label class="switch-container">
+                                <input type="checkbox" id="autoApproveToggle" onchange="toggleAutoApprovePraise(this)">
+                                <span class="switch-slider"></span>
+                            </label>
+                        </div>
+                        <!-- 통계 요약 -->
+                        <div id="praiseStatsArea" class="praise-stats-container">
+                            <div class="praise-stat-card is-total">
+                                <div class="praise-stat-value" id="praiseTotalCount">-
+                                </div>
+                                <div class="praise-stat-label">전체 칭찬</div>
+                            </div>
+                            <div class="praise-stat-card is-pending">
+                                <div class="praise-stat-value" id="praisePendingCount">-
+                                </div>
+                                <div class="praise-stat-label">대기 중</div>
+                            </div>
+                            <div class="praise-stat-card is-approved">
+                                <div class="praise-stat-value" id="praiseApprovedCount">
+                                    -
+                                </div>
+                                <div class="praise-stat-label">승인 완료</div>
+                            </div>
+                        </div>
+                        <!-- 대기 중인 칭찬 -->
+                        <div id="diaryParticipationCard" class="accent-box box-violet">
+                            <span class="box-label">⏳ 승인 대기 중인 칭찬</span>
+                            <div id="pendingPraiseList">
+                                <div class="empty-state"><span class="empty-icon">💌</span>
+                                    <div class="empty-desc">대기 중인 칭찬이 없습니다</div>
                                 </div>
                             </div>
                         </div>
-                        <label class="switch-container">
-                            <input type="checkbox" id="autoApproveToggle" onchange="toggleAutoApprovePraise(this)">
-                            <span class="switch-slider"></span>
-                        </label>
-                    </div>
-                    <!-- 통계 요약 -->
-                    <div id="praiseStatsArea" class="praise-stats-container">
-                        <div class="praise-stat-card is-total">
-                            <div class="praise-stat-value" id="praiseTotalCount">-
-                            </div>
-                            <div class="praise-stat-label">전체 칭찬</div>
-                        </div>
-                        <div class="praise-stat-card is-pending">
-                            <div class="praise-stat-value" id="praisePendingCount">-
-                            </div>
-                            <div class="praise-stat-label">대기 중</div>
-                        </div>
-                        <div class="praise-stat-card is-approved">
-                            <div class="praise-stat-value" id="praiseApprovedCount">
-                                -
-                            </div>
-                            <div class="praise-stat-label">승인 완료</div>
-                        </div>
-                    </div>
-                    <!-- 대기 중인 칭찬 -->
-                    <div id="diaryParticipationCard" class="accent-box box-violet">
-                        <span class="box-label">⏳ 승인 대기 중인 칭찬</span>
-                        <div id="pendingPraiseList">
-                            <div class="empty-state"><span class="empty-icon">💌</span>
-                                <div class="empty-desc">대기 중인 칭찬이 없습니다</div>
+                        <!-- 승인된 칭찬 전체 목록 -->
+                        <div class="accent-box box-violet">
+                            <span class="box-label">✅ 승인된 칭찬 목록</span>
+                            <div id="approvedPraiseList">
+                                <div class="empty-state"><span class="empty-icon">📬</span>
+                                    <div class="empty-desc">승인된 칭찬이 없습니다</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <!-- 승인된 칭찬 전체 목록 -->
-                    <div class="accent-box box-violet">
-                        <span class="box-label">✅ 승인된 칭찬 목록</span>
-                        <div id="approvedPraiseList">
-                            <div class="empty-state"><span class="empty-icon">📬</span>
-                                <div class="empty-desc">승인된 칭찬이 없습니다</div>
-                            </div>
-                        </div>
-                    </div>
                     </div>
                     <div id="teacherLetterManagePanel" class="hidden">
-                    <!-- 학생 메시지 (배움노트에서 이전) -->
-                    <div class="accent-box box-teal">
-                        <span class="box-label">💬 학생 메시지</span>
-                        <div class="teacher-message-date-wrap">
-                            <label class="teacher-message-date-label">📅 조회
-                                날짜</label>
-                            <input type="date" id="messageViewDate" class="class-tone-input teacher-message-date-input"
-                                onchange="loadTeacherMessages()">
-                        </div>
-                        <div id="messageList" class="teacher-message-list">
-                            <div class="empty-state">
-                                <span class="empty-icon">💌</span>
-                                <div class="empty-title">메시지가 없습니다</div>
-                                <div class="empty-desc">날짜를 선택하면<br>학생들의 메시지를 볼 수 있습니다.</div>
+                        <!-- 학생 메시지 (배움노트에서 이전) -->
+                        <div class="accent-box box-teal">
+                            <span class="box-label">💬 학생 메시지</span>
+                            <div class="teacher-message-date-wrap">
+                                <label class="teacher-message-date-label">📅 조회
+                                    날짜</label>
+                                <input type="date" id="messageViewDate"
+                                    class="class-tone-input teacher-message-date-input"
+                                    onchange="loadTeacherMessages()">
+                            </div>
+                            <div id="messageList" class="teacher-message-list">
+                                <div class="empty-state">
+                                    <span class="empty-icon">💌</span>
+                                    <div class="empty-title">메시지가 없습니다</div>
+                                    <div class="empty-desc">날짜를 선택하면<br>학생들의 메시지를 볼 수 있습니다.</div>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     </div>
                 </div>
                 <div id="criteriaMiniTab" class="hidden">
@@ -1065,11 +1112,13 @@
                         <div id="classInfoCard" class="accent-box box-amber class-tone-section">
                             <span class="box-label">📋 우리 학급 정보</span>
                             <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                                <div class="settings-field" style="flex:1;"><label>학급명</label><input type="text" id="settingClassName" class="class-tone-input"
-                                        placeholder="예: 부평서초6-1" style="font-family:'Jua', sans-serif !important;">
+                                <div class="settings-field" style="flex:1;"><label>학급명</label><input type="text"
+                                        id="settingClassName" class="class-tone-input" placeholder="예: 부평서초6-1"
+                                        style="font-family:'Jua', sans-serif !important;">
                                 </div>
-                                <div class="settings-field" style="flex:1;"><label>클래스 코드</label><input type="text" id="settingClassCode" class="class-tone-input"
-                                        placeholder="예: 부평서초34" style="font-family:'Jua', sans-serif !important;"></div>
+                                <div class="settings-field" style="flex:1;"><label>클래스 코드</label><input type="text"
+                                        id="settingClassCode" class="class-tone-input" placeholder="예: 부평서초34"
+                                        style="font-family:'Jua', sans-serif !important;"></div>
                             </div>
                             <button onclick="saveClassInfo(this)" style="background:var(--color-result);">💾 학급 정보
                                 저장하기</button>
@@ -1078,12 +1127,15 @@
                         </div>
                         <div id="classCompositionCard" class="accent-box box-violet class-tone-section">
                             <span class="box-label">🏫 우리 반 구성 설정</span>
-                            <div id="classCompositionFields" class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                                <div class="settings-field" style="flex:1;"><label>👤 학생 수</label><input type="number" id="settingStudentCount" class="class-tone-input"
-                                        min="1" max="50" placeholder="30" style="font-family:'Jua', sans-serif !important;">
+                            <div id="classCompositionFields" class="settings-two-col"
+                                style="display:flex; gap:15px; margin-bottom:15px;">
+                                <div class="settings-field" style="flex:1;"><label>👤 학생 수</label><input type="number"
+                                        id="settingStudentCount" class="class-tone-input" min="1" max="50"
+                                        placeholder="30" style="font-family:'Jua', sans-serif !important;">
                                 </div>
-                                <div class="settings-field" style="flex:1;"><label>👥 모둠 수</label><input type="number" id="settingGroupCount" class="class-tone-input"
-                                        min="1" max="20" placeholder="6" style="font-family:'Jua', sans-serif !important;">
+                                <div class="settings-field" style="flex:1;"><label>👥 모둠 수</label><input type="number"
+                                        id="settingGroupCount" class="class-tone-input" min="1" max="20" placeholder="6"
+                                        style="font-family:'Jua', sans-serif !important;">
                                 </div>
                             </div>
                             <button onclick="saveClassSettingsUI(this)" style="background:var(--color-teacher);">💾 반 구성
@@ -1097,18 +1149,23 @@
                                 여기서 저장한 학기 기간은 스스로배움의 세특생성 1학기/2학기 버튼과 연동됩니다.
                             </p>
                             <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:12px;">
-                                <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input type="date" id="settingSemester1Start" class="class-tone-input"
+                                <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input type="date"
+                                        id="settingSemester1Start" class="class-tone-input"
                                         style="font-family:'Jua', sans-serif !important;"></div>
-                                <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input type="date" id="settingSemester1End" class="class-tone-input"
+                                <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input type="date"
+                                        id="settingSemester1End" class="class-tone-input"
                                         style="font-family:'Jua', sans-serif !important;"></div>
                             </div>
                             <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                                <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input type="date" id="settingSemester2Start" class="class-tone-input"
+                                <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input type="date"
+                                        id="settingSemester2Start" class="class-tone-input"
                                         style="font-family:'Jua', sans-serif !important;"></div>
-                                <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input type="date" id="settingSemester2End" class="class-tone-input"
+                                <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input type="date"
+                                        id="settingSemester2End" class="class-tone-input"
                                         style="font-family:'Jua', sans-serif !important;"></div>
                             </div>
-                            <button onclick="saveTeacherSemesterSettingsUI(this)" style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
+                            <button onclick="saveTeacherSemesterSettingsUI(this)"
+                                style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
                         </div>
                         <div class="accent-box box-blue class-tone-section">
                             <span class="box-label">👥 학생 번호 매핑 현황</span>
@@ -1119,7 +1176,8 @@
                                 모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.
                             </p>
                             <div id="studentMappingGrid" class="student-manage-grid"></div>
-                            <button type="button" id="saveGroupMappingBtn" onclick="saveStudentGroupMappings(this)" class="teacher-group-mapping-save-btn" disabled>💾 모둠 배정 일괄 저장</button>
+                            <button type="button" id="saveGroupMappingBtn" onclick="saveStudentGroupMappings(this)"
+                                class="teacher-group-mapping-save-btn" disabled>💾 모둠 배정 일괄 저장</button>
                         </div>
                         <div class="accent-box box-red">
                             <span class="box-label" style="color:var(--color-danger);">⚠️ 데이터 초기화</span>
@@ -1145,8 +1203,10 @@
                             <div class="accent-box box-amber teacher-partner-reference-card">
                                 <span class="box-label">📘 교사용 레퍼런스: 성장 파트너 유형 시스템</span>
                                 <div class="teacher-partner-reference-doc">
-                                    <div id="teacherPartnerReferenceCards" class="teacher-partner-reference-cards"></div>
-                                    <pre id="teacherPartnerReferenceRaw" class="teacher-partner-reference-source hidden">📘 교사용 레퍼런스: 성장 파트너 유형 시스템
+                                    <div id="teacherPartnerReferenceCards" class="teacher-partner-reference-cards">
+                                    </div>
+                                    <pre id="teacherPartnerReferenceRaw"
+                                        class="teacher-partner-reference-source hidden">📘 교사용 레퍼런스: 성장 파트너 유형 시스템
 📌 Part 1. 질문 구조 (8문항 × 4축)
 이 시스템은 학생이 **"어떤 방식으로 피드백을 받고 싶어하는가"**를 파악하기 위한 것입니다. 성격 자체를 분류하는 것이 아니라, 학습 피드백 수용 선호도를 측정합니다.
 
@@ -1422,7 +1482,8 @@ B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
                 <div class="teacher-subject-comment-export-grid">
                     <div>
                         <label class="teacher-subject-comment-export-label">학기</label>
-                        <select id="teacherSubjectCommentExportSemester" class="class-tone-input teacher-subject-comment-export-input">
+                        <select id="teacherSubjectCommentExportSemester"
+                            class="class-tone-input teacher-subject-comment-export-input">
                             <option value="all" selected>전체</option>
                             <option value="1">1학기</option>
                             <option value="2">2학기</option>
@@ -1430,13 +1491,15 @@ B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
                     </div>
                     <div>
                         <label class="teacher-subject-comment-export-label">과목</label>
-                        <select id="teacherSubjectCommentExportSubject" class="class-tone-input teacher-subject-comment-export-input">
+                        <select id="teacherSubjectCommentExportSubject"
+                            class="class-tone-input teacher-subject-comment-export-input">
                             <option value="all" selected>전체</option>
                         </select>
                     </div>
                     <div>
                         <label class="teacher-subject-comment-export-label">대상</label>
-                        <select id="teacherSubjectCommentExportTarget" class="class-tone-input teacher-subject-comment-export-input">
+                        <select id="teacherSubjectCommentExportTarget"
+                            class="class-tone-input teacher-subject-comment-export-input">
                             <option value="all" selected>전체 학생</option>
                             <option value="selected">선택 학생</option>
                             <option value="current">현재 학생</option>
@@ -1444,7 +1507,8 @@ B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
                     </div>
                     <div>
                         <label class="teacher-subject-comment-export-label">학교급</label>
-                        <select id="teacherSubjectCommentExportSchoolLevel" class="class-tone-input teacher-subject-comment-export-input">
+                        <select id="teacherSubjectCommentExportSchoolLevel"
+                            class="class-tone-input teacher-subject-comment-export-input">
                             <option value="">(설정 사용)</option>
                             <option value="초">초</option>
                             <option value="중">중</option>
@@ -1453,16 +1517,20 @@ B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
                     </div>
                 </div>
 
-                <div id="teacherSubjectCommentExportSelectedArea" class="hidden teacher-subject-comment-export-selected">
+                <div id="teacherSubjectCommentExportSelectedArea"
+                    class="hidden teacher-subject-comment-export-selected">
                     <div class="teacher-subject-comment-export-selected-title">선택 학생(번호)</div>
-                    <div id="teacherSubjectCommentExportStudentGrid" class="teacher-subject-comment-export-student-grid"></div>
+                    <div id="teacherSubjectCommentExportStudentGrid"
+                        class="teacher-subject-comment-export-student-grid"></div>
                 </div>
 
                 <div id="teacherSubjectCommentExportMsg" class="message teacher-subject-comment-export-msg"></div>
             </div>
             <div class="modal-buttons">
-                <button class="modal-btn cancel" type="button" onclick="closeTeacherSubjectCommentExportModal()">취소</button>
-                <button class="modal-btn confirm" type="button" onclick="downloadTeacherSubjectCommentXlsx()">다운로드</button>
+                <button class="modal-btn cancel" type="button"
+                    onclick="closeTeacherSubjectCommentExportModal()">취소</button>
+                <button class="modal-btn confirm" type="button"
+                    onclick="downloadTeacherSubjectCommentXlsx()">다운로드</button>
             </div>
         </div>
     </div>
@@ -1473,5 +1541,3 @@ B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
 </body>
 
 </html>
-
-
