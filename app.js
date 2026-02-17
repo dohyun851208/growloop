@@ -4834,12 +4834,32 @@ function normalizePersonalityTypeCandidate(value) {
   return normalized ? normalized : null;
 }
 
+function expandPersonalityTypeCandidateVariants(value) {
+  const base = normalizePersonalityTypeCandidate(value);
+  if (!base) return [];
+
+  const variants = [];
+  const push = (v) => {
+    const normalized = normalizePersonalityTypeCandidate(v);
+    if (!normalized) return;
+    if (!variants.includes(normalized)) variants.push(normalized);
+  };
+
+  push(base);
+  push(base.replace(/\s+/g, ''));
+  push(base.replace(/큰\s*그림형/g, '큰그림형'));
+  push(base.replace(/큰그림형/g, '큰 그림형'));
+
+  return variants;
+}
+
 function collectPersonalityTypeCandidates(partner, existingType, sampledTypes) {
   const candidates = [];
   const push = (value) => {
-    const normalized = normalizePersonalityTypeCandidate(value);
-    if (!normalized) return;
-    if (!candidates.includes(normalized)) candidates.push(normalized);
+    const variants = expandPersonalityTypeCandidateVariants(value);
+    variants.forEach(v => {
+      if (!candidates.includes(v)) candidates.push(v);
+    });
   };
 
   push(existingType);
