@@ -243,17 +243,17 @@
                         <!-- 성장 대시보드 탭 -->
                         <div id="dashboardTab" class="hidden">
                             <div class="accent-box dashboard-overview-card">
-                                <span class="box-label">👀 한눈에 보기</span>
+                                <span class="box-label">📌 나의 성장 요약</span>
                                 <div id="streakBadgeArea" class="streak-badge-area dashboard-overview-streak">
                                     <div id="streakDisplay" class="streak-display"></div>
                                     <div id="badgeContainer" class="badge-container-center"></div>
                                 </div>
                                 <div class="dashboard-overview-divider"></div>
                                 <div class="dashboard-overview-keywords">
-                                    <div class="dashboard-overview-subtitle">💡 나의 배움 키워드</div>
+                                    <div class="dashboard-overview-subtitle">나의 성장 신호</div>
                                     <div id="learningWordCloud" class="word-cloud">
-                                        <div class="empty-state"><span class="empty-icon">💡</span>
-                                            <div class="empty-desc">기록이 쌓이면 자주 등장한 키워드가 보여요!</div>
+                                        <div class="empty-state">
+                                            <div class="empty-desc">신호를 보려면 기록이 필요해요.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -1032,6 +1032,25 @@
                             저장하기</button>
                         <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
                             학생 수와 모둠 수를 설정합니다.</p>
+                    </div>
+                    <div id="classSemesterRangeCard" class="accent-box box-slate class-tone-section">
+                        <span class="box-label">📅 학기 기준 설정</span>
+                        <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
+                            여기서 저장한 학기 기간은 스스로배움의 세특생성 1학기/2학기 버튼과 연동됩니다.
+                        </p>
+                        <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:12px;">
+                            <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input type="date" id="settingSemester1Start" class="class-tone-input"
+                                    style="font-family:'Jua', sans-serif !important;"></div>
+                            <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input type="date" id="settingSemester1End" class="class-tone-input"
+                                    style="font-family:'Jua', sans-serif !important;"></div>
+                        </div>
+                        <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
+                            <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input type="date" id="settingSemester2Start" class="class-tone-input"
+                                    style="font-family:'Jua', sans-serif !important;"></div>
+                            <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input type="date" id="settingSemester2End" class="class-tone-input"
+                                    style="font-family:'Jua', sans-serif !important;"></div>
+                        </div>
+                        <button onclick="saveTeacherSemesterSettingsUI(this)" style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
                     </div>
                     <div class="accent-box box-blue class-tone-section">
                         <span class="box-label">👥 학생 번호 매핑 현황</span>

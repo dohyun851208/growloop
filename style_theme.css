@@ -744,6 +744,11 @@ input[type="date"].class-tone-input {
     background: #ffffff !important;
 }
 
+#studentTab #studentMainSection #dashboardTab .dashboard-overview-card > .box-label {
+    font-size: 1.16rem !important;
+    margin-bottom: 12px;
+}
+
 .dashboard-overview-streak {
     padding: 2px 0 6px;
 }
@@ -756,20 +761,33 @@ input[type="date"].class-tone-input {
 
 .dashboard-overview-subtitle {
     text-align: center;
-    font-size: 0.95rem;
+    font-size: 1.06rem;
     font-weight: 700;
     color: #374151;
-    margin-bottom: 7px;
+    margin-bottom: 10px;
 }
 
 .dashboard-overview-card .word-cloud {
-    min-height: 80px;
+    min-height: 88px;
     padding: 8px 2px 4px;
-    gap: 8px;
+}
+
+.dashboard-overview-card .learning-signals-host.word-cloud {
+    min-height: 0;
+    padding: 4px 0 0;
+}
+
+.dashboard-overview-card .learning-signal-card {
+    box-shadow: none;
+}
+
+.dashboard-overview-card .learning-signal-title,
+.dashboard-overview-card .learning-signal-score-value {
+    color: #1f2937;
 }
 
 .streak-display {
-    font-size: 1.3rem;
+    font-size: 1.42rem;
     font-weight: 700;
     margin-bottom: 8px;
 }

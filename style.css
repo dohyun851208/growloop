@@ -2664,6 +2664,252 @@ button:disabled {
 .word-cloud-item.size-4 { font-size: 1.2rem; }
 .word-cloud-item.size-5 { font-size: 1.4rem; font-weight: 800; }
 
+.learning-signals-host.word-cloud {
+    display: block;
+    min-height: 0;
+    padding: 0;
+}
+
+.learning-signals-panel {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.learning-signals-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 0.83rem;
+    color: #64748b;
+}
+
+.learning-signals-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.learning-signal-card {
+    border: 1.5px solid #dbe5ef;
+    border-radius: 14px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    overflow: hidden;
+    min-height: 0;
+}
+
+.learning-signal-card.tone-thinking {
+    border-color: #bfdbfe;
+    background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%);
+}
+
+.learning-signal-card.tone-action {
+    border-color: #b7d9d2;
+    background: linear-gradient(180deg, #f3faf8 0%, #ffffff 100%);
+}
+
+.learning-signal-card.tone-fit {
+    border-color: #ddd6fe;
+    background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+}
+
+.learning-signal-card.is-locked {
+    opacity: 0.95;
+}
+
+.learning-signal-summary {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    padding: 11px 12px;
+}
+
+.learning-signal-summary:hover {
+    background: rgba(15, 23, 42, 0.03);
+}
+
+.learning-signal-summary:focus-visible {
+    outline: none;
+    background: rgba(15, 23, 42, 0.05);
+}
+
+.learning-signal-summary::-webkit-details-marker {
+    display: none;
+}
+
+.learning-signal-summary::marker {
+    content: '';
+}
+
+.learning-signal-summary-state {
+    font-size: 0.9rem;
+    color: #64748b;
+    font-weight: 700;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.learning-signal-summary-state::before {
+    content: '⌄';
+}
+
+.learning-signal-card[open] .learning-signal-summary-state::before {
+    content: '⌃';
+}
+
+.learning-signal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    flex: 1;
+}
+
+.learning-signal-content {
+    border-top: 1px solid #dbe5ef;
+    padding: 9px 12px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.learning-signal-title {
+    margin: 0;
+    font-size: 0.96rem;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.learning-signal-score {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.learning-signal-score-value {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.learning-signal-score-unit {
+    font-size: 0.84rem;
+    color: #475569;
+}
+
+.learning-signal-delta {
+    width: fit-content;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    color: #334155;
+}
+
+.learning-signal-delta.is-up {
+    color: #166534;
+    background: #dcfce7;
+    border-color: #86efac;
+}
+
+.learning-signal-delta.is-flat {
+    color: #1e3a8a;
+    background: #dbeafe;
+    border-color: #93c5fd;
+}
+
+.learning-signal-delta.is-down {
+    color: #991b1b;
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
+.learning-signal-delta.is-na {
+    color: #6b7280;
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.learning-signal-desc {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    color: #334155;
+}
+
+.learning-signal-evidence {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.learning-signal-evidence-item {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 7px 8px;
+}
+
+.learning-signal-evidence-date {
+    flex-shrink: 0;
+    color: #475569;
+    font-weight: 700;
+}
+
+.learning-signal-evidence-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    color: #1f2937;
+}
+
+.learning-signal-highlight {
+    display: inline;
+    padding: 0 1px;
+    border-radius: 3px;
+    font-weight: inherit;
+    color: inherit;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+.learning-signal-highlight.tone-thinking {
+    background: rgba(59, 130, 246, 0.14);
+}
+
+.learning-signal-highlight.tone-action {
+    background: rgba(20, 184, 166, 0.12);
+}
+
+.learning-signal-highlight.tone-fit {
+    background: rgba(139, 92, 246, 0.12);
+}
+
+.learning-signal-empty {
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: #64748b;
+}
+
 /* ============================================ */
 /* 諭껋? */
 /* ============================================ */
@@ -3215,6 +3461,19 @@ button:disabled {
     overflow-wrap: anywhere;
 }
 @media (max-width: 768px) {
+    .learning-signals-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .learning-signals-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .learning-signal-card {
+        min-height: 0;
+    }
+
     .subject-chart-shell {
         padding: 10px;
     }

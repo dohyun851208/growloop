@@ -46,6 +46,21 @@ const THINK_KEYWORDS = [
   '다시', '고민', '깨달', '알게', '이해가',
   '처음에', '그런데', '결국', '바꿔', '수정'
 ];
+const DASHBOARD_SIGNAL_WINDOW_DAYS = 14;
+const DASHBOARD_EFFORT_KEYWORDS = [
+  '노력', '연습', '꾸준', '반복', '계속', '끝까지',
+  '실천', '적용', '시도', '재시도', '복습', '점검',
+  '다음', '목표', '체크', '루틴', '습관', '집중',
+  '인내', '다짐', '성실', '매일', '분석', '준비'
+];
+const DASHBOARD_INFO_DETAIL_KEYWORDS = ['근거', '세부', '정확', '단계', '순서', '기준', '오류', '수정', '비교', '분석', '검토'];
+const DASHBOARD_INFO_BIG_PICTURE_KEYWORDS = ['전체', '큰 그림', '흐름', '맥락', '요약', '핵심', '패턴', '연결', '관점', '방향'];
+const DASHBOARD_EXEC_PLAN_KEYWORDS = ['계획', '목표', '순서', '점검', '체크', '루틴', '복습', '준비', '실행'];
+const DASHBOARD_EXEC_EXPLORE_KEYWORDS = ['탐색', '시도', '실험', '질문', '발견', '도전', '확장', '새로운', '다르게'];
+const DASHBOARD_SUPPORT_COLLAB_TAGS = ['모둠활동', '토론', '발표'];
+const DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS = ['함께', '친구', '모둠', '토론', '발표', '협력', '의견', '역할', '같이', '의논', '도움', '서로', '팀', '협업'];
+const DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS = ['혼자', '스스로', '개별', '집중', '자습', '혼자서', '개인', '자기주도'];
+const DASHBOARD_SUPPORT_SOLO_TAGS = ['개별활동', '자습'];
 const TOPIC_TOKEN_STOPWORDS = new Set([
   '수업', '학습', '내용', '오늘', '이번', '저번', '활동', '과정', '결과', '부분',
   '시간', '경우', '생각', '느낌', '기록', '정리', '했다', '했음', '했다가', '했는데',
@@ -1502,6 +1517,7 @@ async function loadTeacherSubjectCommentSettings() {
     const info = await getClassInfo();
     if (!info) return;
     teacherSubjectCommentLastSettings = info;
+    loadTeacherSemesterSettingsUI(info);
 
     const mapped = normalizeSchoolLevel(info.school_level || '');
     if (mapped && !sl.value) sl.value = mapped;
@@ -1545,6 +1561,7 @@ function queueSaveTeacherSubjectCommentSettings() {
       const { error } = await db.from('classes').update(patch).eq('class_code', currentClassCode);
       if (error) throw error;
       if (teacherSubjectCommentLastSettings) teacherSubjectCommentLastSettings = { ...teacherSubjectCommentLastSettings, ...patch };
+      loadTeacherSemesterSettingsUI(teacherSubjectCommentLastSettings);
     } catch (err) {
       console.warn('Failed to save teacher subject comment settings:', err);
       showModal({
@@ -3368,6 +3385,85 @@ async function loadClassSettingsUI() {
   if (info) {
     document.getElementById('settingClassName').value = info.class_name || '';
     document.getElementById('settingClassCode').value = info.class_code || '';
+    teacherSubjectCommentLastSettings = { ...(teacherSubjectCommentLastSettings || {}), ...info };
+  }
+  loadTeacherSemesterSettingsUI(info);
+}
+
+function loadTeacherSemesterSettingsUI(info = null) {
+  const sem1StartEl = document.getElementById('settingSemester1Start');
+  const sem1EndEl = document.getElementById('settingSemester1End');
+  const sem2StartEl = document.getElementById('settingSemester2Start');
+  const sem2EndEl = document.getElementById('settingSemester2End');
+  if (!sem1StartEl || !sem1EndEl || !sem2StartEl || !sem2EndEl) return;
+
+  const source = info || teacherSubjectCommentLastSettings || {};
+  const sem1 = getTeacherSubjectCommentSemesterRange(1, source);
+  const sem2 = getTeacherSubjectCommentSemesterRange(2, source);
+
+  sem1StartEl.value = String(sem1.start || '');
+  sem1EndEl.value = String(sem1.end || '');
+  sem2StartEl.value = String(sem2.start || '');
+  sem2EndEl.value = String(sem2.end || '');
+}
+
+async function saveTeacherSemesterSettingsUI(btn) {
+  if (isDemoMode) { showDemoBlockModal(); return; }
+  if (!currentClassCode) return;
+
+  const sem1StartEl = document.getElementById('settingSemester1Start');
+  const sem1EndEl = document.getElementById('settingSemester1End');
+  const sem2StartEl = document.getElementById('settingSemester2Start');
+  const sem2EndEl = document.getElementById('settingSemester2End');
+  if (!sem1StartEl || !sem1EndEl || !sem2StartEl || !sem2EndEl) return;
+
+  const semester1Start = String(sem1StartEl.value || '').trim();
+  const semester1End = String(sem1EndEl.value || '').trim();
+  const semester2Start = String(sem2StartEl.value || '').trim();
+  const semester2End = String(sem2EndEl.value || '').trim();
+
+  if (!semester1Start || !semester1End || !semester2Start || !semester2End) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 확인', message: '1학기/2학기 시작일과 종료일을 모두 입력해 주세요.' });
+    return;
+  }
+  if (semester1Start > semester1End || semester2Start > semester2End) {
+    showModal({ type: 'alert', icon: '⚠️', title: '기간 확인', message: '시작일은 종료일보다 늦을 수 없습니다.' });
+    return;
+  }
+
+  const patch = {
+    semester1_start: semester1Start,
+    semester1_end: semester1End,
+    semester2_start: semester2Start,
+    semester2_end: semester2End
+  };
+
+  setLoading(true, btn, '저장 중...');
+  try {
+    const { error } = await db.from('classes').update(patch).eq('class_code', currentClassCode);
+    if (error) throw error;
+
+    teacherSubjectCommentLastSettings = { ...(teacherSubjectCommentLastSettings || {}), ...patch };
+    loadTeacherSemesterSettingsUI(teacherSubjectCommentLastSettings);
+    applyTeacherSemesterDatesFromCache();
+    refreshTeacherSubjectCommentSubjects();
+    refreshTeacherSubjectCommentActions();
+
+    if (currentTeacherDiarySubTab === 'comment') {
+      loadTeacherSavedSubjectComment();
+    }
+
+    showModal({ type: 'alert', icon: '✅', title: '저장 완료', message: '학기 기준 기간이 저장되었습니다.' });
+  } catch (err) {
+    console.warn('Failed to save teacher semester settings:', err);
+    showModal({
+      type: 'alert',
+      icon: '⚠️',
+      title: '설정 저장 실패',
+      message: '학기 기준 기간을 저장할 수 없습니다. Supabase에 스키마 업데이트(컬럼 추가)가 필요합니다.<br><br><small>classes.semester1_start / semester1_end / semester2_start / semester2_end</small>'
+    });
+  } finally {
+    setLoading(false, btn, '💾 학기 기준 저장하기');
   }
 }
 function saveClassInfo(btn) {
@@ -5711,13 +5807,22 @@ async function loadDashboardData() {
       .order('reflection_date', { ascending: false });
     const allRecords = recordRows || [];
     const streakBadgeArea = document.getElementById('streakBadgeArea');
+    let partner = studentPartner || null;
+
+    if (!partner) {
+      try {
+        partner = await ensureStudentPartnerLoaded({ backfill: true });
+      } catch (partnerError) {
+        console.warn('성향 파트너 로드 오류:', partnerError);
+      }
+    }
 
     resetDashboardHistoryState(allRecords);
     loadGoals(); // 기록이 없어도 목표는 로드
 
     if (!allRecords || allRecords.length === 0) {
       if (streakBadgeArea) streakBadgeArea.classList.add('hidden');
-      renderLearningWordCloud([]);
+      renderLearningSignals([], partner, { windowDays: DASHBOARD_SIGNAL_WINDOW_DAYS });
       renderSubjectChart([], dashboardHistoryState);
       renderRecordHeatmap([], dashboardHistoryState.selectedYear, dashboardHistoryState);
       renderHistoryDetailPanel([], dashboardHistoryState);
@@ -5728,7 +5833,7 @@ async function loadDashboardData() {
     if (streakBadgeArea) streakBadgeArea.classList.remove('hidden');
     renderStreakAndBadges(allRecords);
 
-    renderLearningWordCloud(allRecords);
+    renderLearningSignals(allRecords, partner, { windowDays: DASHBOARD_SIGNAL_WINDOW_DAYS });
     renderSubjectChart(allRecords, dashboardHistoryState);
     renderRecordHeatmap(allRecords, dashboardHistoryState.selectedYear, dashboardHistoryState);
     renderHistoryDetailPanel(allRecords, dashboardHistoryState);
@@ -5841,8 +5946,8 @@ function renderStreakAndBadges(records) {
     else break;
   }
   const streakEl = document.getElementById('streakDisplay');
-  if (streak > 0) streakEl.innerHTML = '🔥 연속 <span style="color:var(--color-rose);font-size:1.6rem;">' + streak + '</span>일 기록 중!';
-  else streakEl.innerHTML = '📝 오늘 성장 일기를 써보세요!';
+  if (streak > 0) streakEl.innerHTML = '연속 <span style="color:var(--color-rose);font-size:1.6rem;">' + streak + '</span>일 기록 중';
+  else streakEl.innerHTML = '오늘 기록이 아직 없어요';
 
   // 뱃지 계산
   const totalDays = uniqueDates.length;
@@ -5865,46 +5970,433 @@ function renderStreakAndBadges(records) {
 
 
 
-// ② 배움 키워드 워드클라우드
-function renderLearningWordCloud(records) {
-  const container = document.getElementById('learningWordCloud');
-  const wordCounts = {};
+// ② 나의 성장 신호
+function parseIsoDateKeyUtc(dateKey) {
+  const src = String(dateKey || '').slice(0, 10);
+  const match = src.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+  const y = Number(match[1]);
+  const m = Number(match[2]);
+  const d = Number(match[3]);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
+  const parsed = new Date(Date.UTC(y, m - 1, d));
+  if (parsed.getUTCFullYear() !== y || parsed.getUTCMonth() !== (m - 1) || parsed.getUTCDate() !== d) return null;
+  return parsed;
+}
 
-  records.forEach(r => {
-    if (!r.learning_text) return;
-    // 간단한 형태소 분석: 2글자 이상 단어 추출
-    const words = r.learning_text.replace(/[^가-힣a-zA-Z0-9\s]/g, '').split(/\s+/);
-    words.forEach(w => {
-      if (w.length >= 2) wordCounts[w] = (wordCounts[w] || 0) + 1;
-    });
-    // 과목 태그도 포함
-    if (r.subject_tags && Array.isArray(r.subject_tags)) {
-      r.subject_tags.forEach(tag => { wordCounts[tag] = (wordCounts[tag] || 0) + 2; }); // 태그는 가중치 2
+function formatUtcDateKey(dateObj) {
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) return '';
+  return `${dateObj.getUTCFullYear()}-${String(dateObj.getUTCMonth() + 1).padStart(2, '0')}-${String(dateObj.getUTCDate()).padStart(2, '0')}`;
+}
+
+function shiftIsoDateKey(dateKey, deltaDays) {
+  const base = parseIsoDateKeyUtc(dateKey);
+  if (!base) return '';
+  const next = new Date(base);
+  next.setUTCDate(next.getUTCDate() + Number(deltaDays || 0));
+  return formatUtcDateKey(next);
+}
+
+function normalizeSignalSubjectTags(rawTags) {
+  if (Array.isArray(rawTags)) return rawTags.map(tag => String(tag || '').trim()).filter(Boolean);
+  if (typeof rawTags === 'string') return rawTags.split(',').map(tag => String(tag || '').trim()).filter(Boolean);
+  return [];
+}
+
+function countSignalKeywordMatches(text, keywords = []) {
+  const src = String(text || '');
+  if (!src) return 0;
+  let count = 0;
+  keywords.forEach((keyword) => {
+    const key = String(keyword || '').trim();
+    if (!key) return;
+    if (src.includes(key)) count++;
+  });
+  return count;
+}
+
+function countSignalTagMatches(tags = [], expectedTags = []) {
+  if (!Array.isArray(tags) || tags.length === 0) return 0;
+  if (!Array.isArray(expectedTags) || expectedTags.length === 0) return 0;
+  const tagSet = new Set(tags.map(tag => String(tag || '').trim()).filter(Boolean));
+  let count = 0;
+  expectedTags.forEach((tag) => {
+    if (tagSet.has(String(tag || '').trim())) count++;
+  });
+  return count;
+}
+
+function escapeRegExp(src) {
+  return String(src || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function getSignalTextKeywords(cardKey, partner) {
+  const key = String(cardKey || '').trim();
+  if (key === 'thinking') return THINK_KEYWORDS;
+  if (key === 'action') return DASHBOARD_EFFORT_KEYWORDS;
+  if (key !== 'fit') return [];
+
+  const infoAxis = getPartnerAxisValue(partner, 'info_processing');
+  const execAxis = getPartnerAxisValue(partner, 'execution_strategy');
+  const supportAxis = getPartnerAxisValue(partner, 'support_tag');
+
+  const keywords = [];
+  if (infoAxis === '디테일형') keywords.push(...DASHBOARD_INFO_DETAIL_KEYWORDS);
+  else if (infoAxis === '큰 그림형') keywords.push(...DASHBOARD_INFO_BIG_PICTURE_KEYWORDS);
+
+  if (execAxis === '계획형') keywords.push(...DASHBOARD_EXEC_PLAN_KEYWORDS);
+  else if (execAxis === '탐색형') keywords.push(...DASHBOARD_EXEC_EXPLORE_KEYWORDS);
+
+  if (supportAxis === '#함께 성장형') keywords.push(...DASHBOARD_SUPPORT_COLLAB_TAGS, ...DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS);
+  else if (supportAxis === '#혼자 집중형') keywords.push(...DASHBOARD_SUPPORT_SOLO_TAGS, ...DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS);
+
+  return Array.from(new Set(keywords.map(word => String(word || '').trim()).filter(Boolean)));
+}
+
+function formatHighlightedSignalText(rawText, keywords = [], toneClass = '') {
+  const text = String(rawText || '').trim();
+  if (!text) return '작성된 내용이 없습니다.';
+
+  const uniqueKeywords = Array.from(new Set(
+    (Array.isArray(keywords) ? keywords : [])
+      .map(word => String(word || '').trim())
+      .filter(Boolean)
+  )).sort((a, b) => b.length - a.length);
+
+  if (uniqueKeywords.length === 0) return escapeHtml(text).replace(/\r?\n/g, '<br>');
+
+  const regex = new RegExp(uniqueKeywords.map(escapeRegExp).join('|'), 'g');
+  let html = '';
+  let lastIndex = 0;
+  let match = null;
+
+  while ((match = regex.exec(text)) !== null) {
+    const index = Number(match.index || 0);
+    const token = String(match[0] || '');
+    if (!token) {
+      regex.lastIndex += 1;
+      continue;
     }
+    html += escapeHtml(text.slice(lastIndex, index));
+    html += '<span class="learning-signal-highlight ' + toneClass + '">' + escapeHtml(token) + '</span>';
+    lastIndex = index + token.length;
+  }
+  html += escapeHtml(text.slice(lastIndex));
+  return html.replace(/\r?\n/g, '<br>');
+}
+
+function getSignalEvidenceText(rawText) {
+  const text = String(rawText || '').trim();
+  if (!text) return '작성된 내용이 없습니다.';
+  return text;
+}
+
+function selectSignalEvidence(candidates) {
+  return (Array.isArray(candidates) ? candidates : [])
+    .filter(item => Number(item?.matchCount || 0) > 0)
+    .sort((a, b) => {
+      const diff = Number(b.matchCount || 0) - Number(a.matchCount || 0);
+      if (diff !== 0) return diff;
+      return String(b.dateKey || '').localeCompare(String(a.dateKey || ''));
+    })
+    .slice(0, 2)
+    .map(item => ({
+      date: String(item.dateKey || ''),
+      text: getSignalEvidenceText(item.text)
+    }));
+}
+
+function computeSignalScore(matchCount, totalNotes) {
+  if (!Number.isFinite(totalNotes) || totalNotes < 1) return null;
+  const raw = Math.round((Number(matchCount || 0) / totalNotes) * 100);
+  return Math.max(0, Math.min(100, raw));
+}
+
+function buildSignalDelta(
+  currentScore,
+  previousScore,
+  currentNotes,
+  previousNotes,
+  naTitle = '누계 기록 부족으로 비교 어려움',
+  naLabel = '누계 기록 부족으로 비교 어려움'
+) {
+  if (currentNotes < 1 || previousNotes < 1 || !Number.isFinite(currentScore) || !Number.isFinite(previousScore)) {
+    return { state: 'na', label: naLabel, title: naTitle, value: null };
+  }
+
+  const delta = currentScore - previousScore;
+  if (delta >= 5) return { state: 'up', label: `↑ +${delta}`, title: '최근 14일 상승', value: delta };
+  if (delta <= -5) return { state: 'down', label: `↓ ${delta}`, title: '최근 14일 하락', value: delta };
+  return { state: 'flat', label: `→ ${delta >= 0 ? `+${delta}` : String(delta)}`, title: '최근 14일 유지', value: delta };
+}
+
+function getPartnerAxisValue(partner, axisKey) {
+  return String(partner?.axes_raw?.[axisKey] || partner?.axes?.[axisKey] || '').trim();
+}
+
+function getSignalInterpretation(kind, score, opts = {}) {
+  if (opts.locked) return '성향 분석 완료 후 표시됩니다.';
+  if (!Number.isFinite(score)) return '해당 기간 기록이 더 필요합니다.';
+
+  if (kind === 'thinking') {
+    if (score >= 70) return '어려움의 이유와 해결 과정을 스스로 점검하는 흐름이 뚜렷합니다.';
+    if (score >= 40) return '생각을 되짚는 기록이 꾸준히 보입니다.';
+    return '왜 어려웠는지와 바꾼 점을 더 자주 적으면 사고 신호가 선명해집니다.';
+  }
+
+  if (kind === 'action') {
+    if (score >= 70) return '목표를 세우고 끝까지 해보는 노력 흐름이 꾸준히 나타납니다.';
+    if (score >= 40) return '노력의 흔적이 기록에 점점 쌓이고 있습니다.';
+    return '시도한 점과 다시 해본 점을 한 줄씩 적으면 노력도가 더 선명해집니다.';
+  }
+
+  if (kind === 'fit') {
+    if (score >= 70) return '최근 학습 방식이 나의 성향 축과 잘 맞게 작동하고 있습니다.';
+    if (score >= 40) return '성향에 맞는 학습 방식이 부분적으로 드러납니다.';
+    return '성향과 맞는 방식이 아직 적어, 기록에 더 구체적인 학습 행동이 필요합니다.';
+  }
+
+  return '';
+}
+
+function computePeriodSignals(records, partner, periodStart, periodEnd) {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const scoped = safeRecords
+    .map((record) => {
+      const dateKey = normalizeRecordDateKey(record?.reflection_date);
+      const text = String(record?.learning_text || '').trim();
+      const tags = normalizeSignalSubjectTags(record?.subject_tags);
+      const combined = `${text} ${tags.join(' ')}`.trim();
+      return { dateKey, text, tags, combined };
+    })
+    .filter(item => item.dateKey && item.dateKey >= periodStart && item.dateKey <= periodEnd);
+
+  const totalNotes = scoped.length;
+  const thinkingCandidates = [];
+  const actionCandidates = [];
+  const fitCandidates = [];
+
+  let thinkingMatchCount = 0;
+  let actionMatchCount = 0;
+
+  const infoAxis = getPartnerAxisValue(partner, 'info_processing');
+  const execAxis = getPartnerAxisValue(partner, 'execution_strategy');
+  const supportAxis = getPartnerAxisValue(partner, 'support_tag');
+
+  const infoKeywords = infoAxis === '디테일형'
+    ? DASHBOARD_INFO_DETAIL_KEYWORDS
+    : (infoAxis === '큰 그림형' ? DASHBOARD_INFO_BIG_PICTURE_KEYWORDS : []);
+  const execKeywords = execAxis === '계획형'
+    ? DASHBOARD_EXEC_PLAN_KEYWORDS
+    : (execAxis === '탐색형' ? DASHBOARD_EXEC_EXPLORE_KEYWORDS : []);
+
+  let infoMatchCount = 0;
+  let execMatchCount = 0;
+  let supportMatchCount = 0;
+
+  scoped.forEach((note) => {
+    const thinkingHitCount = countSignalKeywordMatches(note.text, THINK_KEYWORDS);
+    if (thinkingHitCount > 0) {
+      thinkingMatchCount++;
+      thinkingCandidates.push({ ...note, matchCount: thinkingHitCount });
+    }
+
+    const actionHitCount = countSignalKeywordMatches(note.text, DASHBOARD_EFFORT_KEYWORDS);
+    if (actionHitCount > 0) {
+      actionMatchCount++;
+      actionCandidates.push({ ...note, matchCount: actionHitCount });
+    }
+
+    let fitHitCount = 0;
+
+    const infoHitCount = infoKeywords.length > 0 ? countSignalKeywordMatches(note.combined, infoKeywords) : 0;
+    if (infoKeywords.length > 0 && infoHitCount > 0) infoMatchCount++;
+    fitHitCount += infoHitCount;
+
+    const execHitCount = execKeywords.length > 0 ? countSignalKeywordMatches(note.combined, execKeywords) : 0;
+    if (execKeywords.length > 0 && execHitCount > 0) execMatchCount++;
+    fitHitCount += execHitCount;
+
+    let supportHitCount = 0;
+    if (supportAxis === '#함께 성장형') {
+      supportHitCount += countSignalTagMatches(note.tags, DASHBOARD_SUPPORT_COLLAB_TAGS);
+      supportHitCount += countSignalKeywordMatches(note.combined, DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS);
+    } else if (supportAxis === '#혼자 집중형') {
+      supportHitCount += countSignalTagMatches(note.tags, DASHBOARD_SUPPORT_SOLO_TAGS);
+      supportHitCount += countSignalKeywordMatches(note.combined, DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS);
+    }
+    if (supportAxis && supportHitCount > 0) supportMatchCount++;
+    fitHitCount += supportHitCount;
+
+    if (fitHitCount > 0) fitCandidates.push({ ...note, matchCount: fitHitCount });
   });
 
-  const sorted = Object.entries(wordCounts).sort((a, b) => b[1] - a[1]).slice(0, 25);
-  if (sorted.length === 0) {
-    container.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-desc">기록이 쌓이면 키워드가 나타나요!</div></div>';
+  const thinkingScore = computeSignalScore(thinkingMatchCount, totalNotes);
+  const actionScore = computeSignalScore(actionMatchCount, totalNotes);
+
+  let fitScore = null;
+  if (partner) {
+    const axisScores = [];
+    const infoScore = infoKeywords.length > 0 ? computeSignalScore(infoMatchCount, totalNotes) : null;
+    const execScore = execKeywords.length > 0 ? computeSignalScore(execMatchCount, totalNotes) : null;
+    const supportScore = supportAxis ? computeSignalScore(supportMatchCount, totalNotes) : null;
+    if (Number.isFinite(infoScore)) axisScores.push(infoScore);
+    if (Number.isFinite(execScore)) axisScores.push(execScore);
+    // support axis is treated as a bonus axis to avoid over-penalizing otherwise strong fit periods.
+    if (Number.isFinite(supportScore) && supportMatchCount > 0) axisScores.push(supportScore);
+    if (axisScores.length > 0) {
+      const avg = Math.round(axisScores.reduce((sum, score) => sum + score, 0) / axisScores.length);
+      const coverageScore = computeSignalScore(fitCandidates.length, totalNotes);
+      const blended = Number.isFinite(coverageScore)
+        ? Math.round((avg * 0.7) + (coverageScore * 0.3))
+        : avg;
+      fitScore = Math.max(0, Math.min(100, blended));
+      if (fitScore >= 90) fitScore = 100;
+    }
+  }
+
+  return {
+    periodStart,
+    periodEnd,
+    totalNotes,
+    thinkingScore,
+    actionScore,
+    fitScore,
+    evidence: {
+      thinking: selectSignalEvidence(thinkingCandidates),
+      action: selectSignalEvidence(actionCandidates),
+      fit: selectSignalEvidence(fitCandidates)
+    }
+  };
+}
+
+function computeGrowthSignals(records, partner, options = {}) {
+  const safeRecords = Array.isArray(records) ? records : [];
+  const hasPartner = !!partner;
+  const windowDaysInput = Number(options?.windowDays);
+  const windowDays = Number.isFinite(windowDaysInput) && windowDaysInput > 0
+    ? Math.floor(windowDaysInput)
+    : DASHBOARD_SIGNAL_WINDOW_DAYS;
+  const todayKey = normalizeRecordDateKey(getDefaultQueryDate());
+  const currentEnd = todayKey;
+  const currentStart = shiftIsoDateKey(currentEnd, -(windowDays - 1));
+  const previousEnd = shiftIsoDateKey(currentStart, -1);
+  const previousStart = shiftIsoDateKey(previousEnd, -(windowDays - 1));
+
+  const current = computePeriodSignals(safeRecords, partner, currentStart, currentEnd);
+  const previous = computePeriodSignals(safeRecords, partner, previousStart, previousEnd);
+
+  const thinkingDelta = buildSignalDelta(current.thinkingScore, previous.thinkingScore, current.totalNotes, previous.totalNotes);
+  const actionDelta = buildSignalDelta(current.actionScore, previous.actionScore, current.totalNotes, previous.totalNotes);
+  const fitDelta = hasPartner
+    ? buildSignalDelta(current.fitScore, previous.fitScore, current.totalNotes, previous.totalNotes)
+    : buildSignalDelta(null, null, 0, 0, '성향 분석 완료 후 표시', '성향 분석 완료 후 표시');
+
+  return {
+    windowDays,
+    ranges: {
+      currentStart,
+      currentEnd,
+      previousStart,
+      previousEnd
+    },
+    current,
+    previous,
+    cards: [
+      {
+        key: 'thinking',
+        title: '사고 활성도',
+        toneClass: 'tone-thinking',
+        score: current.thinkingScore,
+        delta: thinkingDelta,
+        insight: getSignalInterpretation('thinking', current.thinkingScore),
+        evidence: current.evidence.thinking,
+        locked: false
+      },
+      {
+        key: 'action',
+        title: '노력도',
+        toneClass: 'tone-action',
+        score: current.actionScore,
+        delta: actionDelta,
+        insight: getSignalInterpretation('action', current.actionScore),
+        evidence: current.evidence.action,
+        locked: false
+      },
+      {
+        key: 'fit',
+        title: '성향 적용도',
+        toneClass: 'tone-fit',
+        score: hasPartner ? current.fitScore : null,
+        delta: fitDelta,
+        insight: getSignalInterpretation('fit', hasPartner ? current.fitScore : null, { locked: !hasPartner }),
+        evidence: hasPartner ? current.evidence.fit : [],
+        locked: !hasPartner
+      }
+    ]
+  };
+}
+
+function renderLearningSignals(records, partner, options = {}) {
+  const container = document.getElementById('learningWordCloud');
+  if (!container) return;
+  container.classList.add('learning-signals-host');
+
+  const safeRecords = Array.isArray(records) ? records : [];
+  if (safeRecords.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-desc">신호를 보려면 기록이 필요해요.</div></div>';
     return;
   }
 
-  const maxCount = sorted[0][1];
-  const colors = ['#4F84C7', '#5A9E8F', '#9575CD', '#C2654A', '#5E8C61', '#D4A574'];
+  const signals = computeGrowthSignals(safeRecords, partner, options);
+  const compareCaption = `최근 ${signals.windowDays}일 (${signals.ranges.currentStart}~${signals.ranges.currentEnd}) vs 이전 ${signals.windowDays}일 (${signals.ranges.previousStart}~${signals.ranges.previousEnd})`;
+  const currentCountCaption = `최근 구간 기록 ${signals.current.totalNotes}건`;
 
-  let html = '';
-  sorted.forEach(([word, count], i) => {
-    const ratio = count / maxCount;
-    let sizeClass = 'size-1';
-    if (ratio > 0.8) sizeClass = 'size-5';
-    else if (ratio > 0.6) sizeClass = 'size-4';
-    else if (ratio > 0.4) sizeClass = 'size-3';
-    else if (ratio > 0.2) sizeClass = 'size-2';
-    const color = colors[i % colors.length];
-    html += '<span class="word-cloud-item ' + sizeClass + '" style="background:' + color + '20; color:' + color + ';">' + word + '</span>';
-  });
+  const cardsHtml = signals.cards.map((card) => {
+    const scoreText = Number.isFinite(card.score) ? String(card.score) : '-';
+    const deltaClass = `is-${card.delta.state}`;
+    const deltaTitle = escapeHtml(card.delta.title || '');
+    const textKeywords = getSignalTextKeywords(card.key, partner);
+    const evidenceHtml = card.evidence.length > 0
+      ? card.evidence.map((item) => (
+        `<li class="learning-signal-evidence-item"><span class="learning-signal-evidence-date">${escapeHtml(item.date)}</span><span class="learning-signal-evidence-text">${formatHighlightedSignalText(item.text, textKeywords, card.toneClass)}</span></li>`
+      )).join('')
+      : `<li class="learning-signal-empty">${card.locked ? '성향 분석 완료 후 표시됩니다.' : '최근 14일 근거가 아직 부족해요.'}</li>`;
 
-  container.innerHTML = html;
+    return `
+      <details class="learning-signal-card ${card.toneClass}${card.locked ? ' is-locked' : ''}">
+        <summary class="learning-signal-summary">
+          <div class="learning-signal-head">
+            <h4 class="learning-signal-title">${escapeHtml(card.title)}</h4>
+            <div class="learning-signal-score">
+              <span class="learning-signal-score-value">${scoreText}</span>
+              <span class="learning-signal-score-unit">점</span>
+            </div>
+          </div>
+          <span class="learning-signal-summary-state" aria-hidden="true"></span>
+        </summary>
+        <div class="learning-signal-content">
+          <div class="learning-signal-delta ${deltaClass}" title="${deltaTitle}">${escapeHtml(card.delta.label)}</div>
+          <p class="learning-signal-desc">${escapeHtml(card.insight)}</p>
+          <ul class="learning-signal-evidence">${evidenceHtml}</ul>
+        </div>
+      </details>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="learning-signals-panel">
+      <div class="learning-signals-meta">
+        <span>${escapeHtml(compareCaption)}</span>
+        <span>${escapeHtml(currentCountCaption)}</span>
+      </div>
+      <div class="learning-signals-grid">${cardsHtml}</div>
+    </div>
+  `;
+}
+
+function renderLearningWordCloud(records, partner, options = {}) {
+  renderLearningSignals(records, partner, options);
 }
 
 function normalizeRecordDateKey(v) {
