@@ -9,8 +9,8 @@
     <link rel="icon" type="image/png" href="images/Gemini_Generated_Image_d19ctrd19ctrd19c.png">
     <link rel="apple-touch-icon" href="images/Gemini_Generated_Image_d19ctrd19ctrd19c.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="style_theme.css">
+    <link rel="stylesheet" href="style.css?v=20260217-1">
+    <link rel="stylesheet" href="style_theme.css?v=20260217-1">
     <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet">
 </head>
@@ -190,7 +190,7 @@
 
                                 </div>
                                 <textarea id="learningText"
-                                    placeholder="✅ 내가 잘한 점: 분수 나눗셈에서 약분을 먼저 해서 계산 실수를 줄였어.&#10;😵 어려웠던 점: 문장제에서 어떤 식으로 바꿔야 할지 잠깐 헷갈렸어.&#10;💡 이해/해결 방법: 문제 문장을 줄마다 끊어서 핵심 수를 먼저 찾았어.&#10;❓ 아직 헷갈리는 점: 단위를 바꿔서 비교하는 문제는 더 연습이 필요해.&#10;🌱 일상에 적용해볼 점: 간식 나누기처럼 실제 상황으로 한 번 더 계산해볼래."
+                                    placeholder="📚 오늘 배운 내용: 국어 토론에서 발표 논리와 표현을 정리하고, 사회 자료를 읽으며 핵심 문장을 표시했어.&#10;✅ 내가 잘한 점: 수학 계산과 과학 실험 기록을 순서대로 정리해서 실수를 줄였고, 영어 문장을 끝까지 읽고 근거를 찾았어.&#10;😵 어려웠던 점: 체육 활동 뒤 집중을 다시 올리는 게 어려웠고, 음악·미술·도덕·실과 내용을 한 번에 연결해 설명하는 게 헷갈렸어.&#10;💡 이해/해결 방법: 모둠활동에서 친구와 역할을 나눠 토론하고, 발표 전에 핵심 키워드 3개를 먼저 적은 뒤 기타 활동 메모까지 붙여 흐름을 맞췄어.&#10;❓ 아직 헷갈리는 점: 자료 근거를 더 짧게 요약해 말하는 연습이 필요해.&#10;🌱 일상에 적용해볼 점: 내일은 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 기준으로 복습 노트를 만들어볼래."
                                     class="student-note-textarea"></textarea>
                                 <label class="subject-tag-label">과목/활동 태그 (여러 개 선택 가능)</label>
                                 <div class="subject-tags student-tags-wrap">
@@ -297,14 +297,37 @@
                                         </div>
                                     </div>
                                     <div class="dashboard-history-panel">
-                                        <div class="dashboard-history-panel-title">성장 타임라인</div>
-                                        <div id="growthTimeline" class="growth-timeline">
-                                            <div class="empty-state"><span class="empty-icon">🌱</span>
-                                                <div class="empty-desc">기록이 쌓이면 성장 과정이 보이기 시작해요.</div>
+                                        <div class="dashboard-history-panel-title">기록 캘린더</div>
+                                        <div id="recordHeatmap" class="record-heatmap">
+                                            <div class="empty-state"><span class="empty-icon">🗓️</span>
+                                                <div class="empty-desc">올해 기록을 달력으로 볼 수 있어요.</div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="dashboard-history-detail">
+                                    <div id="historyFilterSummary" class="history-filter-summary">
+                                        <span class="history-filter-placeholder">과목 바 또는 날짜를 선택하면 관련 기록이 표시됩니다.</span>
+                                    </div>
+                                    <div id="historyDetailList" class="history-detail-list">
+                                        <div class="empty-state"><span class="empty-icon">👈</span>
+                                            <div class="empty-desc">먼저 과목 또는 날짜를 선택해 주세요.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <details class="dashboard-history-best">
+                                    <summary class="dashboard-history-best-summary">
+                                        <span class="dashboard-history-panel-title">나의 베스트 기록</span>
+                                        <span class="dashboard-history-best-state" aria-hidden="true"></span>
+                                    </summary>
+                                    <div class="dashboard-history-best-content">
+                                        <div id="bestRecordList" class="best-record-list">
+                                            <div class="empty-state"><span class="empty-icon">🏅</span>
+                                                <div class="empty-desc">기록이 쌓이면 베스트 기록이 보여요.</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
                             </details>
                         </div>
 
@@ -329,7 +352,7 @@
                                     <button type="button" class="template-btn"
                                         onclick="insertTemplate('🎯 다음을 위한 팁: \n', 'projectComment')">🎯 다음 팁</button>
                                 </div>
-                                <textarea id="projectComment" placeholder="👍 잘된 점: 역할을 나눠 일정에 맞춰 자료를 모았어.&#10;🤔 아쉬운 점/어려웠던 점: 발표 자료에서 핵심 문장이 길어서 전달력이 약했어.&#10;✨ 인상적인 순간/배운 점: 친구 설명을 듣고 같은 자료도 관점에 따라 다르게 해석된다는 걸 배웠어.&#10;💪 다음 도전: 결론 먼저 말하고 근거를 붙이는 방식으로 다시 구성해볼래.&#10;🎯 다음을 위한 팁: 슬라이드마다 핵심 문장을 한 줄로 먼저 쓰고 시작하면 좋아."
+                                <textarea id="projectComment" placeholder="👍 잘된 점: 프로젝트에서 국어·사회 자료를 비교해 핵심을 정리하고, 수학·과학 근거를 넣어 설명 흐름이 또렷했어.&#10;🤔 아쉬운 점/어려웠던 점: 영어 표현, 음악·미술 사례, 체육·도덕·실과 연결 포인트를 한 번에 담으려다 문장이 길어졌어.&#10;✨ 인상적인 순간/배운 점: 토론으로 의견을 모으고 모둠활동 발표에서 역할을 나눴더니 전달이 훨씬 안정적이었어.&#10;💪 다음 도전: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 모두 반영한 1페이지 요약본을 만들래.&#10;🎯 다음을 위한 팁: 슬라이드마다 결론 한 줄 → 근거 두 줄 순서로 고정하면 메시지가 더 선명해져."
                                     class="student-note-textarea"></textarea>
                             </div>
                             <button type="button" id="submitProjectBtn" onclick="submitProjectReflection()"
@@ -405,7 +428,7 @@
                                         onclick="insertTemplate('💪 다음에는 이런 점을 시도해보면 좋겠어: \n')">💪 다음 도전</button>
                                 </div>
                                 <textarea id="reviewContent"
-                                    placeholder="👍 잘한 점: 역할 분담이 분명해서 진행이 빨랐어.&#10;💡 이렇게 하면 더 좋을 것 같아: 근거 자료를 1개만 더 넣으면 설득력이 커질 것 같아.&#10;✨ 특히 인상적이었던 부분은: 서로 의견이 다를 때 바로 정리해서 방향을 잡은 점이 좋았어.&#10;💪 다음에는 이런 점을 시도해보면 좋겠어: 결론을 먼저 말하고 세부 내용을 붙이는 방식으로 발표해봐." required
+                                    placeholder="👍 잘한 점: 국어·토론·발표에서 핵심을 먼저 말하고, 사회·과학 근거를 붙여서 듣는 사람이 이해하기 쉬웠어.&#10;💡 이렇게 하면 더 좋을 것 같아: 수학·영어 표현을 한 줄 더 보완하고, 음악·미술 예시를 짧게 넣으면 메시지가 더 풍부해질 것 같아.&#10;✨ 특히 인상적이었던 부분은: 체육·도덕·실과 활동 내용을 모둠활동으로 연결해 역할 분담을 끝까지 지킨 점이 좋았어.&#10;💪 다음에는 이런 점을 시도해보면 좋겠어: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 체크한 뒤 피드백을 작성해봐." required
                                     minlength="100" oninput="updateCharCount()"
                                     class="review-content-textarea"></textarea>
                                 <div id="charCount" class="char-count-right">

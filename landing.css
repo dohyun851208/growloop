@@ -721,11 +721,11 @@ body {
 
 /* Pointer icon in demo section */
 .demo-pointer-icon {
-    width: 52px;
-    height: 52px;
+    width: 41px;
+    height: 41px;
     object-fit: contain;
     flex-shrink: 0;
-    margin-top: -10px;
+    margin-top: -26px;
 }
 
 /* Hero CTA Buttons (compact) */
@@ -1148,8 +1148,9 @@ body {
 }
 
 .demo-pointer-icon {
-    width: 68px;
-    height: 68px;
+    width: 41px;
+    height: 41px;
+    margin-top: -26px;
     fill: #f43f5e;
     opacity: .9;
     filter: drop-shadow(0 8px 20px rgba(244, 63, 94, .20));

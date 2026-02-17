@@ -150,6 +150,61 @@ input[type="date"].class-tone-input {
     font-size: 1.1rem;
 }
 
+.welcome-msg.is-demo-welcome .welcome-main-line {
+    display: inline;
+}
+
+.welcome-msg.is-demo-welcome .demo-mode-line {
+    display: inline;
+}
+
+.btn-logout-main.is-demo-exit,
+.btn-logout-compact.is-demo-exit {
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1.2;
+}
+
+@media (max-width: 600px) {
+    .student-header-row {
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .welcome-msg {
+        flex: 1 1 auto;
+        min-width: 0;
+        line-height: 1.25;
+    }
+
+    .welcome-msg.is-demo-welcome .welcome-main-line,
+    .welcome-msg.is-demo-welcome .demo-mode-line {
+        display: block;
+    }
+
+    .welcome-msg.is-demo-welcome .demo-mode-line {
+        font-size: 0.9rem;
+        margin-top: 2px;
+    }
+
+    .btn-logout-main.is-demo-exit,
+    .btn-logout-compact.is-demo-exit {
+        white-space: normal;
+        min-width: 74px;
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        line-height: 1.2;
+    }
+
+    .btn-logout-main.is-demo-exit .exit-main,
+    .btn-logout-main.is-demo-exit .exit-sub,
+    .btn-logout-compact.is-demo-exit .exit-main,
+    .btn-logout-compact.is-demo-exit .exit-sub {
+        display: block;
+        white-space: nowrap;
+    }
+}
+
 .personality-quiz-desc {
     text-align: center;
     color: var(--text-sub);
@@ -859,6 +914,7 @@ input[type="date"].class-tone-input {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+    align-items: stretch;
 }
 
 .dashboard-history-panel {
@@ -866,6 +922,15 @@ input[type="date"].class-tone-input {
     border-radius: 10px;
     background: #ffffff;
     padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.dashboard-history-panel > .subject-chart,
+.dashboard-history-panel > .record-heatmap {
+    flex: 1;
+    min-height: 0;
 }
 
 .dashboard-history-panel-title {
@@ -873,6 +938,29 @@ input[type="date"].class-tone-input {
     font-weight: 700;
     color: #475569;
     margin-bottom: 8px;
+}
+
+.dashboard-history-detail,
+.dashboard-history-best {
+    border-color: #e5e7eb !important;
+    background: #ffffff !important;
+}
+
+.history-filter-reset-btn {
+    font-family: 'Jua', sans-serif !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+.history-heatmap-month-select {
+    font-family: 'Jua', sans-serif !important;
+}
+
+.history-filter-reset-btn:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    filter: none !important;
 }
 
 .ai-report-loading {
@@ -1336,20 +1424,20 @@ input[type="date"].class-tone-input {
 #peerEvaluationSection #reviewContent {
     background: var(--bg-body) !important;
     border: none !important;
-    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important;
     font-weight: 500;
     line-height: 1.72;
     letter-spacing: -0.01em;
 }
 
 #peerEvaluationSection #reviewContent::placeholder {
-    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important;
     font-weight: 500;
 }
 
 #dailyReflectionTab #learningText,
 #projectReflectionTab #projectComment {
-    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important;
     font-weight: 500;
     line-height: 1.72;
     letter-spacing: -0.01em;
@@ -1357,7 +1445,7 @@ input[type="date"].class-tone-input {
 
 #dailyReflectionTab #learningText::placeholder,
 #projectReflectionTab #projectComment::placeholder {
-    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important;
     font-weight: 500;
 }
 
@@ -2805,6 +2893,12 @@ input:checked+.switch-slider:before {
     outline: none !important;
 }
 
+/* Teacher subject comment: source preview should keep Jua typography */
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-source-wrap,
+#teacherMain #diaryMiniTab #teacherSubjectCommentSection .teacher-subject-comment-source-wrap * {
+    font-family: 'Jua', sans-serif !important;
+}
+
 
 /* Teacher diary: neutral grouping and status chips */
 #teacherMain #diaryMiniTab .diary-overview-stats {
@@ -3035,7 +3129,7 @@ input:checked+.switch-slider:before {
     justify-content: space-between;
     align-items: center;
     border: 1.5px solid #d1d5db !important;
-    border-left: 4px solid #5f97c4 !important;
+    border-left: 1.5px solid #d1d5db !important;
     border-radius: 12px;
     background: #ffffff !important;
 }
@@ -3133,6 +3227,23 @@ input:checked+.switch-slider:before {
 #teacherMain #praiseMiniTab .teacher-praise-item-pending {
     border-left-color: #5f97c4;
     background: #f8fafc;
+}
+
+/* Pending praise list: rotate left accent colors for better visual separation */
+#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+1) {
+    border-left-color: #5f97c4;
+}
+
+#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+2) {
+    border-left-color: #7e7acf;
+}
+
+#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+3) {
+    border-left-color: #6faf8c;
+}
+
+#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+4) {
+    border-left-color: #8ea2b6;
 }
 
 #teacherMain #praiseMiniTab .teacher-praise-item-approved {
@@ -3392,6 +3503,9 @@ body.teacher-layout {
     flex: 0 0 auto !important;
     align-items: center !important;
     justify-content: center !important;
+    font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1.25 !important;
 }
 
 #studentTab .template-btn {
@@ -3400,13 +3514,26 @@ body.teacher-layout {
 }
 
 #studentTab .subject-tag-btn {
-    font-size: 0.9rem !important;
+    font-size: 0.92rem !important;
     padding: 7px 12px !important;
+    font-weight: 600 !important;
 }
 
 #studentTab .tag-btn {
-    font-size: 0.86rem !important;
+    font-size: 0.92rem !important;
     padding: 7px 13px !important;
+    font-weight: 600 !important;
+}
+
+/* Student: explicit override for the two tag areas the user interacts with most */
+#studentTab #peerEvaluationSection .feedback-templates .template-btn,
+#studentTab #dailyReflectionTab .guide-buttons .template-btn,
+#studentTab #dailyReflectionTab .subject-tags .subject-tag-btn,
+#studentTab #dailyReflectionTab .student-tags-wrap .subject-tag-btn {
+    font-family: 'Noto Sans KR', 'Malgun Gothic', 'Segoe UI', 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif !important;
+    font-size: 0.96rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
 }
 
 #studentTab #dailyReflectionTab .subject-tag-label {
@@ -3594,5 +3721,107 @@ body.teacher-layout {
     #studentTab #selfEvaluationMenu #dashboardTab .dashboard-history-content {
         grid-template-columns: 1fr;
     }
+
+    #studentTab #selfEvaluationMenu #dashboardTab .best-record-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Daily reflection: align helper tags and sample text with self-note tab tone */
+#studentTab #dailyReflectionTab .guide-buttons .template-btn {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+    font-weight: 400 !important;
+}
+
+#studentTab #dailyReflectionTab .guide-buttons .template-btn:hover,
+#studentTab #dailyReflectionTab .guide-buttons .template-btn:active {
+    color: #000 !important;
+}
+
+#studentTab #dailyReflectionTab #learningText,
+#studentTab #dailyReflectionTab #learningText::placeholder {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+    font-weight: 400 !important;
+}
+
+#studentTab #dailyReflectionTab #learningText::placeholder {
+    opacity: 1 !important;
+}
+
+/* Keep subject/activity tags in daily reflection on the original tag style */
+#studentTab #dailyReflectionTab .subject-tags .subject-tag-btn,
+#studentTab #dailyReflectionTab .student-tags-wrap .subject-tag-btn {
+    font-family: 'Jua', sans-serif !important;
+    font-size: 0.98rem !important;
+    font-weight: 700 !important;
+    color: #2f4a37 !important;
+}
+
+#studentTab #dailyReflectionTab .subject-tags .subject-tag-btn.selected,
+#studentTab #dailyReflectionTab .student-tags-wrap .subject-tag-btn.selected {
+    color: #ffffff !important;
+}
+
+/* Project reflection: apply the same typography rule to template tags and examples */
+#studentTab #projectReflectionTab .guide-buttons .template-btn {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+    font-weight: 400 !important;
+}
+
+#studentTab #projectReflectionTab .guide-buttons .template-btn:hover,
+#studentTab #projectReflectionTab .guide-buttons .template-btn:active {
+    color: #000 !important;
+}
+
+#studentTab #projectReflectionTab #projectName,
+#studentTab #projectReflectionTab #projectName::placeholder,
+#studentTab #projectReflectionTab #projectComment,
+#studentTab #projectReflectionTab #projectComment::placeholder {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+    font-weight: 400 !important;
+}
+
+#studentTab #projectReflectionTab #projectName::placeholder,
+#studentTab #projectReflectionTab #projectComment::placeholder {
+    opacity: 1 !important;
+}
+
+/* Praise send: apply the same typography rule to example text */
+#studentTab #praiseSendTab #praiseContent,
+#studentTab #praiseSendTab #praiseContent::placeholder {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+    font-weight: 400 !important;
+}
+
+#studentTab #praiseSendTab #praiseContent::placeholder {
+    opacity: 1 !important;
+}
+
+/* Example text size: match self-note readability (avoid global 0.9rem placeholder) */
+#studentTab #dailyReflectionTab #learningText::placeholder,
+#studentTab #projectReflectionTab #projectName::placeholder,
+#studentTab #projectReflectionTab #projectComment::placeholder,
+#studentTab #praiseSendTab #praiseContent::placeholder {
+    font-size: 1rem !important;
+}
+
+/* Settings > class change: apply same placeholder typography */
+#studentSettingsSection #newClassNameInput,
+#studentSettingsSection #newClassCodeInput,
+#studentSettingsSection #newClassNameInput::placeholder,
+#studentSettingsSection #newClassCodeInput::placeholder {
+    font-family: 'Jua', sans-serif !important;
+    font-size: 1rem !important;
+    color: #000 !important;
+}
+
+#studentSettingsSection #newClassNameInput::placeholder,
+#studentSettingsSection #newClassCodeInput::placeholder {
+    opacity: 1 !important;
 }
 
