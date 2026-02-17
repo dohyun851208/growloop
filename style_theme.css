@@ -810,48 +810,49 @@ input[type="date"].class-tone-input {
     background: #ffffff !important;
 }
 
-.summary-period-row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 12px;
+.partner-message-mode-row {
+    gap: 8px !important;
 }
 
-.summary-period-row .summary-period-btn {
-    flex: 1;
-}
-
-.partner-goal-link-row {
-    margin-top: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.partner-goal-link-btn {
-    background: #eef2ff !important;
-    color: #3730a3 !important;
-    border: 1.5px solid #c7d2fe !important;
-    box-shadow: none !important;
+.partner-message-mode-btn {
     min-height: 42px;
+    border-color: #d1d5db !important;
+    background: #ffffff !important;
+    color: #374151 !important;
 }
 
-.partner-goal-link-btn:hover:not(:disabled) {
-    background: #e0e7ff !important;
-    transform: translateY(-1px);
+.partner-message-mode-btn.active {
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
+    color: #1d4ed8 !important;
 }
 
-.partner-goal-link-btn:disabled {
-    background: #f8fafc !important;
-    border-color: #e5e7eb !important;
-    color: #9ca3af !important;
-    cursor: not-allowed;
+.partner-compare-panel {
+    border-color: #bfdbfe !important;
+    background: linear-gradient(180deg, #eff6ff 0%, #ffffff 100%) !important;
 }
 
-.partner-goal-link-hint {
-    font-size: 0.83rem;
-    color: #6b7280;
-    text-align: center;
-    line-height: 1.4;
+.partner-compare-target-btn.is-active {
+    border-color: #93c5fd !important;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+
+.partner-daily-generate-btn {
+    border-color: #93c5fd !important;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+}
+
+.partner-compare-generate-btn {
+    border-color: #93c5fd !important;
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    box-shadow: none !important;
+}
+
+.partner-compare-selection-hint {
+    color: #ef4444 !important;
 }
 
 .growth-report-card {
@@ -1928,8 +1929,8 @@ button:active {
 }
 
 /* 학생용 주요 버튼 */
-.accent-box.box-blue button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item),
-.accent-box.box-violet button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item),
+.accent-box.box-blue button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item):not(.difficulty-map-tag-chip):not(.teacher-partner-item),
+.accent-box.box-violet button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item):not(.difficulty-map-tag-chip):not(.teacher-partner-item),
 #selfEvaluationSection button[style*="color-blue"],
 #selfEvaluationSection button[onclick*="save"],
 #selfEvaluationSection button[onclick*="submit"],
@@ -2783,7 +2784,7 @@ input:checked+.switch-slider:before {
     filter: none !important;
 }
 
-/* Teacher diary: "어려움 모아보기" should use calm neutral gray tone. */
+/* Teacher diary: "수업 개선 단서" should use calm neutral gray tone. */
 #teacherMain #diaryMiniTab #emotionAlertArea {
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
@@ -3047,34 +3048,141 @@ input:checked+.switch-slider:before {
     font-size: 0.76rem;
 }
 
-/* Teacher diary: "어려움 모아보기" is white outside, soft gray inside */
+/* Teacher diary: "수업 개선 단서" is white outside, soft gray inside */
 #teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-desc {
-    font-size: 0.82rem;
-    color: var(--text-sub);
+    font-size: 0.84rem;
+    color: #5d6470;
     margin-bottom: 10px;
 }
 
-#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item {
+#teacherMain #diaryMiniTab #emotionAlertArea #difficultyMapTagSummary {
+    margin-bottom: 6px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-split {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-col {
+    border: 1px solid #d5dde6;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-col-title {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #5d6470;
+    margin-bottom: 8px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-col .difficulty-map-tag-summary {
+    margin-bottom: 0;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-col .difficulty-map-signal-summary {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-tag-chip {
+    border-color: #d1d5db !important;
+    background: #ffffff !important;
+    color: #334155 !important;
+    box-shadow: none !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-tag-chip:hover {
+    background: #f8fafc !important;
+    border-color: #a3b0be !important;
+    color: #334155 !important;
+    transform: none !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-tag-chip.is-active {
+    background: #eef2f7 !important;
+    border-color: #95a2b1 !important;
+    color: #2f3d4f !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-signal-summary {
+    margin-top: -2px;
+    margin-bottom: 12px;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-signal-chip.tone-all.is-active {
+    background: #eef2f7 !important;
+    border-color: #95a2b1 !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-signal-chip.tone-hard.is-active {
+    background: #fff1f1 !important;
+    border-color: #efbaba !important;
+    color: #8c4d4d !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-signal-chip.tone-confusing.is-active {
+    background: #f2f3fe !important;
+    border-color: #d5d7f5 !important;
+    color: #51588a !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-signal-chip.tone-unresolved.is-active {
+    background: #ecf5ff !important;
+    border-color: #c9daeb !important;
+    color: #3f607d !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-chip-meta {
+    color: #667180;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-hint {
+    background: #f8fafc;
+    border-color: #d5dde6;
+    color: #556273;
+}
+
+@media (max-width: 768px) {
+    #teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-split {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    #teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-filter-col {
+        padding: 9px;
+    }
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.difficulty-map-card {
     width: 100%;
     text-align: left;
-    padding: 10px;
+    padding: 11px;
     background: #f9fafb !important;
-    border-radius: 10px;
+    border-radius: 12px;
     border: 1.5px solid #d1d5db;
-    border-left: 3px solid #8ea2b6;
+    border-left: 4px solid #8ea2b6;
     margin-bottom: 8px;
     cursor: pointer;
 }
 
-#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.tone-0 {
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.difficulty-map-card:hover {
+    background: #f3f5f8 !important;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.difficulty-map-card.tone-0 {
     border-left-color: #8ea2b6;
 }
 
-#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.tone-1 {
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.difficulty-map-card.tone-1 {
     border-left-color: #9ba3b5;
 }
 
-#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.tone-2 {
+#teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-item.difficulty-map-card.tone-2 {
     border-left-color: #93aa9d;
 }
 
@@ -3111,7 +3219,7 @@ input:checked+.switch-slider:before {
 }
 
 #teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-content {
-    font-size: 0.86rem;
+    font-size: 0.88rem;
     color: var(--text-main);
     line-height: 1.45;
 }
@@ -3129,6 +3237,32 @@ input:checked+.switch-slider:before {
 
 #teacherMain #diaryMiniTab #emotionAlertArea .emotion-alert-snippet-item {
     margin: 2px 0;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-category-chip.tone-hard {
+    background: #fff1f1;
+    border-color: #f2cbcb;
+    color: #8c4d4d;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-category-chip.tone-confusing {
+    background: #f2f3fe;
+    border-color: #d5d7f5;
+    color: #51588a;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-category-chip.tone-unresolved {
+    background: #ecf5ff;
+    border-color: #c9daeb;
+    color: #3f607d;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-resolved-details {
+    border-top-color: #d8e0e8;
+}
+
+#teacherMain #diaryMiniTab #emotionAlertArea .difficulty-map-resolved-details summary {
+    color: #486482;
 }
 
 /* Teacher subject comment: keep tag selected state neutral (no filled color) */
@@ -3394,6 +3528,61 @@ input:checked+.switch-slider:before {
     color: var(--text-sub);
 }
 
+#teacherMain #settingsMiniTab .teacher-group-mapping-notice {
+    margin: 0 0 10px;
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #6b7280;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-mapping-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-select {
+    min-width: 110px;
+    margin: 0;
+    padding: 7px 10px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #334155;
+    font-family: 'Jua', sans-serif !important;
+    font-size: 0.86rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-note {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-legacy-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border: 1px solid #c7d2fe;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #4338ca;
+    font-size: 0.7rem;
+    line-height: 1.2;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-out-of-range {
+    color: #b45309;
+}
+
+#teacherMain #settingsMiniTab .teacher-student-auth-item.is-group-dirty {
+    border-color: #a5b4fc !important;
+    box-shadow: 0 0 0 2px #eef2ff;
+}
+
 #teacherMain #settingsMiniTab .teacher-student-auth-remove {
     width: auto;
     padding: 4px 10px;
@@ -3410,6 +3599,24 @@ input:checked+.switch-slider:before {
     background: #f8fafc;
     border-color: #94a3b8;
     color: #334155;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-mapping-save-btn {
+    margin-top: 12px;
+    background: #f8fafc !important;
+    color: #64748b !important;
+    border: 1.5px solid #cbd5e1 !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-mapping-save-btn:disabled {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+#teacherMain #settingsMiniTab .teacher-group-mapping-save-btn.is-dirty {
+    background: #ffffff !important;
+    color: #334155 !important;
+    border-color: #818cf8 !important;
 }
 
 #teacherMain #settingsMiniTab .teacher-danger-card {
@@ -3437,6 +3644,642 @@ input:checked+.switch-slider:before {
     background: #f8fafc !important;
     border-color: #94a3b8 !important;
     color: #334155 !important;
+}
+
+#teacherMain #settingsMiniTab #teacherManageSubTabArea,
+#teacherMain #settingsMiniTab #teacherPartnerSubTabArea {
+    margin-bottom: 14px;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-sub-tab-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 5px;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-sub-tab-container .sub-tab-btn {
+    font-size: 0.9rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-card {
+    border-color: #d1d5db !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-doc {
+    margin-top: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 40%),
+        linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 14px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-cards {
+    display: grid;
+    gap: 12px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-intro-card {
+    border: 1.5px solid #c7d2fe;
+    border-radius: 14px;
+    background: linear-gradient(160deg, #eef2ff 0%, #f8fafc 100%);
+    padding: 14px 16px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-intro-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    border: 1px solid #a5b4fc;
+    color: #4338ca;
+    background: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-intro-title {
+    margin: 0 0 6px;
+    color: #1e293b;
+    font-size: 1.02rem;
+    line-height: 1.35;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-intro-desc {
+    margin: 0;
+    color: #475569;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-part-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 12px 14px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-visual {
+    margin-bottom: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 10px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-visual-title {
+    margin: 0 0 8px;
+    color: #1e293b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table th,
+#teacherMain #settingsMiniTab .teacher-partner-reference-table td {
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #f1f5f9;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+    color: #334155;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table th:last-child,
+#teacherMain #settingsMiniTab .teacher-partner-reference-table td:last-child {
+    border-right: none;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table thead th {
+    background: #f8fafc;
+    color: #334155;
+    font-weight: 700;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-table.is-compact th,
+#teacherMain #settingsMiniTab .teacher-partner-reference-table.is-compact td {
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-table-type {
+    white-space: nowrap;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-note {
+    margin: 8px 0 0;
+    color: #475569;
+    font-size: 0.78rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-chip {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 8px 10px;
+    display: grid;
+    gap: 2px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-chip-head {
+    color: #334155;
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-chip-qs {
+    color: #475569;
+    font-size: 0.76rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-chip-desc {
+    color: #64748b;
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-icon-card {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 8px;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: 4px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-icon-emoji {
+    font-size: 1.08rem;
+    line-height: 1;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-icon-name {
+    color: #334155;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-support-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-support-card {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 8px 10px;
+    display: grid;
+    gap: 4px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-support-tag {
+    color: #1e293b;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-support-desc {
+    color: #475569;
+    font-size: 0.76rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-support-ex {
+    color: #64748b;
+    font-size: 0.74rem;
+    line-height: 1.4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-part-head {
+    margin-bottom: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-part-kicker {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    color: #475569;
+    font-size: 0.72rem;
+    margin-bottom: 6px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-part-title {
+    margin: 0;
+    color: #1e293b;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-part-body {
+    color: #334155;
+    font-size: 0.9rem;
+    line-height: 1.64;
+    letter-spacing: -0.01em;
+    overflow-wrap: anywhere;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-reference-part-body strong {
+    color: #0f172a;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-individual-desc {
+    margin: 0 0 12px;
+    color: #64748b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-card {
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-card.is-done {
+    border-color: #c7f9cc;
+    background: #f0fdf4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-card.is-pending {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-card.is-empty {
+    border-color: #e5e7eb;
+    background: #f8fafc;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-label {
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-summary-value {
+    color: #1e293b;
+    font-size: 1.02rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-individual-grid {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(320px, 1.2fr);
+    gap: 12px;
+    align-items: start;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-list {
+    display: grid;
+    gap: 8px;
+    max-height: min(68vh, 640px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 3px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item {
+    width: 100%;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 12px;
+    background: #ffffff !important;
+    color: #334155 !important;
+    box-shadow: none !important;
+    text-align: left;
+    display: grid;
+    gap: 4px;
+    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: visible;
+    filter: none !important;
+    transform: none !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 4px;
+    border-radius: 0 4px 4px 0;
+    background: #cbd5e1;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item.is-done::before {
+    background: #22c55e;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item.is-pending::before {
+    background: #f59e0b;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item.is-empty::before {
+    background: #94a3b8;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item:hover {
+    border-color: #94a3b8;
+    background: #f8fafc;
+    transform: none !important;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08) !important;
+    filter: none !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item.is-active {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 2px #e0e7ff !important;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-student {
+    font-family: 'Jua', sans-serif;
+    color: #334155;
+    font-size: 0.9rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-status {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    border: 1px solid #d1d5db;
+    background: #f8fafc;
+    color: #64748b;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-status.is-done {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-status.is-pending {
+    border-color: #fde68a;
+    background: #fffbeb;
+    color: #b45309;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-status.is-empty {
+    border-color: #e5e7eb;
+    background: #f8fafc;
+    color: #6b7280;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type {
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-tag {
+    font-size: 0.8rem;
+    color: #475569;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-email {
+    font-size: 0.75rem;
+    color: #64748b;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail {
+    border: 1.5px solid #d1d5db;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 12px;
+    min-height: 260px;
+    overflow-wrap: anywhere;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-title {
+    font-family: 'Jua', sans-serif;
+    color: #1e293b;
+    font-size: 1rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-type {
+    color: #334155;
+    font-size: 0.9rem;
+    text-align: right;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-meta div {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 8px 10px;
+    display: grid;
+    gap: 2px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-meta-label {
+    font-size: 0.72rem;
+    color: #64748b;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-meta strong {
+    font-size: 0.85rem;
+    color: #334155;
+    line-height: 1.35;
+    word-break: break-word;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-section {
+    margin-top: 10px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-detail-section h4 {
+    margin: 0 0 8px;
+    color: #334155;
+    font-size: 0.88rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-grid div {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #ffffff;
+    display: grid;
+    gap: 3px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-grid span {
+    font-size: 0.73rem;
+    color: #64748b;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-axis-grid strong {
+    color: #334155;
+    font-size: 0.85rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-answer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-answer-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 8px 10px;
+    background: #f8fafc;
+    display: grid;
+    gap: 3px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-answer-q {
+    color: #334155;
+    font-family: 'Jua', sans-serif;
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-answer-choice {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.72rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-answer-text {
+    color: #475569;
+    font-size: 0.78rem;
+    line-height: 1.4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-rls-hint {
+    margin-top: 8px;
+    padding: 9px 10px;
+    border-radius: 9px;
+    background: #f8fafc;
+    border: 1px solid #d1d5db;
+    color: #475569;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 980px) {
+    #teacherMain #settingsMiniTab .teacher-partner-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-individual-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-list {
+        max-height: 300px;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-detail-meta {
+        grid-template-columns: 1fr;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-type-icon-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    #teacherMain #settingsMiniTab .teacher-partner-axis-grid,
+    #teacherMain #settingsMiniTab .teacher-partner-answer-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-axis-chip-grid,
+    #teacherMain #settingsMiniTab .teacher-partner-support-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Modal inline warning note should be calm (not red) */
@@ -3711,7 +4554,7 @@ body.teacher-layout {
     margin-bottom: 12px;
 }
 
-#studentTab #selfEvaluationMenu #dashboardTab .summary-period-row {
+#studentTab #selfEvaluationMenu #dashboardTab .partner-message-mode-row {
     gap: 8px !important;
     margin-bottom: 12px !important;
 }
@@ -3732,7 +4575,7 @@ body.teacher-layout {
         font-size: 0.88rem !important;
     }
 
-    #studentTab #selfEvaluationMenu #dashboardTab .summary-period-row {
+    #studentTab #selfEvaluationMenu #dashboardTab .partner-message-mode-row {
         gap: 6px !important;
     }
 

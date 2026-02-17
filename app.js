@@ -18,8 +18,18 @@ let ratingCriteria = [];
 let currentStudent = null;
 let currentClassCode = '';
 let studentPartner = null; // 8-type growth partner cache
+let studentGroupMappingState = null;
 
-let latestPartnerGoalSuggestion = ''; // latest actionable goal extracted from partner message
+const partnerMessageState = {
+  mode: 'daily',
+  records: [],
+  selectTarget: 'A',
+  selectedDateA: null,
+  selectedDateB: null,
+  selectedYear: new Date().getFullYear(),
+  selectedMonth: new Date().getMonth() + 1,
+  compareHint: ''
+};
 const dashboardHistoryState = {
   records: [],
   selectedSubject: null,
@@ -30,7 +40,11 @@ const dashboardHistoryState = {
 
 // 교사용(스스로배움) - 교과세특 생성 상태
 let teacherDiarySelectedStudentId = null;
-let currentTeacherDiarySubTab = 'overview'; // overview | student | comment
+let currentTeacherDiarySubTab = 'overview'; // overview | student | hint | comment
+let currentTeacherManageSubTab = 'class'; // class | partner
+let currentTeacherPartnerSubTab = 'reference'; // reference | individual
+let teacherPartnerIndividualRows = [];
+let teacherPartnerSelectedStudentNumber = '';
 let teacherSubjectCommentSemester = 1;
 let teacherSubjectCommentSelectedSubject = '';
 let teacherSubjectCommentLastGenerated = null; // { mode, text, noteCount, key, items[] }
@@ -87,6 +101,24 @@ let demoRole = null;
 const DEMO_FIXED_QUERY_DATE = '2026-03-01';
 const DEMO_PERSONALITY_STORAGE_KEY = 'demo_student_personality_v2';
 const DEMO_PERSONALITY_STORAGE_KEY_LEGACY = 'demo_student_personality_v1';
+const LOGIN_ROLE_HINT_KEY = 'baeumlog_pending_role';
+
+function normalizeRoleHint(value) {
+  return (value === 'student' || value === 'teacher') ? value : null;
+}
+
+function readPendingLoginRoleHint() {
+  try {
+    return normalizeRoleHint(sessionStorage.getItem(LOGIN_ROLE_HINT_KEY));
+  } catch (error) {
+    return null;
+  }
+}
+
+function clearPendingLoginRoleHint() {
+  try { sessionStorage.removeItem(LOGIN_ROLE_HINT_KEY); } catch (error) { }
+}
+
 function loadDemoPersonalityFromStorage() {
   try {
     const raw = sessionStorage.getItem(DEMO_PERSONALITY_STORAGE_KEY) || sessionStorage.getItem(DEMO_PERSONALITY_STORAGE_KEY_LEGACY);
@@ -274,6 +306,82 @@ function syncCustomSubjectInputVisibility({ clearOnHide = false, focusOnShow = f
   if (shouldShow && focusOnShow) input.focus();
 }
 
+function parseOptionalPositiveInt(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const n = Number.parseInt(value, 10);
+  if (!Number.isFinite(n) || n < 1) return null;
+  return n;
+}
+
+function getStudentNumber() {
+  if (!currentStudent) return '';
+  if (currentStudent.studentNumber !== undefined && currentStudent.studentNumber !== null) return String(currentStudent.studentNumber);
+  if (currentStudent.id !== undefined && currentStudent.id !== null) return String(currentStudent.id);
+  return '';
+}
+
+function getGroupNumber() {
+  if (!currentStudent) return '';
+  if (currentStudent.groupNumber === undefined || currentStudent.groupNumber === null || currentStudent.groupNumber === '') return '';
+  return String(currentStudent.groupNumber);
+}
+
+function getActivePeerId(typeOverride = null) {
+  if (!currentStudent) return '';
+  const type = typeOverride || currentStudent.type || 'individual';
+  if (type === 'group') return getGroupNumber();
+  return getStudentNumber();
+}
+
+function syncPeerTypeRadios(type) {
+  const radios = document.getElementsByName('evalTypeDisplay');
+  const resultRadios = document.getElementsByName('resultEvalTypeDisplay');
+  radios.forEach(r => r.checked = (r.value === type));
+  resultRadios.forEach(r => r.checked = (r.value === type));
+}
+
+function syncPeerReviewerUi() {
+  const type = currentStudent ? (currentStudent.type || 'individual') : 'individual';
+  const reviewerId = getActivePeerId(type);
+  const label = document.getElementById('submitReviewerLabel');
+  if (label) label.textContent = type === 'group' ? '나의 모둠' : '나의 번호';
+  const reviewerInput = document.getElementById('reviewerId');
+  if (reviewerInput) reviewerInput.value = reviewerId;
+}
+
+async function ensureGroupAssignedOrBlock({ showAlert = true, persistFallback = false } = {}) {
+  if (!currentStudent || currentStudent.type !== 'group') return true;
+  const groupNumber = getGroupNumber();
+  if (groupNumber) return true;
+
+  currentStudent.type = 'individual';
+  syncPeerTypeRadios('individual');
+  syncPeerReviewerUi();
+
+  if (persistFallback) {
+    try {
+      const { data: { user } } = await db.auth.getUser();
+      if (user) {
+        await db.from('user_profiles')
+          .update({ student_type: 'individual' })
+          .eq('google_uid', user.id);
+      }
+    } catch (syncErr) {
+      console.warn('student_type fallback sync failed:', syncErr);
+    }
+  }
+
+  if (showAlert) {
+    showModal({
+      type: 'alert',
+      icon: '🔒',
+      title: '모둠 미배정',
+      message: '선생님이 모둠을 배정하기 전에는 모둠평가를 사용할 수 없습니다.<br>지금은 개인평가로 전환됩니다.'
+    });
+  }
+  return false;
+}
+
 
 // ============================================
 // 구글 인증 및 라우팅 (New)
@@ -304,7 +412,7 @@ async function checkAuthAndRoute(retryCount = 0) {
       const urlParams = new URLSearchParams(window.location.search);
       const hash = window.location.hash || '';
       const isOAuthCallback = urlParams.has('code') || hash.includes('access_token') || hash.includes('refresh_token');
-      const hasRoleHint = urlParams.has('role');
+      const hasRoleHint = !!normalizeRoleHint(urlParams.get('role')) || !!readPendingLoginRoleHint();
 
       // OAuth callback landing can briefly have no session before token persistence completes.
       if (isOAuthCallback || hasRoleHint) {
@@ -335,7 +443,9 @@ async function checkAuthAndRoute(retryCount = 0) {
     }
 
     const urlParams = new URLSearchParams(window.location.search);
-    const roleFromUrl = urlParams.get('role');
+    const roleFromUrl = normalizeRoleHint(urlParams.get('role'));
+    const pendingRoleHint = readPendingLoginRoleHint();
+    const roleHint = roleFromUrl || pendingRoleHint;
 
     async function findProfileBy(field, value, role) {
       if (!value) return { profile: null, error: null };
@@ -349,8 +459,8 @@ async function checkAuthAndRoute(retryCount = 0) {
     let profileError = null;
     let matchedBy = null;
 
-    if (roleFromUrl) {
-      const byUidWithRole = await findProfileBy('google_uid', session.user.id, roleFromUrl);
+    if (roleHint) {
+      const byUidWithRole = await findProfileBy('google_uid', session.user.id, roleHint);
       profile = byUidWithRole.profile;
       profileError = byUidWithRole.error;
       if (profile) matchedBy = 'google_uid';
@@ -365,8 +475,8 @@ async function checkAuthAndRoute(retryCount = 0) {
       if (profileError) throw profileError;
     }
 
-    if (!profile && roleFromUrl) {
-      const byEmailWithRole = await findProfileBy('google_email', session.user.email, roleFromUrl);
+    if (!profile && roleHint) {
+      const byEmailWithRole = await findProfileBy('google_email', session.user.email, roleHint);
       profile = byEmailWithRole.profile;
       profileError = byEmailWithRole.error;
       if (profile) matchedBy = 'google_email';
@@ -382,20 +492,21 @@ async function checkAuthAndRoute(retryCount = 0) {
     }
 
     if (!profile) {
-      if (!roleFromUrl) {
+      if (!roleHint) {
         showRoleSelectInApp();
         return;
       }
 
       document.getElementById('authLoadingSection').classList.add('hidden');
 
-      if (roleFromUrl === 'student') {
+      if (roleHint === 'student') {
         setAppLayoutMode('student');
         document.getElementById('studentOnboardingSection').classList.remove('hidden');
       } else {
         setAppLayoutMode('teacher');
         document.getElementById('teacherOnboardingSection').classList.remove('hidden');
       }
+      clearPendingLoginRoleHint();
       return;
     }
 
@@ -409,11 +520,12 @@ async function checkAuthAndRoute(retryCount = 0) {
       }
     }
 
-    if (profile.role && roleFromUrl !== profile.role) {
+    if (profile.role && roleHint !== profile.role) {
       const nextParams = new URLSearchParams(window.location.search);
       nextParams.set('role', profile.role);
       window.history.replaceState({}, '', 'app.html?' + nextParams.toString());
     }
+    clearPendingLoginRoleHint();
     if (profile.role === 'teacher') {
       setAppLayoutMode('teacher');
       currentClassCode = profile.class_code;
@@ -450,34 +562,40 @@ async function checkAuthAndRoute(retryCount = 0) {
     } else {
       setAppLayoutMode('student');
       currentClassCode = profile.class_code;
+      const studentNumber = String(profile.student_number || '').trim();
+      const rawStudentType = profile.student_type === 'group' ? 'group' : 'individual';
+      const normalizedGroupNumber = parseOptionalPositiveInt(profile.group_number);
+      const isLegacyGroupAccount = rawStudentType === 'group' && !normalizedGroupNumber;
       currentStudent = {
-        id: String(profile.student_number),
-        type: profile.student_type || 'individual',
-        name: profile.student_number
+        id: studentNumber,
+        studentNumber,
+        groupNumber: isLegacyGroupAccount
+          ? studentNumber
+          : (normalizedGroupNumber ? String(normalizedGroupNumber) : ''),
+        type: rawStudentType,
+        name: profile.student_number,
+        isLegacyGroupAccount
       };
+
+      if (currentStudent.type === 'group' && !getGroupNumber() && !currentStudent.isLegacyGroupAccount) {
+        currentStudent.type = 'individual';
+        try {
+          await db.from('user_profiles')
+            .update({ student_type: 'individual' })
+            .eq('id', profile.id);
+        } catch (fallbackErr) {
+          console.warn('student_type fallback update failed:', fallbackErr);
+        }
+      }
 
       // 먼저 로딩 숨기고 UI 표시하여 빈 화면 방지
       document.getElementById('authLoadingSection').classList.add('hidden');
       document.getElementById('studentTab').classList.remove('hidden');
       document.getElementById('studentMainSection').classList.remove('hidden');
 
-      const typeText = currentStudent.type === 'individual' ? '학생' : '모둠';
-      document.getElementById('welcomeMsg').textContent = currentClassCode + ' ' + currentStudent.id + '번 ' + typeText + ' 환영합니다!';
-
-      document.getElementById('reviewerId').value = currentStudent.id;
-      document.getElementById('submitReviewerLabel').textContent = currentStudent.type === 'individual' ? '나의 번호' : '나의 모둠';
-
-      const radios = document.getElementsByName('evalTypeDisplay');
-      const resultRadios = document.getElementsByName('resultEvalTypeDisplay');
-
-      if (currentStudent.type === 'individual') {
-        if (radios[0]) radios[0].checked = true;
-        if (resultRadios[0]) resultRadios[0].checked = true;
-      }
-      else {
-        if (radios[1]) radios[1].checked = true;
-        if (resultRadios[1]) resultRadios[1].checked = true;
-      }
+      document.getElementById('welcomeMsg').textContent = currentClassCode + ' ' + getStudentNumber() + '번 학생 환영합니다!';
+      syncPeerTypeRadios(currentStudent.type);
+      syncPeerReviewerUi();
 
       switchStudentMainTab('self');
 
@@ -494,7 +612,7 @@ async function checkAuthAndRoute(retryCount = 0) {
         const results = await Promise.allSettled([
           getObjectiveAndTask(initDate),
           getRatingCriteriaFromDB(initDate),
-          getCompletedTargets(initDate, currentStudent.id, currentStudent.type),
+          getCompletedTargets(initDate, getActivePeerId(currentStudent.type), currentStudent.type),
           getClassSettings()
         ]);
 
@@ -509,11 +627,11 @@ async function checkAuthAndRoute(retryCount = 0) {
         renderRatingItems(criteria);
 
         const maxCount = currentStudent.type === 'group' ? settings.groupCount : settings.studentCount;
-        renderTargetGrid(maxCount, currentStudent.id, completed, currentStudent.type);
+        renderTargetGrid(maxCount, getActivePeerId(currentStudent.type), completed, currentStudent.type);
       } catch (dataError) {
         console.warn('학생 데이터 로드 중 일부 오류:', dataError);
         // 최소한 기본 그리드는 표시
-        renderTargetGrid(isDemoMode ? 24 : 30, currentStudent.id, [], currentStudent.type);
+        renderTargetGrid(isDemoMode ? 24 : 30, getActivePeerId(currentStudent.type), [], currentStudent.type);
       }
     }
   } catch (error) {
@@ -608,7 +726,14 @@ function initDemoMode(role) {
   if (role === 'student') {
     setAppLayoutMode('student');
     // 학생 전역 변수 설정
-    currentStudent = { id: '1', type: 'individual', name: '1' };
+    currentStudent = {
+      id: '1',
+      studentNumber: '1',
+      groupNumber: '',
+      type: 'individual',
+      name: '1',
+      isLegacyGroupAccount: false
+    };
     studentPersonality = loadDemoPersonalityFromStorage();
 
     // 학생 UI 표시
@@ -619,14 +744,8 @@ function initDemoMode(role) {
       welcomeEl.classList.add('is-demo-welcome');
       welcomeEl.innerHTML = '<span class="welcome-main-line">체험용 1번 학생 환영합니다!</span> <span class="demo-mode-line">(체험 모드)</span>';
     }
-    document.getElementById('reviewerId').value = '1';
-    document.getElementById('submitReviewerLabel').textContent = '나의 번호';
-
-    // 개인 평가 타입 기본 설정
-    const radios = document.getElementsByName('evalTypeDisplay');
-    const resultRadios = document.getElementsByName('resultEvalTypeDisplay');
-    if (radios[0]) radios[0].checked = true;
-    if (resultRadios[0]) resultRadios[0].checked = true;
+    syncPeerTypeRadios('individual');
+    syncPeerReviewerUi();
 
     // 학생 기본 탭으로 시작
     switchStudentMainTab('self');
@@ -677,7 +796,6 @@ function addDemoBanner(role) {
 async function saveStudentOnboarding() {
   const className = document.getElementById('onboardClassName').value.trim();
   let classCode = document.getElementById('onboardClassCode').value.replace(/\s/g, '');
-  const type = document.querySelector('input[name="onboardType"]:checked').value;
   const num = document.getElementById('onboardStudentNumber').value.trim();
   const btn = document.getElementById('saveOnboardBtn');
   const msg = document.getElementById('onboardMsg');
@@ -712,7 +830,8 @@ async function saveStudentOnboarding() {
       class_code: classCode,
       class_name: className,
       student_number: parseInt(num),
-      student_type: type
+      student_type: 'individual',
+      group_number: null
     });
 
     if (profileError) {
@@ -782,24 +901,6 @@ async function saveTeacherOnboarding() {
   }
 }
 
-// 온보딩 타입 토글 (학생)
-document.querySelectorAll('input[name="onboardType"]').forEach(radio => {
-  radio.addEventListener('change', function () {
-    const type = this.value;
-    const label = document.getElementById('onboardIdLabel');
-    const input = document.getElementById('onboardStudentNumber');
-
-    if (type === 'individual') {
-      label.textContent = '나의 번호';
-      input.placeholder = '번호 입력 (예: 15)';
-    } else {
-      label.textContent = '나의 모둠 번호';
-      input.placeholder = '모둠 번호 입력 (예: 1)';
-    }
-  });
-});
-
-
 syncAllDates(getDefaultQueryDate());
 
 // Initial criteria fetch is deferred until class_code is available.
@@ -848,6 +949,7 @@ async function getRatingCriteriaFull(dateStr, evalType) {
   return [data.criteria_1 || '', data.criteria_2 || '', data.criteria_3 || '', data.criteria_4 || '', data.criteria_5 || '', data.criteria_6 || ''];
 }
 async function getCompletedTargets(dateStr, reviewerId, reviewType) {
+  if (!reviewerId || !reviewType) return [];
   const { data } = await db.from('reviews').select('target_id').eq('class_code', currentClassCode).eq('review_date', dateStr).eq('reviewer_id', String(reviewerId)).eq('review_type', reviewType);
   return (data || []).map(r => r.target_id);
 }
@@ -949,41 +1051,41 @@ function calculateAverageScores(scoresArray) {
 // 학생 평가 타입 전환 (개인 ↔ 모둠)
 async function switchTypeAndLogout(newType) {
   if (!currentStudent) return;
-  currentStudent.type = newType;
+  const nextType = newType === 'group' ? 'group' : 'individual';
+  if (nextType === 'group') {
+    currentStudent.type = 'group';
+    const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: false });
+    if (!canUseGroup) return;
+  }
+  currentStudent.type = nextType;
 
   // DB 프로필 업데이트
   try {
     const { data: { user } } = await db.auth.getUser();
     if (user) {
       await db.from('user_profiles')
-        .update({ student_type: newType })
+        .update({ student_type: nextType })
         .eq('google_uid', user.id);
     }
   } catch (err) {
     console.warn('타입 업데이트 오류:', err);
   }
 
-  // UI 라벨 변경
-  document.getElementById('submitReviewerLabel').textContent = newType === 'individual' ? '나의 번호' : '나의 모둠';
-  document.getElementById('reviewerId').value = currentStudent.id;
-
-  // 양쪽 라디오 동기화
-  const radios = document.getElementsByName('evalTypeDisplay');
-  const resultRadios = document.getElementsByName('resultEvalTypeDisplay');
-  radios.forEach(r => r.checked = (r.value === newType));
-  resultRadios.forEach(r => r.checked = (r.value === newType));
+  syncPeerTypeRadios(nextType);
+  syncPeerReviewerUi();
 
   // 평가기준 & 대상 그리드 새로 로드
+  const reviewerId = getActivePeerId(nextType);
   const date = document.getElementById('reviewDate').value;
   const [criteria, completed, settings] = await Promise.all([
-    getRatingCriteriaFromDB(date, newType),
-    getCompletedTargets(date, currentStudent.id, newType),
+    getRatingCriteriaFromDB(date, nextType),
+    getCompletedTargets(date, reviewerId, nextType),
     getClassSettings()
   ]);
   ratingCriteria = criteria;
   renderRatingItems(criteria);
-  const max = newType === 'group' ? settings.groupCount : settings.studentCount;
-  renderTargetGrid(max, currentStudent.id, completed, newType);
+  const max = nextType === 'group' ? settings.groupCount : settings.studentCount;
+  renderTargetGrid(max, reviewerId, completed, nextType);
 }
 
 function syncAllDates(dateStr) {
@@ -1293,29 +1395,36 @@ async function switchPeerTab(mode) {
     // 평가하기 탭 전환 시 데이터 로드
     if (currentStudent && currentClassCode) {
       try {
+        if (currentStudent.type === 'group') {
+          await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+        }
+        const activeType = currentStudent.type || 'individual';
+        const reviewerId = getActivePeerId(activeType);
         const date = document.getElementById('reviewDate').value;
         const [objTask, criteria, completed, settings] = await Promise.all([
           getObjectiveAndTask(date),
-          getRatingCriteriaFromDB(date),
-          getCompletedTargets(date, currentStudent.id, currentStudent.type),
+          getRatingCriteriaFromDB(date, activeType),
+          getCompletedTargets(date, reviewerId, activeType),
           getClassSettings()
         ]);
         document.getElementById('objectiveText').textContent = objTask.objective || '등록된 학습목표가 없습니다.';
         document.getElementById('taskText').textContent = objTask.task || '등록된 평가과제가 없습니다.';
         ratingCriteria = criteria;
         renderRatingItems(criteria);
-        const maxCount = currentStudent.type === 'group' ? settings.groupCount : settings.studentCount;
-        renderTargetGrid(maxCount, currentStudent.id, completed, currentStudent.type);
+        const maxCount = activeType === 'group' ? settings.groupCount : settings.studentCount;
+        renderTargetGrid(maxCount, reviewerId, completed, activeType);
       } catch (err) {
         console.warn('동료평가 데이터 로드 오류:', err);
         // 에러 시에도 기본 그리드는 표시
         try {
+          const activeType = currentStudent.type || 'individual';
+          const reviewerId = getActivePeerId(activeType);
           const settings = await getClassSettings();
-          const maxCount = currentStudent.type === 'group' ? settings.groupCount : settings.studentCount;
-          renderTargetGrid(maxCount, currentStudent.id, [], currentStudent.type);
+          const maxCount = activeType === 'group' ? settings.groupCount : settings.studentCount;
+          renderTargetGrid(maxCount, reviewerId, [], activeType);
         } catch (e) {
           // classes 테이블 자체가 없을 경우 기본값으로 그리드 표시
-          renderTargetGrid(isDemoMode ? 24 : 30, currentStudent.id, [], currentStudent.type);
+          renderTargetGrid(isDemoMode ? 24 : 30, getActivePeerId(currentStudent.type || 'individual'), [], currentStudent.type || 'individual');
         }
       }
     }
@@ -1353,6 +1462,7 @@ function switchTeacherDiarySubTab(tab) {
   const map = {
     overview: 'teacherDiaryOverviewTab',
     student: 'teacherDiaryStudentTab',
+    hint: 'teacherDiaryHintTab',
     comment: 'teacherDiaryCommentTab'
   };
 
@@ -1362,7 +1472,8 @@ function switchTeacherDiarySubTab(tab) {
 
   const btns = document.querySelectorAll('#diaryMiniTab .sub-tab-btn');
   btns.forEach(b => b.classList.remove('active'));
-  const idx = t === "student" ? 1 : (t === "comment" ? 2 : 0);
+  const order = ['overview', 'student', 'hint', 'comment'];
+  const idx = order.indexOf(map[t] ? t : 'overview');
   if (btns[idx]) btns[idx].classList.add('active');
 
   currentTeacherDiarySubTab = (map[t] ? t : 'overview');
@@ -1370,6 +1481,540 @@ function switchTeacherDiarySubTab(tab) {
   // Lazy-init the heavy section.
   if (currentTeacherDiarySubTab === "comment") {
     refreshTeacherSubjectCommentActions?.();
+  } else if (currentTeacherDiarySubTab === 'hint') {
+    const hintDateEl = document.getElementById('diaryHintViewDate');
+    if (hintDateEl && !String(hintDateEl.value || '').trim()) {
+      hintDateEl.value = getDefaultQueryDate();
+    }
+    loadTeacherHintData();
+  }
+}
+
+function getTeacherPartnerEmptyDetailHtml(title, desc, icon = '🧠') {
+  return (
+    '<div class="empty-state">' +
+    '<span class="empty-icon">' + icon + '</span>' +
+    '<div class="empty-title">' + escapeHtml(String(title || '안내')) + '</div>' +
+    '<div class="empty-desc">' + escapeHtml(String(desc || '')) + '</div>' +
+    '</div>'
+  );
+}
+
+function getTeacherPartnerSupportTag(partner) {
+  const axes = (partner && (partner.axes_raw || partner.axes)) || {};
+  return String(axes.support_tag || '').trim();
+}
+
+function normalizePartnerQuestionResponses(raw) {
+  if (!raw) return {};
+  let parsed = raw;
+  if (typeof parsed === 'string') {
+    try { parsed = JSON.parse(parsed); } catch (_) { return {}; }
+  }
+  if (!parsed || typeof parsed !== 'object') return {};
+  return parsed;
+}
+
+function formatTeacherPartnerReferenceText(raw) {
+  const escaped = escapeHtml(String(raw || ''));
+  return escaped
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\n/g, '<br>');
+}
+
+function getTeacherPartnerTypeEmojiByName(typeName) {
+  const normalized = String(typeName || '').replace(/\s+/g, '');
+  if (!normalized) return '🧠';
+  const list = Array.isArray(PARTNER_TYPES) ? PARTNER_TYPES : [];
+  const found = list.find((item) => String(item?.type_name || '').replace(/\s+/g, '') === normalized);
+  return found?.emoji || '🧠';
+}
+
+function buildTeacherPartnerReferencePart1Visual() {
+  const rows = [
+    ['코칭 스타일', '피드백의 톤', 'Q1(★우선), Q2', '주 축'],
+    ['정보 처리', '피드백의 구조', 'Q3(★우선), Q4', '주 축'],
+    ['실행 전략', '실천 제안의 형태', 'Q5(★우선), Q6', '주 축'],
+    ['학습 환경', '활동의 종류', 'Q7(★우선), Q8', '보조태그']
+  ];
+  const body = rows.map((row) =>
+    '<tr>' +
+    '<td>' + escapeHtml(row[0]) + '</td>' +
+    '<td>' + escapeHtml(row[1]) + '</td>' +
+    '<td>' + escapeHtml(row[2]) + '</td>' +
+    '<td>' + escapeHtml(row[3]) + '</td>' +
+    '</tr>'
+  ).join('');
+  return (
+    '<section class="teacher-partner-reference-visual">' +
+    '<div class="teacher-partner-reference-visual-title">질문 구조 빠른표</div>' +
+    '<div class="teacher-partner-reference-table-wrap">' +
+    '<table class="teacher-partner-reference-table">' +
+    '<thead><tr><th>축</th><th>의미</th><th>질문</th><th>역할</th></tr></thead>' +
+    '<tbody>' + body + '</tbody>' +
+    '</table>' +
+    '</div>' +
+    '<p class="teacher-partner-reference-note">동률 시 우선 질문(Q1, Q3, Q5, Q7)의 답이 적용됩니다.</p>' +
+    '</section>'
+  );
+}
+
+function buildTeacherPartnerReferencePart2Visual() {
+  const axis = [
+    ['축 1', '코칭 스타일', 'Q1, Q2', '직설적 진단 vs 공감적 동행'],
+    ['축 2', '정보 처리', 'Q3, Q4', '디테일형 vs 큰 그림형'],
+    ['축 3', '실행 전략', 'Q5, Q6', '계획형 vs 탐색형'],
+    ['축 4', '학습 환경(보조)', 'Q7, Q8', '함께 성장형 vs 혼자 집중형']
+  ];
+  return (
+    '<section class="teacher-partner-reference-visual">' +
+    '<div class="teacher-partner-reference-visual-title">질문 해석 축 미리보기</div>' +
+    '<div class="teacher-partner-axis-chip-grid">' +
+    axis.map((item) =>
+      '<article class="teacher-partner-axis-chip">' +
+      '<div class="teacher-partner-axis-chip-head"><strong>' + escapeHtml(item[0]) + '</strong> · ' + escapeHtml(item[1]) + '</div>' +
+      '<div class="teacher-partner-axis-chip-qs">' + escapeHtml(item[2]) + '</div>' +
+      '<div class="teacher-partner-axis-chip-desc">' + escapeHtml(item[3]) + '</div>' +
+      '</article>'
+    ).join('') +
+    '</div>' +
+    '</section>'
+  );
+}
+
+function buildTeacherPartnerReferencePart3Visual() {
+  const names = [
+    '구체적인 계획가',
+    '구체적인 도전가',
+    '큰 그림형 계획가',
+    '큰 그림형 도전가',
+    '함께하는 계획가',
+    '함께하는 도전가',
+    '공감하는 계획가',
+    '공감하는 도전가'
+  ];
+  return (
+    '<section class="teacher-partner-reference-visual">' +
+    '<div class="teacher-partner-reference-visual-title">8가지 유형 아이콘 맵</div>' +
+    '<div class="teacher-partner-type-icon-grid">' +
+    names.map((name) =>
+      '<div class="teacher-partner-type-icon-card">' +
+      '<span class="teacher-partner-type-icon-emoji">' + escapeHtml(getTeacherPartnerTypeEmojiByName(name)) + '</span>' +
+      '<span class="teacher-partner-type-icon-name">' + escapeHtml(name) + '</span>' +
+      '</div>'
+    ).join('') +
+    '</div>' +
+    '</section>'
+  );
+}
+
+function buildTeacherPartnerReferencePart4Visual() {
+  return (
+    '<section class="teacher-partner-reference-visual">' +
+    '<div class="teacher-partner-reference-visual-title">보조태그 활용 카드</div>' +
+    '<div class="teacher-partner-support-grid">' +
+    '<article class="teacher-partner-support-card">' +
+    '<div class="teacher-partner-support-tag">#함께 성장형</div>' +
+    '<div class="teacher-partner-support-desc">다른 사람과 함께할 때 더 잘 배움</div>' +
+    '<div class="teacher-partner-support-ex">친구와 설명 연습, 모둠 토론, 같이 문제 풀기, 짝 피드백</div>' +
+    '</article>' +
+    '<article class="teacher-partner-support-card">' +
+    '<div class="teacher-partner-support-tag">#혼자 집중형</div>' +
+    '<div class="teacher-partner-support-desc">혼자 집중할 때 더 잘 배움</div>' +
+    '<div class="teacher-partner-support-ex">노트 정리, 혼자 풀어보기, 조용히 복습, 자기만의 요약 만들기</div>' +
+    '</article>' +
+    '</div>' +
+    '</section>'
+  );
+}
+
+function buildTeacherPartnerReferencePart5Visual() {
+  const rows = [
+    ['구체적인 계획가', '직설 진단', '항목별 근거', '일정+체크', '"정확히, 계획대로"'],
+    ['구체적인 도전가', '직설 진단', '항목별 근거', '작은 실험', '"정확히, 일단 해봐"'],
+    ['큰 그림형 계획가', '방향 제시', '흐름 요약', '우선순위', '"전체 방향, 순서대로"'],
+    ['큰 그림형 도전가', '방향 제시', '흐름 요약', '선택지', '"전체 방향, 골라봐"'],
+    ['함께하는 계획가', '인정 후 제안', '잘한 점+개선', '단계별', '"잘했어, 이 순서로"'],
+    ['함께하는 도전가', '인정 후 제안', '잘한 점+개선', '가벼운 시도', '"잘했어, 이것만 해볼까"'],
+    ['공감하는 계획가', '공감 먼저', '방향+안심', '이번 주 하나', '"힘들었지, 이것만"'],
+    ['공감하는 도전가', '공감 먼저', '방향+영감', '흥미 자극', '"잘하고 있어, 이건 어때?"']
+  ];
+  const body = rows.map((row) =>
+    '<tr>' +
+    '<td><span class="teacher-partner-table-type">' + escapeHtml(getTeacherPartnerTypeEmojiByName(row[0]) + ' ' + row[0]) + '</span></td>' +
+    '<td>' + escapeHtml(row[1]) + '</td>' +
+    '<td>' + escapeHtml(row[2]) + '</td>' +
+    '<td>' + escapeHtml(row[3]) + '</td>' +
+    '<td>' + escapeHtml(row[4]) + '</td>' +
+    '</tr>'
+  ).join('');
+  return (
+    '<section class="teacher-partner-reference-visual">' +
+    '<div class="teacher-partner-reference-visual-title">한눈에 보기 표</div>' +
+    '<div class="teacher-partner-reference-table-wrap">' +
+    '<table class="teacher-partner-reference-table is-compact">' +
+    '<thead><tr><th>유형</th><th>톤</th><th>구조</th><th>실천</th><th>핵심 키워드</th></tr></thead>' +
+    '<tbody>' + body + '</tbody>' +
+    '</table>' +
+    '</div>' +
+    '</section>'
+  );
+}
+
+function buildTeacherPartnerReferencePartVisual(partNumber) {
+  if (partNumber === 1) return buildTeacherPartnerReferencePart1Visual();
+  if (partNumber === 2) return buildTeacherPartnerReferencePart2Visual();
+  if (partNumber === 3) return buildTeacherPartnerReferencePart3Visual();
+  if (partNumber === 4) return buildTeacherPartnerReferencePart4Visual();
+  if (partNumber === 5) return buildTeacherPartnerReferencePart5Visual();
+  return '';
+}
+
+function renderTeacherPartnerReferenceCards() {
+  const container = document.getElementById('teacherPartnerReferenceCards');
+  const source = document.getElementById('teacherPartnerReferenceRaw');
+  if (!container || !source) return;
+  if (container.dataset.rendered === '1') return;
+
+  const raw = String(source.textContent || '').replace(/\r\n/g, '\n').trim();
+  if (!raw) {
+    container.innerHTML = getTeacherPartnerEmptyDetailHtml('레퍼런스 데이터 없음', '레퍼런스 원문을 불러올 수 없습니다.', '📘');
+    container.dataset.rendered = '1';
+    return;
+  }
+
+  const chunks = raw.split(/(?=📌 Part \d+\.)/g).map(s => s.trim()).filter(Boolean);
+  let introChunk = '';
+  if (chunks.length > 0 && !chunks[0].startsWith('📌 Part')) {
+    introChunk = chunks.shift();
+  }
+
+  const introLines = introChunk.split('\n').map(s => s.trim()).filter(Boolean);
+  const introTitle = introLines.length > 0 ? introLines[0] : '📘 교사용 레퍼런스: 성장 파트너 유형 시스템';
+  const introDesc = introLines.length > 1 ? introLines.slice(1).join(' ') : '성장 파트너 유형 시스템의 질문 구조, 해석, 유형별 가이드를 확인하세요.';
+
+  const introHtml =
+    '<article class="teacher-partner-reference-intro-card">' +
+    '<div class="teacher-partner-reference-intro-badge">Guide</div>' +
+    '<h3 class="teacher-partner-reference-intro-title">' + escapeHtml(introTitle) + '</h3>' +
+    '<p class="teacher-partner-reference-intro-desc">' + escapeHtml(introDesc) + '</p>' +
+    '</article>';
+
+  const partHtml = chunks.map((chunk, index) => {
+    const lines = chunk.split('\n');
+    const heading = String(lines.shift() || ('Part ' + (index + 1))).trim();
+    const body = lines.join('\n').trim();
+    const partNumMatch = heading.match(/Part\s*(\d+)/i);
+    const partKicker = partNumMatch ? ('Part ' + partNumMatch[1]) : ('Part ' + (index + 1));
+    const partNumber = partNumMatch ? Number(partNumMatch[1]) : (index + 1);
+    const visualHtml = buildTeacherPartnerReferencePartVisual(partNumber);
+
+    return (
+      '<article class="teacher-partner-reference-part-card">' +
+      '<div class="teacher-partner-reference-part-head">' +
+      '<span class="teacher-partner-reference-part-kicker">' + escapeHtml(partKicker) + '</span>' +
+      '<h4 class="teacher-partner-reference-part-title">' + escapeHtml(heading) + '</h4>' +
+      '</div>' +
+      visualHtml +
+      '<div class="teacher-partner-reference-part-body">' + formatTeacherPartnerReferenceText(body) + '</div>' +
+      '</article>'
+    );
+  }).join('');
+
+  container.innerHTML = introHtml + partHtml;
+  container.dataset.rendered = '1';
+}
+
+function switchTeacherManageSubTab(tab) {
+  const mode = (String(tab || '').trim() === 'partner') ? 'partner' : 'class';
+  currentTeacherManageSubTab = mode;
+
+  const classTab = document.getElementById('teacherManageClassTab');
+  const partnerTab = document.getElementById('teacherManagePartnerTab');
+  classTab?.classList.toggle('hidden', mode !== 'class');
+  partnerTab?.classList.toggle('hidden', mode !== 'partner');
+
+  const classBtn = document.getElementById('teacherManageClassBtn');
+  const partnerBtn = document.getElementById('teacherManagePartnerBtn');
+  classBtn?.classList.toggle('active', mode === 'class');
+  partnerBtn?.classList.toggle('active', mode === 'partner');
+
+  if (mode === 'class') {
+    loadClassSettingsUI();
+    loadStudentMappingData();
+    return;
+  }
+
+  switchTeacherPartnerSubTab('reference');
+}
+
+function switchTeacherPartnerSubTab(tab) {
+  const mode = (String(tab || '').trim() === 'individual') ? 'individual' : 'reference';
+  currentTeacherPartnerSubTab = mode;
+
+  const refTab = document.getElementById('teacherPartnerReferenceTab');
+  const indTab = document.getElementById('teacherPartnerIndividualTab');
+  refTab?.classList.toggle('hidden', mode !== 'reference');
+  indTab?.classList.toggle('hidden', mode !== 'individual');
+
+  const refBtn = document.getElementById('teacherPartnerReferenceBtn');
+  const indBtn = document.getElementById('teacherPartnerIndividualBtn');
+  refBtn?.classList.toggle('active', mode === 'reference');
+  indBtn?.classList.toggle('active', mode === 'individual');
+
+  if (mode === 'reference') {
+    renderTeacherPartnerReferenceCards();
+    return;
+  }
+
+  loadTeacherPartnerIndividualData();
+}
+
+function renderTeacherPartnerIndividual(rows) {
+  const summaryEl = document.getElementById('teacherPartnerSummary');
+  const listEl = document.getElementById('teacherPartnerList');
+  if (!summaryEl || !listEl) return;
+
+  const items = Array.isArray(rows) ? rows : [];
+  const totalCount = items.length;
+  const diagnosedCount = items.filter(item => item.status === '진단완료').length;
+  const undiagnosedCount = items.filter(item => item.status === '미진단').length;
+  const unregisteredCount = items.filter(item => item.status === '미등록').length;
+
+  summaryEl.innerHTML =
+    '<div class="teacher-partner-summary-card">' +
+    '<span class="teacher-partner-summary-label">전체</span>' +
+    '<strong class="teacher-partner-summary-value">' + totalCount + '명</strong>' +
+    '</div>' +
+    '<div class="teacher-partner-summary-card is-done">' +
+    '<span class="teacher-partner-summary-label">진단완료</span>' +
+    '<strong class="teacher-partner-summary-value">' + diagnosedCount + '명</strong>' +
+    '</div>' +
+    '<div class="teacher-partner-summary-card is-pending">' +
+    '<span class="teacher-partner-summary-label">미진단</span>' +
+    '<strong class="teacher-partner-summary-value">' + undiagnosedCount + '명</strong>' +
+    '</div>' +
+    '<div class="teacher-partner-summary-card is-empty">' +
+    '<span class="teacher-partner-summary-label">미등록</span>' +
+    '<strong class="teacher-partner-summary-value">' + unregisteredCount + '명</strong>' +
+    '</div>';
+
+  if (items.length === 0) {
+    listEl.innerHTML = getTeacherPartnerEmptyDetailHtml('표시할 학생이 없습니다', '학급 학생 수 설정과 학생 등록 상태를 확인해 주세요.', '📭');
+    return;
+  }
+
+  listEl.innerHTML = items.map((row) => {
+    const statusClass = row.status === '진단완료'
+      ? 'is-done'
+      : (row.status === '미진단' ? 'is-pending' : 'is-empty');
+    const itemToneClass = row.status === '진단완료'
+      ? 'is-done'
+      : (row.status === '미진단' ? 'is-pending' : 'is-empty');
+    const partnerName = row.partner
+      ? ((row.partner.emoji || '🧠') + ' ' + String(row.partner.type_name || row.partner.type_code || '유형 미확정'))
+      : '-';
+    const supportTag = row.supportTag || '-';
+    const email = row.profile?.google_email || '(미등록)';
+    const activeClass = String(row.studentNumber) === String(teacherPartnerSelectedStudentNumber || '') ? ' is-active' : '';
+    return (
+      '<button type="button" class="teacher-partner-item ' + itemToneClass + activeClass + '" data-student-number="' + escapeHtml(String(row.studentNumber)) + '" onclick="renderTeacherPartnerDetail(\'' + escapeHtml(String(row.studentNumber)) + '\')">' +
+      '<div class="teacher-partner-item-head">' +
+      '<span class="teacher-partner-student">' + escapeHtml(String(row.studentNumber)) + '번</span>' +
+      '<span class="teacher-partner-status ' + statusClass + '">' + escapeHtml(row.status) + '</span>' +
+      '</div>' +
+      '<div class="teacher-partner-type">' + escapeHtml(partnerName) + '</div>' +
+      '<div class="teacher-partner-tag">' + escapeHtml(supportTag) + '</div>' +
+      '<div class="teacher-partner-email">' + escapeHtml(email) + '</div>' +
+      '</button>'
+    );
+  }).join('');
+}
+
+function renderTeacherPartnerDetail(studentNumber) {
+  const detailEl = document.getElementById('teacherPartnerDetail');
+  if (!detailEl) return;
+
+  const key = String(studentNumber || '').trim();
+  if (!key) {
+    detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('학생을 선택해 주세요', '왼쪽 목록에서 학생 번호를 눌러 상세를 확인하세요.');
+    return;
+  }
+
+  teacherPartnerSelectedStudentNumber = key;
+  document.querySelectorAll('#teacherPartnerList .teacher-partner-item').forEach((el) => {
+    const isActive = String(el.dataset.studentNumber || '') === key;
+    el.classList.toggle('is-active', isActive);
+  });
+
+  const row = teacherPartnerIndividualRows.find((item) => String(item.studentNumber) === key);
+  if (!row) {
+    detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('데이터를 찾을 수 없습니다', '목록을 새로 불러온 뒤 다시 선택해 주세요.', '⚠️');
+    return;
+  }
+
+  if (row.status === '미등록') {
+    detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml(
+      key + '번은 아직 미등록입니다',
+      '학생이 Google 계정 온보딩을 완료하면 개별 확인이 가능합니다.',
+      '👤'
+    );
+    return;
+  }
+
+  if (row.status === '미진단' || !row.partner) {
+    detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml(
+      key + '번은 아직 성장 파트너 미진단입니다',
+      '학생이 스스로 배움에서 성향 진단(Q1~Q8)을 완료해야 유형이 표시됩니다.',
+      '📝'
+    );
+    return;
+  }
+
+  const partner = row.partner;
+  const axes = (partner.axes_raw || partner.axes || {});
+  const responses = normalizePartnerQuestionResponses(row.personality?.question_responses);
+  const questionList = Array.isArray(personalityQuestions) ? personalityQuestions : [];
+  const questionMap = {};
+  questionList.forEach((q) => { questionMap[String(q.id)] = q; });
+
+  let answerHtml = '';
+  for (let i = 1; i <= 8; i++) {
+    const answer = String(responses[String(i)] || responses[i] || '').trim();
+    const q = questionMap[String(i)];
+    let answerText = '-';
+    if (q && answer === 'A') answerText = q.optionA?.text || 'A';
+    else if (q && answer === 'B') answerText = q.optionB?.text || 'B';
+    else if (answer) answerText = answer;
+    answerHtml +=
+      '<div class="teacher-partner-answer-item">' +
+      '<span class="teacher-partner-answer-q">Q' + i + '</span>' +
+      '<span class="teacher-partner-answer-choice">' + escapeHtml(answer || '-') + '</span>' +
+      '<span class="teacher-partner-answer-text">' + escapeHtml(answerText) + '</span>' +
+      '</div>';
+  }
+
+  detailEl.innerHTML =
+    '<div class="teacher-partner-detail-head">' +
+    '<div class="teacher-partner-detail-title">' + escapeHtml(key) + '번 학생</div>' +
+    '<div class="teacher-partner-detail-type">' + escapeHtml((partner.emoji || '🧠') + ' ' + String(partner.type_name || partner.type_code || '유형 미확정')) + '</div>' +
+    '</div>' +
+    '<div class="teacher-partner-detail-meta">' +
+    '<div><span class="teacher-partner-meta-label">유형 코드</span><strong>' + escapeHtml(String(partner.type_code || '-')) + '</strong></div>' +
+    '<div><span class="teacher-partner-meta-label">보조태그</span><strong>' + escapeHtml(row.supportTag || '-') + '</strong></div>' +
+    '<div><span class="teacher-partner-meta-label">계정</span><strong>' + escapeHtml(String(row.profile?.google_email || '-')) + '</strong></div>' +
+    '</div>' +
+    '<div class="teacher-partner-detail-section">' +
+    '<h4>4축 정보</h4>' +
+    '<div class="teacher-partner-axis-grid">' +
+    '<div><span>코칭 스타일</span><strong>' + escapeHtml(String(axes.coaching_style || '-')) + '</strong></div>' +
+    '<div><span>정보 처리</span><strong>' + escapeHtml(String(axes.info_processing || '-')) + '</strong></div>' +
+    '<div><span>실행 전략</span><strong>' + escapeHtml(String(axes.execution_strategy || '-')) + '</strong></div>' +
+    '<div><span>학습 환경</span><strong>' + escapeHtml(String(axes.learning_env || '-')) + '</strong></div>' +
+    '</div>' +
+    '</div>' +
+    '<div class="teacher-partner-detail-section">' +
+    '<h4>Q1~Q8 응답</h4>' +
+    '<div class="teacher-partner-answer-grid">' + answerHtml + '</div>' +
+    '</div>';
+}
+
+async function loadTeacherPartnerIndividualData() {
+  const summaryEl = document.getElementById('teacherPartnerSummary');
+  const listEl = document.getElementById('teacherPartnerList');
+  const detailEl = document.getElementById('teacherPartnerDetail');
+  if (!summaryEl || !listEl || !detailEl) return;
+  if (!currentClassCode) {
+    listEl.innerHTML = getTeacherPartnerEmptyDetailHtml('학급 코드가 없습니다', '교사 계정의 학급 정보를 먼저 확인해 주세요.', '⚠️');
+    detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('데이터 없음', '학급 코드 확인 후 다시 시도해 주세요.');
+    return;
+  }
+
+  summaryEl.innerHTML = '';
+  listEl.innerHTML = '<p class="teacher-list-loading">로딩 중...</p>';
+  detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('학생을 선택해 주세요', '목록을 불러오는 중입니다.');
+
+  try {
+    const [classRes, profilesRes, personalityRes] = await Promise.all([
+      db.from('classes').select('student_count').eq('class_code', currentClassCode).maybeSingle(),
+      db.from('user_profiles')
+        .select('id, student_number, google_email')
+        .eq('class_code', currentClassCode)
+        .eq('role', 'student')
+        .order('student_number'),
+      db.from('student_personality')
+        .select('student_id, question_responses, partner_type_code, partner_type_name, partner_axes, partner_version')
+        .eq('class_code', currentClassCode)
+    ]);
+
+    if (classRes.error) throw classRes.error;
+    if (profilesRes.error) throw profilesRes.error;
+    if (personalityRes.error) throw personalityRes.error;
+
+    const studentCount = Number(classRes.data?.student_count) || 30;
+    const profileMap = new Map();
+    (profilesRes.data || []).forEach((row) => {
+      const num = parseOptionalPositiveInt(row?.student_number);
+      if (!num) return;
+      profileMap.set(String(num), row);
+    });
+
+    const personalityMap = new Map();
+    (personalityRes.data || []).forEach((row) => {
+      const sid = parseOptionalPositiveInt(row?.student_id);
+      if (!sid) return;
+      personalityMap.set(String(sid), row);
+    });
+
+    const rows = [];
+    for (let i = 1; i <= studentCount; i++) {
+      const key = String(i);
+      const profile = profileMap.get(key) || null;
+      const personality = personalityMap.get(key) || null;
+      const partner = (profile && personality) ? getPartnerFromPersonalityRow(personality) : null;
+      const status = !profile ? '미등록' : (partner ? '진단완료' : '미진단');
+      rows.push({
+        studentNumber: key,
+        profile,
+        personality,
+        partner,
+        supportTag: getTeacherPartnerSupportTag(partner),
+        status
+      });
+    }
+
+    teacherPartnerIndividualRows = rows;
+    const selected = rows.find((item) => item.studentNumber === teacherPartnerSelectedStudentNumber)
+      || rows.find((item) => item.status === '진단완료')
+      || rows.find((item) => item.status === '미진단')
+      || rows[0]
+      || null;
+    teacherPartnerSelectedStudentNumber = selected ? String(selected.studentNumber) : '';
+
+    renderTeacherPartnerIndividual(rows);
+    if (selected) {
+      renderTeacherPartnerDetail(selected.studentNumber);
+    } else {
+      detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('표시할 학생이 없습니다', '학급 학생 수를 확인해 주세요.', '📭');
+    }
+  } catch (error) {
+    console.error('loadTeacherPartnerIndividualData error:', error);
+    teacherPartnerIndividualRows = [];
+    teacherPartnerSelectedStudentNumber = '';
+    summaryEl.innerHTML = '';
+
+    const message = String(error?.message || error || '알 수 없는 오류');
+    const rlsLikely = /row[-\s]?level security|permission denied|policy|not allowed|forbidden/i.test(message);
+    listEl.innerHTML =
+      '<div class="empty-state">' +
+      '<span class="empty-icon">⚠️</span>' +
+      '<div class="empty-title">성장 파트너 데이터를 불러올 수 없습니다</div>' +
+      '<div class="empty-desc">' + escapeHtml(message) + '</div>' +
+      (rlsLikely
+        ? '<div class="teacher-partner-rls-hint">앱에서 보이지 않는 경우 Supabase RLS 정책에서 student_personality / user_profiles / classes 조회 권한을 먼저 확인해 주세요.</div>'
+        : '') +
+      '</div>';
+    detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('조회 실패', '목록을 다시 열거나 권한 설정(RLS)을 점검해 주세요.', '⚠️');
   }
 }
 
@@ -1410,7 +2055,7 @@ async function switchMiniTab(mode) {
     mainTabBtns[3].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
     const el = document.getElementById('settingsMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
-    loadClassSettingsUI(); loadStudentMappingData();
+    switchTeacherManageSubTab('class');
   }
 }
 
@@ -2780,10 +3425,17 @@ function getDemoReviewTemplate(targetId) {
 }
 
 async function loadEvalTargetGrid() {
+  if (!currentStudent) return;
+  if (currentStudent.type === 'group') {
+    const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+    if (!canUseGroup) return;
+  }
+  const reviewType = currentStudent.type || 'individual';
+  const reviewerId = getActivePeerId(reviewType);
   const date = document.getElementById('reviewDate').value;
-  const [completed, settings] = await Promise.all([getCompletedTargets(date, currentStudent.id, currentStudent.type), getClassSettings()]);
-  const max = currentStudent.type === 'group' ? settings.groupCount : settings.studentCount;
-  renderTargetGrid(max, currentStudent.id, completed, currentStudent.type);
+  const [completed, settings] = await Promise.all([getCompletedTargets(date, reviewerId, reviewType), getClassSettings()]);
+  const max = reviewType === 'group' ? settings.groupCount : settings.studentCount;
+  renderTargetGrid(max, reviewerId, completed, reviewType);
 }
 let targetSelectionRequestSeq = 0;
 function renderTargetGrid(maxCount, myId, completedList, type) {
@@ -2817,15 +3469,17 @@ async function selectTarget(id, button) {
   clearRatingSelectionUI();
   const requestSeq = ++targetSelectionRequestSeq;
   if (!currentStudent) return;
+  const reviewType = currentStudent.type || 'individual';
+  const reviewerId = getActivePeerId(reviewType);
   try {
     const date = document.getElementById('reviewDate').value;
     const { data: typedRows } = await db.from('reviews')
       .select('scores_json')
       .eq('class_code', currentClassCode)
       .eq('review_date', date)
-      .eq('reviewer_id', String(currentStudent.id))
+      .eq('reviewer_id', String(reviewerId))
       .eq('target_id', String(id))
-      .eq('review_type', currentStudent.type)
+      .eq('review_type', reviewType)
       .limit(1);
 
     let existing = (typedRows && typedRows.length > 0) ? typedRows[0] : null;
@@ -2836,7 +3490,7 @@ async function selectTarget(id, button) {
         .select('scores_json')
         .eq('class_code', currentClassCode)
         .eq('review_date', date)
-        .eq('reviewer_id', String(currentStudent.id))
+        .eq('reviewer_id', String(reviewerId))
         .eq('target_id', String(id))
         .limit(1);
       existing = (legacyRows && legacyRows.length > 0) ? legacyRows[0] : null;
@@ -2847,7 +3501,7 @@ async function selectTarget(id, button) {
       const { data: looseRows } = await db.from('reviews')
         .select('scores_json')
         .eq('review_date', date)
-        .eq('reviewer_id', String(currentStudent.id))
+        .eq('reviewer_id', String(reviewerId))
         .eq('target_id', String(id))
         .limit(1);
       existing = (looseRows && looseRows.length > 0) ? looseRows[0] : null;
@@ -2884,8 +3538,15 @@ async function selectTarget(id, button) {
 document.getElementById('reviewForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (isDemoMode) { showDemoBlockModal(); return; }
+  if (!currentStudent) return;
+  if (currentStudent.type === 'group') {
+    const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+    if (!canUseGroup) return;
+  }
+  const reviewType = currentStudent.type || 'individual';
+  const reviewerId = getActivePeerId(reviewType);
   const btn = document.getElementById('submitBtn'); const msg = document.getElementById('submitMsg');
-  const data = { class_code: currentClassCode, review_date: document.getElementById('reviewDate').value, reviewer_id: String(currentStudent.id), target_id: document.getElementById('targetId').value, review_content: document.getElementById('reviewContent').value, scores_json: { criteria: ratingCriteria, scores: currentRatings }, review_type: currentStudent.type, reviewer_email: '' };
+  const data = { class_code: currentClassCode, review_date: document.getElementById('reviewDate').value, reviewer_id: String(reviewerId), target_id: document.getElementById('targetId').value, review_content: document.getElementById('reviewContent').value, scores_json: { criteria: ratingCriteria, scores: currentRatings }, review_type: reviewType, reviewer_email: '' };
   if (!data.target_id) { showMsg(msg, '평가 대상을 선택해주세요.', 'error'); return; }
   if (data.reviewer_id === data.target_id) { showMsg(msg, '자기 자신/모둠은 평가할 수 없습니다.', 'error'); return; }
   if (data.review_content.trim().length < 100) { showMsg(msg, '피드백은 최소 100자 이상 입력해주세요.', 'error'); return; }
@@ -2894,9 +3555,10 @@ document.getElementById('reviewForm').addEventListener('submit', async (e) => {
   const { data: existing } = await db.from('reviews').select('review_content').eq('class_code', currentClassCode).eq('review_date', data.review_date).eq('reviewer_id', data.reviewer_id).eq('target_id', data.target_id).eq('review_type', data.review_type).maybeSingle();
   if (existing) {
     setLoading(false, btn, '평가 제출하기');
+    const targetSuffix = data.review_type === 'group' ? '모둠' : '번';
     showModal({
       type: 'confirm', icon: '⚠️', title: '이미 평가한 대상입니다',
-      message: data.target_id + '번에게 이미 평가를 제출했습니다.<br><br><div style="background:var(--bg-soft);padding:10px;border-radius:8px;font-size:0.85rem;text-align:left;max-height:80px;overflow-y:auto;margin-bottom:10px;">"' + existing.review_content.substring(0, 60) + (existing.review_content.length > 60 ? '...' : '') + '"</div><strong>새 내용으로 덮어쓰시겠습니까?</strong>',
+      message: data.target_id + targetSuffix + '에게 이미 평가를 제출했습니다.<br><br><div style="background:var(--bg-soft);padding:10px;border-radius:8px;font-size:0.85rem;text-align:left;max-height:80px;overflow-y:auto;margin-bottom:10px;">"' + existing.review_content.substring(0, 60) + (existing.review_content.length > 60 ? '...' : '') + '"</div><strong>새 내용으로 덮어쓰시겠습니까?</strong>',
       onConfirm: () => doSubmitReview(data, btn, msg)
     });
   } else { await doSubmitReview(data, btn, msg); }
@@ -2910,7 +3572,7 @@ async function doSubmitReview(data, btn, msg) {
   const savedDate = document.getElementById('reviewDate').value;
   document.getElementById('reviewForm').reset();
   clearRatingSelectionUI();
-  document.getElementById('reviewerId').value = currentStudent.id;
+  syncPeerReviewerUi();
   document.getElementById('reviewDate').value = savedDate;
   document.getElementById('targetId').value = ''; updateCharCount();
   await loadEvalTargetGrid();
@@ -2924,13 +3586,20 @@ async function doSubmitReview(data, btn, msg) {
 // 학생 결과 조회
 // ============================================
 async function viewMyResult() {
+  if (!currentStudent) return;
+  if (currentStudent.type === 'group') {
+    const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+    if (!canUseGroup) return;
+  }
+  const reviewType = currentStudent.type || 'individual';
+  const peerId = getActivePeerId(reviewType);
   const date = document.getElementById('viewDate').value;
   const btn = document.getElementById('viewResultBtn'); const msg = document.getElementById('viewMsg');
   setLoading(true, btn, '확인 중...'); document.getElementById('resultArea').classList.add('hidden');
-  const { data: reviews, error: reviewsError } = await db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('target_id', String(currentStudent.id)).eq('review_type', currentStudent.type);
+  const { data: reviews, error: reviewsError } = await db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('target_id', String(peerId)).eq('review_type', reviewType);
   if (reviewsError) { setLoading(false, btn, '내 결과 확인하기'); showMsg(msg, '결과 조회 중 오류: ' + reviewsError.message, 'error'); return; }
   if (!reviews || reviews.length === 0) { setLoading(false, btn, '내 결과 확인하기'); showMsg(msg, '해당 날짜(' + date + ')에 받은 평가가 없습니다.', 'error'); return; }
-  const { data: allReviews, error: allReviewsError } = await db.from('reviews').select('target_id, scores_json').eq('class_code', currentClassCode).eq('review_date', date).eq('review_type', currentStudent.type);
+  const { data: allReviews, error: allReviewsError } = await db.from('reviews').select('target_id, scores_json').eq('class_code', currentClassCode).eq('review_date', date).eq('review_type', reviewType);
   if (allReviewsError) { setLoading(false, btn, '내 결과 확인하기'); showMsg(msg, '통계 조회 중 오류: ' + allReviewsError.message, 'error'); return; }
   const myScoresArray = reviews.map(r => r.scores_json).filter(s => s && s.criteria);
   const myAvgScores = calculateAverageScores(myScoresArray);
@@ -2956,7 +3625,7 @@ async function viewMyResult() {
   }));
 
   const evaluation_context = {
-    eval_type: currentStudent.type,
+    eval_type: reviewType,
     review_count: reviews.length,
     ...(myTotalAvgNum != null && classTotalAvgNum != null ? {
       my_total_avg: Number(myTotalAvgNum.toFixed(2)),
@@ -3535,39 +4204,272 @@ function saveClassSettingsUI(btn) {
     }
   });
 }
+function normalizeGroupAssignmentValue(value) {
+  const parsed = parseOptionalPositiveInt(value);
+  return parsed ? String(parsed) : '';
+}
+
+function getStudentGroupMappingDiffs() {
+  if (!studentGroupMappingState) return [];
+  const ids = Object.keys(studentGroupMappingState.original || {});
+  const diffs = [];
+  ids.forEach((profileId) => {
+    const oldGroup = studentGroupMappingState.original[profileId] || '';
+    const newGroup = studentGroupMappingState.draft[profileId] || '';
+    if (oldGroup === newGroup) return;
+    const meta = (studentGroupMappingState.meta && studentGroupMappingState.meta[profileId]) || {};
+    diffs.push({
+      profileId,
+      studentNumber: meta.studentNumber || '',
+      oldGroup: oldGroup || null,
+      newGroup: newGroup || null
+    });
+  });
+  return diffs.sort((a, b) => Number(a.studentNumber || 0) - Number(b.studentNumber || 0));
+}
+
+function refreshStudentGroupMappingDirtyUi() {
+  const saveBtn = document.getElementById('saveGroupMappingBtn');
+  const notice = document.getElementById('groupMappingNotice');
+  const diffs = getStudentGroupMappingDiffs();
+  const dirtyCount = diffs.length;
+
+  if (saveBtn) {
+    saveBtn.disabled = dirtyCount === 0;
+    saveBtn.classList.toggle('is-dirty', dirtyCount > 0);
+    saveBtn.textContent = dirtyCount > 0
+      ? '💾 모둠 배정 일괄 저장 (' + dirtyCount + '건)'
+      : '💾 모둠 배정 일괄 저장';
+  }
+
+  if (notice) {
+    notice.textContent = dirtyCount > 0
+      ? '변경 ' + dirtyCount + '건이 있습니다. 저장 시 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.'
+      : '모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.';
+  }
+}
+
+function handleStudentGroupMappingChange(selectEl) {
+  if (!studentGroupMappingState || !selectEl) return;
+  const profileId = String(selectEl.dataset.profileId || '');
+  if (!profileId) return;
+  const newValue = normalizeGroupAssignmentValue(selectEl.value);
+  studentGroupMappingState.draft[profileId] = newValue;
+  const row = selectEl.closest('.teacher-student-auth-item');
+  if (row) row.classList.toggle('is-group-dirty', (studentGroupMappingState.original[profileId] || '') !== newValue);
+  refreshStudentGroupMappingDirtyUi();
+}
+
 async function loadStudentMappingData() {
   const grid = document.getElementById('studentMappingGrid');
+  if (!grid) return;
   grid.innerHTML = '<p class="teacher-list-loading">\uB85C\uB529 \uC911...</p>';
 
-  const { data: classData } = await db.from('classes').select('student_count').eq('class_code', currentClassCode).maybeSingle();
-  const studentCount = classData ? classData.student_count : 30;
+  const { data: classData } = await db.from('classes').select('student_count, group_count').eq('class_code', currentClassCode).maybeSingle();
+  const studentCount = Number(classData?.student_count) || 30;
+  const groupCount = Number(classData?.group_count) || 6;
 
   const { data: profiles } = await db.from('user_profiles')
-    .select('id, student_number, google_email')
+    .select('id, student_number, google_email, group_number, student_type')
     .eq('class_code', currentClassCode)
     .eq('role', 'student')
     .order('student_number');
 
   const profileMap = {};
-  (profiles || []).forEach(p => { profileMap[p.student_number] = p; });
+  (profiles || []).forEach((p) => {
+    const studentNumber = parseOptionalPositiveInt(p.student_number);
+    if (!studentNumber) return;
+    profileMap[studentNumber] = p;
+  });
+
+  studentGroupMappingState = {
+    groupCount,
+    original: {},
+    draft: {},
+    meta: {}
+  };
+
   grid.innerHTML = '';
 
   for (let i = 1; i <= studentCount; i++) {
+    const row = document.createElement('div');
+    row.className = 'student-auth-item teacher-student-auth-item';
+
+    const label = document.createElement('label');
+    label.className = 'teacher-student-auth-label';
+    label.textContent = i + '번';
+    row.appendChild(label);
+
     const p = profileMap[i];
-    if (p) {
-      const emailShort = p.google_email ? (p.google_email.length > 20 ? p.google_email.substring(0, 18) + '...' : p.google_email) : '(\uC774\uBA54\uC77C \uC5C6\uC74C)';
-      grid.innerHTML += '<div class="student-auth-item teacher-student-auth-item">'
-        + '<label class="teacher-student-auth-label">' + i + '\uBC88</label>'
-        + '<span class="teacher-student-auth-email" title="' + (p.google_email || '') + '">' + emailShort + '</span>'
-        + '<button type="button" class="teacher-student-auth-remove" onclick="removeStudentMapping(\'' + p.id + '\', ' + i + ')">\uD574\uC81C</button>'
-        + '</div>';
-    } else {
-      grid.innerHTML += '<div class="student-auth-item teacher-student-auth-item">'
-        + '<label class="teacher-student-auth-label">' + i + '\uBC88</label>'
-        + '<span class="teacher-student-auth-empty">\uBBF8\uB4F1\uB85D</span>'
-        + '</div>';
+    if (!p) {
+      const empty = document.createElement('span');
+      empty.className = 'teacher-student-auth-empty';
+      empty.textContent = '미등록';
+      row.appendChild(empty);
+      grid.appendChild(row);
+      continue;
     }
+
+    const email = document.createElement('span');
+    email.className = 'teacher-student-auth-email';
+    email.title = p.google_email || '';
+    email.textContent = p.google_email
+      ? (p.google_email.length > 20 ? p.google_email.substring(0, 18) + '...' : p.google_email)
+      : '(이메일 없음)';
+    row.appendChild(email);
+
+    const controls = document.createElement('div');
+    controls.className = 'teacher-group-mapping-controls';
+
+    const select = document.createElement('select');
+    select.className = 'teacher-group-select';
+    select.dataset.profileId = String(p.id || '');
+
+    const unassigned = document.createElement('option');
+    unassigned.value = '';
+    unassigned.textContent = '미배정';
+    select.appendChild(unassigned);
+
+    for (let g = 1; g <= groupCount; g++) {
+      const option = document.createElement('option');
+      option.value = String(g);
+      option.textContent = g + '모둠';
+      select.appendChild(option);
+    }
+
+    const currentGroup = normalizeGroupAssignmentValue(p.group_number);
+    const currentGroupNum = parseOptionalPositiveInt(p.group_number);
+    const isOutOfRange = !!(currentGroupNum && currentGroupNum > groupCount);
+    if (isOutOfRange) {
+      const outOfRangeOption = document.createElement('option');
+      outOfRangeOption.value = currentGroup;
+      outOfRangeOption.textContent = currentGroup + '모둠 (범위 초과)';
+      select.appendChild(outOfRangeOption);
+      row.classList.add('teacher-group-out-of-range');
+    }
+
+    select.value = currentGroup;
+    select.addEventListener('change', () => handleStudentGroupMappingChange(select));
+    controls.appendChild(select);
+
+    if (p.student_type === 'group' && !currentGroup) {
+      const legacyBadge = document.createElement('span');
+      legacyBadge.className = 'teacher-group-legacy-badge';
+      legacyBadge.textContent = '구형 모둠 계정';
+      controls.appendChild(legacyBadge);
+    }
+
+    if (isOutOfRange) {
+      const outOfRangeNote = document.createElement('span');
+      outOfRangeNote.className = 'teacher-group-note teacher-group-out-of-range';
+      outOfRangeNote.textContent = '현재 모둠 수 범위를 벗어났습니다.';
+      controls.appendChild(outOfRangeNote);
+    }
+
+    row.appendChild(controls);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'teacher-student-auth-remove';
+    removeBtn.textContent = '해제';
+    removeBtn.onclick = () => removeStudentMapping(String(p.id || ''), i);
+    row.appendChild(removeBtn);
+
+    const profileId = String(p.id || '');
+    studentGroupMappingState.original[profileId] = currentGroup;
+    studentGroupMappingState.draft[profileId] = currentGroup;
+    studentGroupMappingState.meta[profileId] = { studentNumber: String(i) };
+
+    grid.appendChild(row);
   }
+
+  refreshStudentGroupMappingDirtyUi();
+}
+
+async function saveStudentGroupMappings(btn) {
+  if (isDemoMode) { showDemoBlockModal(); return; }
+  if (!studentGroupMappingState) return;
+
+  const diffs = getStudentGroupMappingDiffs();
+  if (diffs.length === 0) {
+    showModal({ type: 'alert', icon: 'ℹ️', title: '변경 없음', message: '저장할 모둠 변경 사항이 없습니다.' });
+    return;
+  }
+
+  const impactedGroups = Array.from(new Set(
+    diffs.flatMap((item) => [item.oldGroup, item.newGroup]).filter(Boolean)
+  )).sort((a, b) => Number(a) - Number(b));
+
+  const preview = diffs.slice(0, 8).map((item) => {
+    const oldText = item.oldGroup ? (item.oldGroup + '모둠') : '미배정';
+    const newText = item.newGroup ? (item.newGroup + '모둠') : '미배정';
+    return item.studentNumber + '번: ' + oldText + ' → ' + newText;
+  }).join('<br>');
+  const extraCount = diffs.length > 8 ? ('<br>외 ' + (diffs.length - 8) + '건') : '';
+  const impactedText = impactedGroups.length > 0
+    ? impactedGroups.map((g) => g + '모둠').join(', ')
+    : '없음';
+
+  showModal({
+    type: 'confirm',
+    icon: '👥',
+    title: '모둠 배정 저장',
+    message:
+      '총 <strong>' + diffs.length + '건</strong>을 저장하시겠습니까?<br><br>' +
+      '<div style="text-align:left; background:var(--bg-soft); border-radius:8px; padding:10px; max-height:160px; overflow:auto;">' + preview + extraCount + '</div>' +
+      '<p style="margin:10px 0 0; font-size:0.82rem; color:var(--text-sub);">초기화 대상 모둠: ' + impactedText + '<br>개인정보 보호를 위해 해당 모둠의 모둠평가 기록이 삭제됩니다.</p>',
+    onConfirm: async () => {
+      setLoading(true, btn, '저장 중...');
+      try {
+        const updateResults = await Promise.all(diffs.map((item) =>
+          db.from('user_profiles')
+            .update({ group_number: item.newGroup ? Number(item.newGroup) : null })
+            .eq('id', item.profileId)
+        ));
+        const updateError = updateResults.find((r) => r.error)?.error;
+        if (updateError) throw updateError;
+
+        let resetError = null;
+        if (impactedGroups.length > 0) {
+          const inList = impactedGroups
+            .map((v) => parseOptionalPositiveInt(v))
+            .filter((v) => v !== null)
+            .join(',');
+          if (inList) {
+            const { error } = await db.from('reviews')
+              .delete()
+              .eq('class_code', currentClassCode)
+              .eq('review_type', 'group')
+              .or('reviewer_id.in.(' + inList + '),target_id.in.(' + inList + ')');
+            if (error) resetError = error;
+          }
+        }
+
+        await loadStudentMappingData();
+        if (resetError) {
+          showModal({
+            type: 'alert',
+            icon: '⚠️',
+            title: '배정 저장 완료 (초기화 일부 실패)',
+            message: '모둠 배정은 저장되었지만 모둠평가 기록 초기화 중 일부 오류가 발생했습니다.<br><br><small>' + escapeHtml(resetError.message || 'unknown error') + '</small>'
+          });
+        } else {
+          showModal({
+            type: 'alert',
+            icon: '✅',
+            title: '저장 완료',
+            message: '모둠 배정 저장 및 연관 모둠평가 기록 초기화가 완료되었습니다.'
+          });
+        }
+      } catch (error) {
+        console.error('모둠 배정 저장 오류:', error);
+        showModal({ type: 'alert', icon: '❌', title: '저장 실패', message: '모둠 배정을 저장할 수 없습니다: ' + error.message });
+      } finally {
+        setLoading(false, btn, '💾 모둠 배정 일괄 저장');
+        refreshStudentGroupMappingDirtyUi();
+      }
+    }
+  });
 }
 function removeStudentMapping(profileId, num) {
   showModal({
@@ -4162,12 +5064,18 @@ function initDiaryDate() {
     const el = document.getElementById(id);
     if (el) el.value = today;
   });
+  const hintDateEl = document.getElementById('diaryHintViewDate');
+  if (hintDateEl && !String(hintDateEl.value || '').trim()) hintDateEl.value = today;
 }
 
 function getTeacherDiarySelectedDate() {
   return document.getElementById('diaryViewDate')?.value
     || document.getElementById('diaryStudentViewDate')?.value
     || '';
+}
+
+function getTeacherHintSelectedDate() {
+  return document.getElementById('diaryHintViewDate')?.value || '';
 }
 
 function syncTeacherDiaryDateInputs(dateStr, sourceId = '') {
@@ -4186,6 +5094,31 @@ function handleTeacherDiaryDateChange(sourceId) {
   if (!selectedDate) return;
   syncTeacherDiaryDateInputs(selectedDate, sourceId);
   loadTeacherDiaryData();
+}
+
+function handleTeacherHintDateChange() {
+  const selectedDate = String(getTeacherHintSelectedDate() || '').trim();
+  if (!selectedDate) return;
+  loadTeacherHintData();
+}
+
+async function loadTeacherHintData() {
+  if (!currentClassCode) return;
+
+  const selectedDate = String(getTeacherHintSelectedDate() || '').trim();
+  if (!selectedDate) return;
+
+  try {
+    const { data: rows, error } = await db.from('daily_reflections')
+      .select('*')
+      .eq('class_code', currentClassCode)
+      .eq('reflection_date', selectedDate);
+    if (error) throw error;
+    renderEmotionAlerts(rows || [], selectedDate);
+  } catch (error) {
+    console.error('Error loading hint data:', error);
+    showModal({ type: 'alert', icon: '❌', title: '오류', message: '수업 개선 단서 로드 실패: ' + error.message });
+  }
 }
 
 // 교사용 성장 일기 데이터 로드
@@ -4216,9 +5149,6 @@ async function loadTeacherDiaryData() {
     document.getElementById('totalReflections').textContent = totalCount || 0;
     document.getElementById('todayReflections').textContent = todayReflections?.length || 0;
     renderDiaryCompletionStatus(todayReflections || [], settings?.studentCount || 30, selectedDate);
-
-    // 미해결 어려움 알림(조회날짜 기반)
-    renderEmotionAlerts(todayReflections || [], selectedDate);
 
   } catch (error) {
     console.error('Error loading diary data:', error);
@@ -4450,15 +5380,14 @@ async function loadPraiseData() {
   if (!currentStudent || !currentClassCode) return;
   // 대상 그리드 렌더링
   const settings = await getClassSettings();
-  const maxCount = currentStudent.type === 'group'
-    ? (Number(settings.groupCount) || 0)
-    : (Number(settings.studentCount) || 0);
+  const maxCount = Number(settings.studentCount) || 0;
+  const myStudentNumber = getStudentNumber();
   const grid = document.getElementById('praiseTargetGrid');
   grid.innerHTML = '';
   for (let i = 1; i <= maxCount; i++) {
     const btn = document.createElement('button'); btn.type = 'button';
     btn.textContent = i + '번'; btn.className = 'target-btn';
-    if (String(i) === String(currentStudent.id)) { btn.classList.add('disabled'); }
+    if (String(i) === myStudentNumber) { btn.classList.add('disabled'); }
     else { btn.onclick = () => { grid.querySelectorAll('.target-btn.selected').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); document.getElementById('praiseTargetId').value = i; }; }
     grid.appendChild(btn);
   }
@@ -4490,7 +5419,7 @@ async function sendPraise() {
 
   const { error } = await db.from('praise_messages').insert({
     class_code: currentClassCode,
-    sender_id: String(currentStudent.id),
+    sender_id: String(getStudentNumber()),
     receiver_id: String(targetId),
     message_content: content,
     is_anonymous: isAnon,
@@ -4507,7 +5436,7 @@ async function sendPraise() {
 async function loadReceivedPraises() {
   if (!currentStudent || !currentClassCode) return;
   const container = document.getElementById('receivedPraiseList');
-  const { data: praises } = await db.from('praise_messages').select('*').eq('class_code', currentClassCode).eq('receiver_id', String(currentStudent.id)).eq('is_approved', true).order('created_at', { ascending: false });
+  const { data: praises } = await db.from('praise_messages').select('*').eq('class_code', currentClassCode).eq('receiver_id', String(getStudentNumber())).eq('is_approved', true).order('created_at', { ascending: false });
   if (!praises || praises.length === 0) {
     container.innerHTML = '<div class="empty-state"><span class="empty-icon">\uD83D\uDC8C</span><div class="empty-title">\uC544\uC9C1 \uBC1B\uC740 \uCE6D\uCC2C\uC774 \uC5C6\uC5B4\uC694</div><div class="empty-desc">\uCE5C\uAD6C\uB4E4\uC758 \uCE6D\uCC2C\uC774 \uB3C4\uCC29\uD558\uBA74<br>\uC5EC\uAE30\uC5D0 \uD45C\uC2DC\uB429\uB2C8\uB2E4!</div></div>';
     return;
@@ -4629,58 +5558,407 @@ async function toggleAutoApprovePraise(el) {
   }
 }
 
-function extractUnresolvedDifficultySnippets(text) {
-  const raw = String(text || '').replace(/\r\n/g, '\n');
-  const t = raw.trim();
-  if (!t) return [];
+const teacherDifficultyMapState = {
+  selectedSubject: '전체',
+  selectedSignal: '전체',
+  reflections: [],
+  selectedDate: '',
+  lastStudentCount: 0,
+  lastUnresolvedCount: 0,
+  hasInitializedSubject: false
+};
 
-  const clip = (s, n = 70) => {
-    const x = String(s || '').replace(/\s+/g, ' ').trim();
-    if (!x) return '';
-    return x.length > n ? (x.slice(0, n) + '...') : x;
-  };
-
-  const takeLabel = (re) => {
-    const m = t.match(re);
-    if (!m) return '';
-    return clip(m[1], 90);
-  };
-
-  const hasStill = /아직\s*(도)?|여전히|계속/.test(t);
-  const hasResolution = /이해\s*\/\s*해결\s*방법\s*:|해결\s*방법\s*:|해결했|해결했다|알게\s*되|이해했|정리(했|해서|하니)|고쳤|찾았/.test(t);
-
-  const snippets = [];
-  const stillConfusing = takeLabel(/아직\s*헷갈리는\s*점\s*:\s*([^\n]+)/);
-  if (stillConfusing) snippets.push(stillConfusing);
-
-  // "어려웠던 점"은 해결 섹션이 없거나, 아직/여전히 표현이 함께 있을 때만 미해결로 간주
-  const hardPoint = takeLabel(/어려웠던\s*점\s*:\s*([^\n]+)/);
-  if (hardPoint && (!hasResolution || hasStill)) snippets.push(hardPoint);
-
-  // 일반 텍스트: 미해결 키워드가 있는 문장만 (최대 2개)
-  if (snippets.length === 0) {
-    const unresolvedRe = /(아직|헷갈|어렵|모르겠|이해가\s*안|이해가\s*잘\s*안|잘\s*안\s*되|막혔|실수(가\s*)?자주)/;
-    const resolvedRe = /(해결|알게\s*되|이해했|정리(했|해서|하니)|고쳤|찾았)/;
-
-    const parts = t.split(/\n+|[.!?]\s+/).map(s => s.trim()).filter(Boolean);
-    for (const p of parts) {
-      if (!unresolvedRe.test(p)) continue;
-      if (resolvedRe.test(p)) continue;
-      snippets.push(clip(p, 90));
-      if (snippets.length >= 2) break;
-    }
-  }
-
-  // Dedup
-  return Array.from(new Set(snippets)).filter(Boolean);
+function clipDifficultyMapText(text, maxLen = 96) {
+  const source = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!source) return '';
+  return source.length > maxLen ? (source.slice(0, maxLen) + '...') : source;
 }
 
-function focusTeacherDiaryStudent(studentId) {
+function mergeDifficultyMapList(base, incoming, limit = 3) {
+  const merged = Array.isArray(base) ? base.slice() : [];
+  const source = Array.isArray(incoming) ? incoming : [];
+  source.forEach(item => {
+    const clipped = clipDifficultyMapText(item, 96);
+    if (!clipped || merged.includes(clipped)) return;
+    merged.push(clipped);
+  });
+  return merged.slice(0, limit);
+}
+
+function extractDifficultyMapSignals(text) {
+  const source = String(text || '').replace(/\r\n/g, '\n').trim();
+  const empty = { hard: [], confusing: [], unresolved: [], resolved: [] };
+  if (!source) return empty;
+
+  const hard = [];
+  const confusing = [];
+  const unresolved = [];
+  const resolved = [];
+  const pushHard = (value) => { const next = mergeDifficultyMapList(hard, [value], 3); hard.length = 0; hard.push(...next); };
+  const pushConfusing = (value) => { const next = mergeDifficultyMapList(confusing, [value], 3); confusing.length = 0; confusing.push(...next); };
+  const pushUnresolved = (value) => { const next = mergeDifficultyMapList(unresolved, [value], 3); unresolved.length = 0; unresolved.push(...next); };
+  const pushResolved = (value) => { const next = mergeDifficultyMapList(resolved, [value], 2); resolved.length = 0; resolved.push(...next); };
+
+  const labeledRules = [
+    { re: /^어려(?:웠던|운)\s*점\s*[:：]\s*(.+)$/i, hard: true, unresolved: true },
+    { re: /^헷갈(?:렸던|리는)\s*점\s*[:：]\s*(.+)$/i, confusing: true, unresolved: true },
+    { re: /^아직\s*(?:도\s*)?헷갈리는\s*점\s*[:：]\s*(.+)$/i, confusing: true, unresolved: true },
+    { re: /^아직\s*해결\s*안\s*된\s*점\s*[:：]\s*(.+)$/i, unresolved: true },
+    { re: /^미해결\s*점\s*[:：]\s*(.+)$/i, unresolved: true },
+    { re: /^(?:이해\s*\/\s*해결\s*방법|해결\s*방법|해결\s*단서)\s*[:：]\s*(.+)$/i, resolved: true }
+  ];
+
+  const lines = source.split('\n').map(line => line.trim()).filter(Boolean);
+  lines.forEach(line => {
+    for (const rule of labeledRules) {
+      const match = line.match(rule.re);
+      if (!match) continue;
+      const value = clipDifficultyMapText(match[1], 96);
+      if (!value) break;
+      if (rule.hard) pushHard(value);
+      if (rule.confusing) pushConfusing(value);
+      if (rule.unresolved) pushUnresolved(value);
+      if (rule.resolved) pushResolved(value);
+      break;
+    }
+  });
+
+  const unresolvedRe = /(아직|여전히|계속|헷갈|어렵|모르겠|막혔|막막|이해가\s*잘?\s*안|안\s*풀|못\s*풀)/;
+  const resolvedRe = /(해결|알게\s*되|이해했|이해하게|정리(했|하게)|고쳤|개선|방법을?\s*찾|풀어냈)/;
+  const hardRe = /(어렵|어려웠|막혔|막막)/;
+  const confusingRe = /(헷갈|혼동|구분이\s*안)/;
+
+  const parts = source.split(/\n+|[.!?]\s+/).map(s => s.trim()).filter(Boolean);
+  parts.forEach(part => {
+    const clipped = clipDifficultyMapText(part, 96);
+    if (!clipped) return;
+    const isResolved = resolvedRe.test(part);
+    const isUnresolved = unresolvedRe.test(part);
+    if (isResolved) pushResolved(clipped);
+    if (isUnresolved && !isResolved) {
+      pushUnresolved(clipped);
+      if (hardRe.test(part)) pushHard(clipped);
+      if (confusingRe.test(part)) pushConfusing(clipped);
+    }
+  });
+
+  if (unresolved.length === 0) {
+    mergeDifficultyMapList(unresolved, hard, 3).forEach(item => pushUnresolved(item));
+    mergeDifficultyMapList(unresolved, confusing, 3).forEach(item => pushUnresolved(item));
+  }
+
+  return {
+    hard: hard.slice(0, 3),
+    confusing: confusing.slice(0, 3),
+    unresolved: unresolved.slice(0, 3),
+    resolved: resolved.slice(0, 2)
+  };
+}
+
+function buildDifficultyMapData(reflections, selectedDate = '') {
+  const byStudent = new Map();
+  (Array.isArray(reflections) ? reflections : []).forEach(reflection => {
+    const studentId = String(reflection?.student_id || '').trim();
+    if (!studentId) return;
+
+    const signals = extractDifficultyMapSignals(reflection?.learning_text || '');
+    const hasSignal = signals.hard.length || signals.confusing.length || signals.unresolved.length;
+    if (!hasSignal) return;
+
+    const existing = byStudent.get(studentId) || {
+      studentId,
+      latestDate: '',
+      tags: [],
+      hard: [],
+      confusing: [],
+      unresolved: [],
+      resolved: []
+    };
+
+    const tags = Array.isArray(reflection?.subject_tags)
+      ? reflection.subject_tags.map(tag => String(tag || '').trim()).filter(Boolean)
+      : [];
+    const normalizedTags = tags.length ? tags : ['미태그'];
+    existing.tags = Array.from(new Set(existing.tags.concat(normalizedTags))).slice(0, 12);
+    existing.hard = mergeDifficultyMapList(existing.hard, signals.hard, 3);
+    existing.confusing = mergeDifficultyMapList(existing.confusing, signals.confusing, 3);
+    existing.unresolved = mergeDifficultyMapList(existing.unresolved, signals.unresolved, 3);
+    existing.resolved = mergeDifficultyMapList(existing.resolved, signals.resolved, 2);
+
+    const reflectionDate = String(reflection?.reflection_date || selectedDate || '').trim();
+    if (reflectionDate && (!existing.latestDate || reflectionDate > existing.latestDate)) {
+      existing.latestDate = reflectionDate;
+    }
+    byStudent.set(studentId, existing);
+  });
+
+  const toSortableStudentNumber = (studentId) => {
+    const parsed = Number(String(studentId || '').replace(/[^0-9]/g, ''));
+    return Number.isFinite(parsed) ? parsed : Number.MAX_SAFE_INTEGER;
+  };
+
+  const students = Array.from(byStudent.values()).sort((a, b) => {
+    const unresolvedGap = (b.unresolved.length || 0) - (a.unresolved.length || 0);
+    if (unresolvedGap !== 0) return unresolvedGap;
+    const dateGap = String(b.latestDate || '').localeCompare(String(a.latestDate || ''));
+    if (dateGap !== 0) return dateGap;
+    const numberGap = toSortableStudentNumber(a.studentId) - toSortableStudentNumber(b.studentId);
+    if (numberGap !== 0) return numberGap;
+    return String(a.studentId || '').localeCompare(String(b.studentId || ''));
+  });
+
+  const tagMap = new Map();
+  students.forEach(student => {
+    (student.tags.length ? student.tags : ['미태그']).forEach(tag => {
+      const key = String(tag || '').trim() || '미태그';
+      const existing = tagMap.get(key) || { tag: key, studentCount: 0, unresolvedCount: 0 };
+      existing.studentCount += 1;
+      existing.unresolvedCount += student.unresolved.length || 0;
+      tagMap.set(key, existing);
+    });
+  });
+
+  const tagStats = Array.from(tagMap.values()).sort((a, b) => {
+    const unresolvedGap = (b.unresolvedCount || 0) - (a.unresolvedCount || 0);
+    if (unresolvedGap !== 0) return unresolvedGap;
+    const studentGap = (b.studentCount || 0) - (a.studentCount || 0);
+    if (studentGap !== 0) return studentGap;
+    if (a.tag === '미태그' && b.tag !== '미태그') return 1;
+    if (a.tag !== '미태그' && b.tag === '미태그') return -1;
+    return String(a.tag || '').localeCompare(String(b.tag || ''), 'ko');
+  });
+
+  return { students, tagStats };
+}
+
+function renderDifficultyMapTagSummary(tagStats, selectedSubject = '전체') {
+  const summary = document.getElementById('difficultyMapTagSummary');
+  if (!summary) return;
+
+  const stats = Array.isArray(tagStats) ? tagStats : [];
+  const totalStudents = Number(teacherDifficultyMapState.lastStudentCount || 0);
+  const totalUnresolved = Number(teacherDifficultyMapState.lastUnresolvedCount || 0);
+  const chips = [
+    '<button type="button" class="difficulty-map-tag-chip ' + (selectedSubject === '전체' ? 'is-active' : '') + '" data-difficulty-subject="전체">' +
+    '<span class="difficulty-map-chip-name">과목 전체</span>' +
+    '<span class="difficulty-map-chip-meta">' + totalStudents + '명 · 미해결 ' + totalUnresolved + '</span>' +
+    '</button>'
+  ];
+
+  stats.forEach(stat => {
+    const tag = String(stat?.tag || '').trim();
+    if (!tag) return;
+    const studentCount = Number(stat?.studentCount || 0);
+    const unresolvedCount = Number(stat?.unresolvedCount || 0);
+    chips.push(
+      '<button type="button" class="difficulty-map-tag-chip ' + (selectedSubject === tag ? 'is-active' : '') + '" data-difficulty-subject="' + escapeHtml(tag) + '">' +
+      '<span class="difficulty-map-chip-name">' + escapeHtml(tag) + '</span>' +
+      '<span class="difficulty-map-chip-meta">' + studentCount + '명 · 미해결 ' + unresolvedCount + '</span>' +
+      '</button>'
+    );
+  });
+
+  summary.innerHTML = chips.join('');
+  Array.from(summary.querySelectorAll('[data-difficulty-subject]')).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const subject = String(btn.getAttribute('data-difficulty-subject') || '전체');
+      setDifficultyMapSubject(subject);
+    });
+  });
+}
+
+function getDifficultySignalLabel(signal) {
+  const key = String(signal || '전체');
+  if (key === 'hard') return '어려운 점';
+  if (key === 'confusing') return '헷갈리는 점';
+  if (key === 'unresolved') return '아직 미해결';
+  return '전체 단서';
+}
+
+function getDifficultySignalItems(student, signal) {
+  if (!student) return [];
+  const key = String(signal || '전체');
+  if (key === 'hard') return Array.isArray(student.hard) ? student.hard : [];
+  if (key === 'confusing') return Array.isArray(student.confusing) ? student.confusing : [];
+  if (key === 'unresolved') return Array.isArray(student.unresolved) ? student.unresolved : [];
+  return [];
+}
+
+function renderDifficultyMapSignalSummary(students, selectedSignal = '전체') {
+  const summary = document.getElementById('difficultyMapSignalSummary');
+  if (!summary) return;
+
+  const rows = Array.isArray(students) ? students : [];
+  const stats = [
+    { key: '전체', label: '전체', count: rows.length },
+    { key: 'hard', label: '어려운 점', count: rows.filter(row => (row?.hard || []).length > 0).length },
+    { key: 'confusing', label: '헷갈리는 점', count: rows.filter(row => (row?.confusing || []).length > 0).length },
+    { key: 'unresolved', label: '아직 미해결', count: rows.filter(row => (row?.unresolved || []).length > 0).length }
+  ];
+
+  summary.innerHTML = stats.map(stat => {
+    const toneClass = stat.key === 'hard'
+      ? 'tone-hard'
+      : (stat.key === 'confusing'
+        ? 'tone-confusing'
+        : (stat.key === 'unresolved' ? 'tone-unresolved' : 'tone-all'));
+    return (
+      '<button type="button" class="difficulty-map-tag-chip difficulty-map-signal-chip ' + toneClass + ' ' + (selectedSignal === stat.key ? 'is-active' : '') + '" data-difficulty-signal="' + escapeHtml(stat.key) + '">' +
+      '<span class="difficulty-map-chip-name">' + escapeHtml(stat.label) + '</span>' +
+      '<span class="difficulty-map-chip-meta">' + stat.count + '명</span>' +
+      '</button>'
+    );
+  }).join('');
+
+  Array.from(summary.querySelectorAll('[data-difficulty-signal]')).forEach(btn => {
+    btn.addEventListener('click', () => {
+      const signal = String(btn.getAttribute('data-difficulty-signal') || '전체');
+      setDifficultyMapSignal(signal);
+    });
+  });
+}
+
+function renderDifficultyMapCards(students, selectedSubject = '전체', selectedSignal = '전체') {
+  const list = document.getElementById('emotionAlertList');
+  const hint = document.getElementById('difficultyMapFilterHint');
+  const signalSummary = document.getElementById('difficultyMapSignalSummary');
+  if (!list) return;
+
+  const rows = Array.isArray(students) ? students : [];
+  const filteredBySubject = selectedSubject && selectedSubject !== '전체'
+    ? rows.filter(row => Array.isArray(row?.tags) && row.tags.includes(selectedSubject))
+    : rows;
+
+  const availableSignals = new Set(['전체']);
+  if (filteredBySubject.some(row => (row?.hard || []).length > 0)) availableSignals.add('hard');
+  if (filteredBySubject.some(row => (row?.confusing || []).length > 0)) availableSignals.add('confusing');
+  if (filteredBySubject.some(row => (row?.unresolved || []).length > 0)) availableSignals.add('unresolved');
+  if (!availableSignals.has(selectedSignal)) {
+    teacherDifficultyMapState.selectedSignal = '전체';
+    selectedSignal = '전체';
+  }
+
+  if (signalSummary) {
+    renderDifficultyMapSignalSummary(filteredBySubject, selectedSignal);
+  }
+
+  const filtered = selectedSignal && selectedSignal !== '전체'
+    ? filteredBySubject.filter(row => getDifficultySignalItems(row, selectedSignal).length > 0)
+    : filteredBySubject;
+
+  if (hint) {
+    hint.classList.remove('hidden');
+    const dateLabel = teacherDifficultyMapState.selectedDate || '선택 날짜';
+    hint.innerHTML =
+      '1단계 날짜: <strong>' + escapeHtml(dateLabel) + '</strong> · ' +
+      '2단계 과목: <strong>' + escapeHtml(selectedSubject || '전체') + '</strong> · ' +
+      '3단계 단서: <strong>' + escapeHtml(getDifficultySignalLabel(selectedSignal)) + '</strong> · ' +
+      filtered.length + '명';
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty-state"><span class="empty-icon">🧭</span><div class="empty-title">표시할 단서가 없습니다</div><div class="empty-desc">선택한 날짜/과목/단서 조건에 맞는 기록이 없습니다.</div></div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map((student, idx) => {
+    const sid = String(student?.studentId || '').trim();
+    const dateText = String(student?.latestDate || teacherDifficultyMapState.selectedDate || '').trim();
+    const subtitle = dateText ? (escapeHtml(dateText) + ' 기준') : '선택 날짜 기준';
+    const tags = Array.isArray(student?.tags) ? student.tags : [];
+    const unresolved = Array.isArray(student?.unresolved) ? student.unresolved : [];
+    const hard = Array.isArray(student?.hard) ? student.hard : [];
+    const confusing = Array.isArray(student?.confusing) ? student.confusing : [];
+    const resolved = Array.isArray(student?.resolved) ? student.resolved : [];
+    const selectedRows = selectedSignal === '전체'
+      ? (unresolved.length > 0 ? unresolved : mergeDifficultyMapList(hard, confusing, 3))
+      : getDifficultySignalItems(student, selectedSignal);
+    const selectedTitle = selectedSignal === '전체' ? '아직 해결 안 된 점' : getDifficultySignalLabel(selectedSignal);
+    const categoryChips = [
+      hard.length > 0 ? ('<span class="difficulty-map-category-chip tone-hard">어려운 점 ' + hard.length + '</span>') : '',
+      confusing.length > 0 ? ('<span class="difficulty-map-category-chip tone-confusing">헷갈리는 점 ' + confusing.length + '</span>') : '',
+      unresolved.length > 0 ? ('<span class="difficulty-map-category-chip tone-unresolved">아직 미해결 ' + unresolved.length + '</span>') : ''
+    ].join('');
+    const selectedHtml = selectedRows.length > 0
+      ? ('<ul class="emotion-alert-snippet-list">' + selectedRows.map(line => '<li class="emotion-alert-snippet-item">' + escapeHtml(line) + '</li>').join('') + '</ul>')
+      : '<div class="difficulty-map-empty-line">' + escapeHtml(selectedTitle) + '이(가) 명시되지 않았습니다.</div>';
+    const resolvedHtml = resolved.length > 0
+      ? (
+        '<details class="difficulty-map-resolved-details" onclick="event.stopPropagation();" onkeydown="event.stopPropagation();">' +
+        '<summary onclick="event.stopPropagation();">해결 단서 보기 (' + resolved.length + ')</summary>' +
+        '<ul class="emotion-alert-snippet-list">' +
+        resolved.map(line => '<li class="emotion-alert-snippet-item">' + escapeHtml(line) + '</li>').join('') +
+        '</ul>' +
+        '</details>'
+      )
+      : '';
+    const toneClass = 'tone-' + (idx % 3);
+
+    return (
+      '<article class="emotion-alert-item difficulty-map-card ' + toneClass + '" role="button" tabindex="0" data-student-id="' + escapeHtml(sid) + '">' +
+      '<div class="emotion-alert-head">' +
+      '<div class="emotion-alert-student">' + escapeHtml(sid) + '번 학생</div>' +
+      '<div class="emotion-alert-date">' + subtitle + '</div>' +
+      '</div>' +
+      (tags.length > 0
+        ? ('<div class="emotion-alert-tags">' + tags.map(tag => '<span class="emotion-alert-tag">' + escapeHtml(tag) + '</span>').join('') + '</div>')
+        : '') +
+      '<div class="difficulty-map-category-row">' + categoryChips + '</div>' +
+      '<div class="emotion-alert-content">' +
+      '<div class="emotion-alert-title">' + escapeHtml(selectedTitle) + '</div>' +
+      selectedHtml +
+      '</div>' +
+      resolvedHtml +
+      '</article>'
+    );
+  }).join('');
+
+  Array.from(list.querySelectorAll('.difficulty-map-card')).forEach(card => {
+    const sid = String(card.getAttribute('data-student-id') || '').trim();
+    if (!sid) return;
+    card.addEventListener('click', (event) => {
+      if (event.target?.closest?.('.difficulty-map-resolved-details')) return;
+      focusTeacherDiaryStudent(sid, teacherDifficultyMapState.selectedDate);
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.target?.closest?.('.difficulty-map-resolved-details')) return;
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      focusTeacherDiaryStudent(sid, teacherDifficultyMapState.selectedDate);
+    });
+  });
+}
+
+function setDifficultyMapSubject(subject) {
+  teacherDifficultyMapState.selectedSubject = String(subject || '전체').trim() || '전체';
+  teacherDifficultyMapState.selectedSignal = '전체';
+  renderEmotionAlerts(teacherDifficultyMapState.reflections, teacherDifficultyMapState.selectedDate);
+}
+
+function setDifficultyMapSignal(signal) {
+  teacherDifficultyMapState.selectedSignal = String(signal || '전체').trim() || '전체';
+  renderEmotionAlerts(teacherDifficultyMapState.reflections, teacherDifficultyMapState.selectedDate);
+}
+
+function setDifficultyMapTag(tag) {
+  setDifficultyMapSubject(tag);
+}
+
+async function focusTeacherDiaryStudent(studentId, sourceDate = '') {
   const sid = String(studentId || '').trim();
   if (!sid) return;
 
+  const targetDate = String(sourceDate || getTeacherHintSelectedDate() || teacherDifficultyMapState.selectedDate || '').trim();
+
   // Ensure the target panel is visible.
   try { switchTeacherDiarySubTab('student'); } catch (_) { }
+
+  if (targetDate) {
+    const studentDateEl = document.getElementById('diaryStudentViewDate');
+    if (studentDateEl) studentDateEl.value = targetDate;
+    syncTeacherDiaryDateInputs(targetDate, 'diaryStudentViewDate');
+    try { await loadTeacherDiaryData(); } catch (_) { }
+  }
 
   try {
     const listIds = ['diaryStudentSelectorList', 'diaryCompletionList'];
@@ -4698,57 +5976,60 @@ function focusTeacherDiaryStudent(studentId) {
   }
 }
 
-// "관심이 필요한 학생" (기존: 감정 키워드) -> "어려움 모아보기" 기반
+// "수업 개선 단서" 렌더링(기존 함수명/호출부 호환 유지)
 function renderEmotionAlerts(reflections, selectedDate = null) {
   const area = document.getElementById('emotionAlertArea');
   const list = document.getElementById('emotionAlertList');
+  const subjectSummary = document.getElementById('difficultyMapTagSummary');
+  const signalSummary = document.getElementById('difficultyMapSignalSummary');
+  const filterHint = document.getElementById('difficultyMapFilterHint');
   if (!area || !list) return;
 
-  const dateStr = selectedDate || getTeacherDiarySelectedDate() || '';
+  const dateStr = String(selectedDate || getTeacherHintSelectedDate() || '').trim();
+  const prevDate = String(teacherDifficultyMapState.selectedDate || '').trim();
+  const sourceRows = Array.isArray(reflections) ? reflections : [];
+  const isDateChanged = !!(dateStr && prevDate && prevDate !== dateStr);
+  const isDataRefChanged = sourceRows !== teacherDifficultyMapState.reflections;
+  teacherDifficultyMapState.reflections = sourceRows.slice();
+  teacherDifficultyMapState.selectedDate = dateStr;
 
-  const byStudent = new Map();
-  (reflections || []).forEach(r => {
-    const sid = String(r.student_id || '').trim();
-    if (!sid) return;
+  const data = buildDifficultyMapData(teacherDifficultyMapState.reflections, dateStr);
+  const totalStudents = data.students.length;
+  const totalUnresolved = data.students.reduce((sum, student) => sum + (student.unresolved.length || 0), 0);
+  teacherDifficultyMapState.lastStudentCount = totalStudents;
+  teacherDifficultyMapState.lastUnresolvedCount = totalUnresolved;
 
-    const snippets = extractUnresolvedDifficultySnippets(r.learning_text || '');
-    if (snippets.length === 0) return;
+  const orderedSubjects = data.tagStats
+    .map(stat => String(stat?.tag || '').trim())
+    .filter(Boolean);
+  const availableSubjects = new Set(['전체'].concat(orderedSubjects));
+  let nextSubject = String(teacherDifficultyMapState.selectedSubject || '').trim() || '전체';
 
-    const existing = byStudent.get(sid) || { studentId: sid, tags: [], snippets: [] };
-    const tags = Array.isArray(r.subject_tags) ? r.subject_tags.map(x => String(x)) : [];
-    existing.tags = Array.from(new Set(existing.tags.concat(tags))).slice(0, 6);
-    existing.snippets = Array.from(new Set(existing.snippets.concat(snippets))).slice(0, 3);
-    byStudent.set(sid, existing);
-  });
+  // 첫 진입은 "과목 전체"가 아니라 데이터의 첫 과목을 기본 선택한다.
+  if (!teacherDifficultyMapState.hasInitializedSubject && orderedSubjects.length > 0 && nextSubject === '전체') {
+    nextSubject = orderedSubjects[0];
+  }
+  if ((isDateChanged || isDataRefChanged) && !availableSubjects.has(nextSubject)) {
+    nextSubject = orderedSubjects[0] || '전체';
+  }
+  teacherDifficultyMapState.selectedSubject = nextSubject;
+  if (orderedSubjects.length > 0) teacherDifficultyMapState.hasInitializedSubject = true;
 
-  const alerts = Array.from(byStudent.values()).sort((a, b) => Number(a.studentId) - Number(b.studentId));
-  if (alerts.length === 0) {
+  if (totalStudents === 0) {
     area.classList.add('hidden');
+    if (subjectSummary) subjectSummary.innerHTML = '';
+    if (signalSummary) signalSummary.innerHTML = '';
+    if (filterHint) {
+      filterHint.classList.add('hidden');
+      filterHint.innerHTML = '';
+    }
+    list.innerHTML = '';
     return;
   }
 
   area.classList.remove('hidden');
-  list.innerHTML = alerts.map((a, idx) => {
-    const sidSafe = String(a.studentId || '').replace(/[^0-9]/g, '');
-    const toneClass = 'tone-' + (idx % 3);
-    const tagHtml = (a.tags || []).map(tag => '<span class="emotion-alert-tag">' + escapeHtml(tag) + '</span>').join('');
-    const snipHtml = (a.snippets || []).slice(0, 2).map(s => '<li class="emotion-alert-snippet-item">' + escapeHtml(s) + '</li>').join('');
-    const subtitle = dateStr ? (escapeHtml(dateStr) + ' \uAE30\uC900') : '\uC120\uD0DD \uB0A0\uC9DC \uAE30\uC900';
-
-    return (
-      '<button type="button" class="emotion-alert-item ' + toneClass + '" onclick="focusTeacherDiaryStudent(\'' + sidSafe + '\')">' +
-      '<div class="emotion-alert-head">' +
-      '<div class="emotion-alert-student">' + escapeHtml(a.studentId) + '\uBC88 \uD559\uC0DD</div>' +
-      '<div class="emotion-alert-date">' + subtitle + '</div>' +
-      '</div>' +
-      (tagHtml ? ('<div class="emotion-alert-tags">' + tagHtml + '</div>') : '') +
-      '<div class="emotion-alert-content">' +
-      '<div class="emotion-alert-title">\uAE30\uB85D\uB41C \uC5B4\uB824\uC6C0</div>' +
-      '<ul class="emotion-alert-snippet-list">' + snipHtml + '</ul>' +
-      '</div>' +
-      '</button>'
-    );
-  }).join('');
+  renderDifficultyMapTagSummary(data.tagStats, teacherDifficultyMapState.selectedSubject);
+  renderDifficultyMapCards(data.students, teacherDifficultyMapState.selectedSubject, teacherDifficultyMapState.selectedSignal);
 }
 function renderMessageList(messages) {
   const container = document.getElementById('messageList');
@@ -5818,7 +7099,7 @@ async function loadDashboardData() {
     }
 
     resetDashboardHistoryState(allRecords);
-    loadGoals(); // 기록이 없어도 목표는 로드
+    resetPartnerMessageState(allRecords);
 
     if (!allRecords || allRecords.length === 0) {
       if (streakBadgeArea) streakBadgeArea.classList.add('hidden');
@@ -5841,94 +7122,6 @@ async function loadDashboardData() {
   } catch (error) {
     console.error('대시보드 로드 오류:', error);
   }
-}
-
-// ============================================
-// 나의 목표 설정 & 추적
-// ============================================
-function renderGoals(goals) {
-  const list = document.getElementById('goalList');
-  const progress = document.getElementById('goalProgress');
-  if (!goals || goals.length === 0) { list.innerHTML = '<div style="text-align:center;color:var(--text-sub);font-size:0.88rem;padding:10px;">목표를 추가해보세요! 🎯</div>'; progress.innerHTML = ''; return; }
-  const completed = goals.filter(g => g.is_completed).length;
-  const total = goals.length;
-  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  progress.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><div style="flex:1;background:var(--bg-soft);border-radius:10px;height:10px;overflow:hidden;"><div style="width:' + pct + '%;height:100%;background:linear-gradient(90deg,var(--color-blue),var(--color-teal));border-radius:10px;transition:width 0.3s;"></div></div><span style="font-size:0.85rem;font-weight:700;color:var(--color-blue);">' + completed + '/' + total + ' (' + pct + '%)</span></div>';
-  list.innerHTML = goals.map(g => {
-    const typeLabel = g.goal_type === 'weekly' ? '주간' : '월간';
-    const checkStyle = g.is_completed ? 'text-decoration:line-through;color:var(--text-sub);' : '';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px;border-bottom:1px solid var(--border);"><button type="button" onclick="toggleGoal(\'' + g.id + '\',' + !g.is_completed + ')" style="width:28px;height:28px;padding:0;border-radius:50%;background:' + (g.is_completed ? 'var(--color-result)' : 'var(--bg-soft)') + ';border:2px solid ' + (g.is_completed ? 'var(--color-result)' : 'var(--border)') + ';color:white;font-size:0.8rem;cursor:pointer;flex-shrink:0;">' + (g.is_completed ? '✓' : '') + '</button><span style="flex:1;font-size:0.9rem;' + checkStyle + '">' + escapeHtml(g.goal_text) + '</span><span style="font-size:0.72rem;padding:2px 8px;background:var(--bg-soft);border-radius:10px;color:var(--text-sub);">' + typeLabel + '</span><button type="button" onclick="deleteGoal(\'' + g.id + '\')" style="width:24px;height:24px;padding:0;background:none;border:none;color:var(--text-sub);cursor:pointer;font-size:0.9rem;">×</button></div>';
-  }).join('');
-}
-async function addGoal() {
-  if (isDemoMode) { showDemoBlockModal(); return; }
-  const input = document.getElementById('goalInput');
-  const text = input.value.trim();
-  if (!text) return;
-  const goalType = document.getElementById('goalType').value;
-  await db.from('student_goals').insert({ class_code: currentClassCode, student_id: String(currentStudent.id), goal_text: text, goal_type: goalType });
-  input.value = '';
-  loadGoals();
-}
-async function toggleGoal(id, completed) {
-  if (isDemoMode) { showDemoBlockModal(); return; }
-  await db.from('student_goals').update({ is_completed: completed, completed_at: completed ? new Date().toISOString() : null }).eq('id', id);
-  loadGoals();
-}
-async function deleteGoal(id) {
-  if (isDemoMode) { showDemoBlockModal(); return; }
-  await db.from('student_goals').delete().eq('id', id);
-  loadGoals();
-}
-
-async function loadGoals() {
-  if (!currentStudent || !currentClassCode) return;
-  const goalList = document.getElementById('goalList');
-  const goalProgress = document.getElementById('goalProgress');
-  if (!goalList || !goalProgress) return;
-
-  const { data: goalRows } = await db.from('student_goals')
-    .select('*')
-    .eq('class_code', currentClassCode)
-    .eq('student_id', String(currentStudent.id))
-    .order('created_at', { ascending: false });
-  const goals = goalRows || [];
-
-  if (!goals || goals.length === 0) {
-    goalList.innerHTML = '<p style="text-align:center;color:var(--text-sub);font-size:0.85rem;margin:10px 0;">등록된 목표가 없어요. 이번 주 목표를 세워보세요!</p>';
-    goalProgress.innerHTML = '';
-    return;
-  }
-
-  const completedCount = goals.filter(g => g.is_completed).length;
-  const totalCount = goals.length;
-  const percent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
-  goalProgress.innerHTML = `
-    <div style="margin-bottom:5px;display:flex;justify-content:space-between;font-size:0.85rem;">
-      <span>목표 달성률</span>
-      <span style="font-weight:700;color:var(--color-blue);">${percent}%</span>
-    </div>
-    <div class="progress-bar-container" style="height:10px;background:rgba(0,0,0,0.05);border-radius:10px;overflow:hidden;">
-      <div class="progress-bar-fill" style="width:${percent}%;background:var(--color-blue);height:100%;transition:width 0.3s ease;"></div>
-    </div>
-  `;
-
-  goalList.innerHTML = goals.map(g => {
-    const typeLabel = g.goal_type === 'weekly' ? '주간' : '월간';
-    return `
-      <div style="display:flex;align-items:center;padding:10px;background:var(--bg-body);border-radius:10px;margin-bottom:8px;border-left:3px solid ${g.is_completed ? 'var(--color-result)' : 'var(--border)'};">
-        <input type="checkbox" ${g.is_completed ? 'checked' : ''} onchange="toggleGoal('${g.id}', this.checked)" style="width:20.ex;height:20.ex;cursor:pointer;margin-right:12px;">
-        <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
-             <span style="font-size:0.7rem;padding:2px 6px;border-radius:4px;background:var(--border);color:var(--text-sub);">${typeLabel}</span>
-             <span style="text-decoration:${g.is_completed ? 'line-through' : 'none'};color:${g.is_completed ? 'var(--text-sub)' : 'var(--text-main)'};font-size:0.95rem;">${escapeHtml(g.goal_text)}</span>
-          </div>
-        </div>
-        <button type="button" onclick="deleteGoal('${g.id}')" style="width:auto;padding:4px;background:transparent;box-shadow:none;color:var(--text-sub);font-size:0.8rem;border:none;">✕</button>
-      </div>
-    `;
-  }).join('');
 }
 
 // ⓪ 연속 기록 스트릭 & 뱃지
@@ -6754,366 +7947,488 @@ function renderBestRecords(records) {
   }).join('');
 }
 
-// 주간/월간 AI 요약
-function activatePartnerMessageTab(period) {
-  document.querySelectorAll('.summary-period-btn').forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.period === period);
+// 성장 파트너 메시지 (일간 + 비교)
+function resetPartnerMessageState(records = []) {
+  const dateKey = String(getDefaultQueryDate() || '');
+  const year = Number(dateKey.slice(0, 4));
+  const month = Number(dateKey.slice(5, 7));
+
+  partnerMessageState.mode = 'daily';
+  partnerMessageState.records = Array.isArray(records) ? records.slice() : [];
+  partnerMessageState.selectTarget = 'A';
+  partnerMessageState.selectedDateA = null;
+  partnerMessageState.selectedDateB = null;
+  partnerMessageState.selectedYear = Number.isFinite(year) ? year : new Date().getFullYear();
+  partnerMessageState.selectedMonth = (Number.isFinite(month) && month >= 1 && month <= 12) ? month : (new Date().getMonth() + 1);
+  partnerMessageState.compareHint = '';
+
+  activatePartnerMessageMode('daily');
+  renderPartnerComparePanel();
+}
+
+function activatePartnerMessageMode(mode) {
+  const nextMode = mode === 'compare' ? 'compare' : 'daily';
+  partnerMessageState.mode = nextMode;
+
+  document.querySelectorAll('.partner-message-mode-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.mode === nextMode);
+  });
+
+  const dailyActionRow = document.getElementById('partnerDailyActionRow');
+  if (dailyActionRow) dailyActionRow.classList.toggle('hidden', nextMode !== 'daily');
+
+  const comparePanel = document.getElementById('partnerComparePanel');
+  if (comparePanel) comparePanel.classList.toggle('hidden', nextMode !== 'compare');
+
+  if (nextMode === 'compare') renderPartnerComparePanel();
+}
+
+async function ensurePartnerMessageRecordsLoaded() {
+  if (Array.isArray(partnerMessageState.records) && partnerMessageState.records.length > 0) {
+    return partnerMessageState.records;
+  }
+  if (!currentStudent || !currentClassCode) return [];
+
+  try {
+    const { data, error } = await db.from('daily_reflections')
+      .select('*')
+      .eq('class_code', currentClassCode)
+      .eq('student_id', String(currentStudent.id))
+      .order('reflection_date', { ascending: true });
+    if (!error && Array.isArray(data)) {
+      partnerMessageState.records = data;
+      return data;
+    }
+  } catch (_) { }
+
+  return Array.isArray(partnerMessageState.records) ? partnerMessageState.records : [];
+}
+
+function getPartnerMessageNoteMap(records = []) {
+  const noteMap = new Map();
+  (Array.isArray(records) ? records : []).forEach((r) => {
+    const date = normalizeRecordDateKey(r?.reflection_date);
+    const note = String(r?.learning_text || '').trim();
+    if (!date || !note) return;
+    noteMap.set(date, note);
+  });
+  return noteMap;
+}
+
+function buildPartnerTypeText(partner) {
+  if (!partner || typeof partner !== 'object') {
+    return [
+      'type_code: 미확정',
+      'type_name: 성장 파트너 유형 미확정',
+      'coaching_style: 미확정',
+      'info_processing: 미확정',
+      'execution_strategy: 미확정',
+      'support_tag: #성장 파트너형',
+      'feedback_style: 기록 자체를 인정하고 다음 행동을 부드럽게 제안',
+      'action_style: 부담 없는 작은 실천 1개 제안',
+      'encouraging_phrase: 충분히 잘하고 있어요. 오늘 기록에서 한 걸음만 더 가봐요.'
+    ].join('\n');
+  }
+
+  const typeCode = String(partner.type_code || '').trim();
+  const typeCatalog = typeCode ? PARTNER_TYPE_BY_CODE[typeCode] : null;
+  const axesRaw = (partner.axes_raw && typeof partner.axes_raw === 'object') ? partner.axes_raw : {};
+  const axes = (partner.axes && typeof partner.axes === 'object') ? partner.axes : {};
+  const coachingStyle = axesRaw.coaching_style || axes.coaching_style || '미확정';
+  const infoProcessing = axesRaw.info_processing || axes.info_processing || '미확정';
+  const executionStrategy = axesRaw.execution_strategy || axes.execution_strategy || '미확정';
+  const supportTag = axesRaw.support_tag || axes.support_tag || '#성장 파트너형';
+  const feedbackStyle = String(partner.description?.feedback_style || typeCatalog?.description?.feedback_style || '기록 자체를 인정하고 다음 행동을 부드럽게 제안').trim();
+  const actionStyle = String(partner.description?.action_style || typeCatalog?.description?.action_style || '부담 없는 작은 실천 1개 제안').trim();
+  const encouragingRaw = String(partner.description?.encouraging_phrase || typeCatalog?.description?.encouraging_phrase || '충분히 잘하고 있어. 오늘 배움을 바탕으로 한 걸음 더 가보자.').trim();
+  const encouragingPhrase = normalizePartnerQuote(encouragingRaw) || '충분히 잘하고 있어요. 오늘 배움을 바탕으로 한 걸음 더 가봐요.';
+
+  return [
+    `type_code: ${typeCode || '미확정'}`,
+    `type_name: ${String(partner.type_name || typeCatalog?.type_name || '성장 파트너').trim()}`,
+    `coaching_style: ${coachingStyle}`,
+    `info_processing: ${infoProcessing}`,
+    `execution_strategy: ${executionStrategy}`,
+    `support_tag: ${supportTag}`,
+    `feedback_style: ${feedbackStyle}`,
+    `action_style: ${actionStyle}`,
+    `encouraging_phrase: ${encouragingPhrase}`
+  ].join('\n');
+}
+
+function toOneLineSummary(text, maxLen = 80) {
+  const src = String(text || '').replace(/\s+/g, ' ').trim();
+  if (!src) return '';
+  return src.length > maxLen ? `${src.slice(0, maxLen)}...` : src;
+}
+
+function buildPrevSummaryFromRecentNotes(records, today, limit = 2) {
+  const todayKey = normalizeRecordDateKey(today);
+  const safeLimit = Math.max(1, Number(limit) || 2);
+  const rows = (Array.isArray(records) ? records : [])
+    .map((r) => ({
+      date: normalizeRecordDateKey(r?.reflection_date),
+      text: String(r?.learning_text || '').trim()
+    }))
+    .filter((item) => item.date && item.text && item.date !== todayKey)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .slice(0, safeLimit);
+
+  if (rows.length === 0) return '이전 기록 없음';
+  return rows.map((item) => `${item.date}: ${toOneLineSummary(item.text, 88)}`).join('\n');
+}
+
+function buildDailyPartnerPromptExact(params = {}) {
+  const partnerTypeText = String(params.partnerTypeText || '').trim();
+  const prevSummary = String(params.prevSummary || '').trim();
+  const todayNote = String(params.todayNote || '').trim();
+
+  const dailyPrompt =
+    '[역할]\n' +
+    '너는 배움로그의 AI 성장 파트너다. 해요체, 파트너 톤.\n\n' +
+
+    '[학생 유형]\n' +
+    partnerTypeText + '\n\n' +
+
+    '[원칙]\n' +
+    '- 학생 유형의 coaching_style에 맞는 말투와 접근법으로 전체를 작성하라.\n' +
+    '- 학생이 쓴 내용을 되풀이하지 마라.\n' +
+    '- 아래 중 1가지만 골라서 2~3문장으로 응답하라:\n' +
+    '  a) 사고 확장 질문: 기록에서 한 단계 더 생각해볼 질문\n' +
+    '  b) 연결 짓기: 이전 기록과 오늘 기록의 변화나 연결점\n' +
+    '  c) 방법 넛지: 유형에 맞는 구체적 학습 팁 1개\n' +
+    '- 기록이 짧아도 비판하지 말고 인정 후 질문하라.\n' +
+    '- 마크다운/섹션 헤더 없이 자연스러운 문장으로만.\n\n' +
+
+    '[이전 기록 요약]\n' +
+    prevSummary + '\n\n' +
+
+    '[오늘 배움노트]\n' +
+    todayNote + '\n\n' +
+
+    '[출력]\n';
+
+  return dailyPrompt;
+}
+
+function buildComparePartnerPromptExact(params = {}) {
+  const partnerTypeText = String(params.partnerTypeText || '').trim();
+  const dateA = normalizeRecordDateKey(params.dateA);
+  const noteA = String(params.noteA || '').trim();
+  const dateB = normalizeRecordDateKey(params.dateB);
+  const noteB = String(params.noteB || '').trim();
+
+  const comparePrompt =
+    '[역할]\n' +
+    '너는 배움로그의 AI 성장 파트너다. 해요체, 파트너 톤.\n\n' +
+
+    '[학생 유형]\n' +
+    partnerTypeText + '\n\n' +
+
+    '[원칙]\n' +
+    '- 학생 유형의 coaching_style에 맞는 말투와 접근법으로 전체를 작성하라.\n' +
+    '- 각 노트 내용을 따로 요약하지 마라.\n' +
+    '- 근거 밖의 내용을 지어내지 마라.\n' +
+    '- 4~6문장.\n\n' +
+
+    '[비교 관점 - 아래 중 해당되는 것만 골라서 짚어라]\n' +
+    '- 학습 깊이: 암기/정리 수준 → 이해/설명 수준으로 변화가 있는가\n' +
+    '- 문제 해결 방식: 막힐 때 대처가 달라졌는가\n' +
+    '- 기록 방식: 기록의 구체성이나 과정 서술이 달라졌는가\n' +
+    '- 자기 인식: 자신의 학습 상태를 파악하는 정도가 달라졌는가\n\n' +
+
+    '[출력 구조]\n' +
+    '## 이런 점이 달라졌어요\n' +
+    '위 관점 중 해당되는 변화를 구체적으로 짚어라.\n\n' +
+    '## 다음은 이거 해볼까요?\n' +
+    '발견된 변화를 기반으로 유형 맞춤 제안 1개만.\n\n' +
+
+    '[노트 A: ' + dateA + ']\n' + noteA + '\n\n' +
+    '[노트 B: ' + dateB + ']\n' + noteB + '\n\n' +
+
+    '[출력]\n';
+
+  return comparePrompt;
+}
+
+function renderPartnerMessagePlainText(text) {
+  const area = document.getElementById('summaryReportArea');
+  if (!area) return;
+
+  const source = String(text || '').trim();
+  if (!source) {
+    area.innerHTML = '<div class="empty-state"><span class="empty-icon">💬</span><div class="empty-desc">메시지를 생성하지 못했어요. 다시 시도해 주세요.</div></div>';
+    return;
+  }
+
+  const normalized = source
+    .replace(/^##\s*/gm, '')
+    .replace(/^\s*[-*]\s+/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+  area.innerHTML = '<div class="partner-message-plain">' + escapeHtml(normalized).replace(/\r?\n/g, '<br>') + '</div>';
+}
+
+async function generatePartnerMessage(mode = 'daily') {
+  const nextMode = mode === 'compare' ? 'compare' : 'daily';
+  activatePartnerMessageMode(nextMode);
+  if (nextMode === 'compare') renderPartnerComparePanel();
+}
+
+async function generateDailyPartnerMessage() {
+  if (!currentStudent || !currentClassCode) return;
+
+  const area = document.getElementById('summaryReportArea');
+  if (!area) return;
+
+  area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">🤖 성장 파트너가 일간 피드백을 작성 중...</div>';
+
+  try {
+    const records = await ensurePartnerMessageRecordsLoaded();
+    const todayKey = normalizeRecordDateKey(getDefaultQueryDate());
+    const todayNote = (Array.isArray(records) ? records : [])
+      .filter((r) => normalizeRecordDateKey(r?.reflection_date) === todayKey)
+      .map((r) => String(r?.learning_text || '').trim())
+      .find(Boolean) || '';
+
+    if (!todayNote) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-desc">오늘 배움노트를 먼저 작성하면 일간 피드백을 받을 수 있어요.</div></div>';
+      return;
+    }
+
+    const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
+    const partnerTypeText = buildPartnerTypeText(partner);
+    const prevSummary = buildPrevSummaryFromRecentNotes(records, todayKey, 2);
+    const prompt = buildDailyPartnerPromptExact({ partnerTypeText, prevSummary, todayNote });
+    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 450 } });
+
+    if (!(result.ok && result.text)) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">성장 파트너의 메세지를 받지 못했어요. 다시 눌러주세요.</div></div>';
+      return;
+    }
+
+    const output = sanitizeAiSummaryText(result.text);
+    renderPartnerMessagePlainText(output);
+  } catch (error) {
+    area.innerHTML = '<div style="color:var(--color-danger);">일간 피드백 생성 중 오류가 발생했습니다.</div>';
+  }
+}
+
+function setPartnerCompareTarget(target) {
+  partnerMessageState.selectTarget = target === 'B' ? 'B' : 'A';
+  renderPartnerComparePanel();
+}
+
+function setPartnerCompareMonth(nextMonth) {
+  const monthNum = Number(nextMonth);
+  if (!Number.isFinite(monthNum) || monthNum < 1 || monthNum > 12) return;
+  partnerMessageState.selectedMonth = monthNum;
+  renderPartnerComparePanel();
+}
+
+function navigatePartnerCompareMonth(delta) {
+  const current = Number(partnerMessageState.selectedMonth) || 1;
+  const next = (((current - 1 + Number(delta || 0)) % 12) + 12) % 12 + 1;
+  setPartnerCompareMonth(next);
+}
+
+function setPartnerCompareDate(dateKey) {
+  const key = normalizeRecordDateKey(dateKey);
+  if (!key) return;
+
+  const noteMap = getPartnerMessageNoteMap(partnerMessageState.records);
+  if (!noteMap.has(key)) {
+    partnerMessageState.compareHint = '기록이 있는 날짜만 선택할 수 있어요.';
+    renderPartnerComparePanel();
+    return;
+  }
+
+  if (partnerMessageState.selectTarget === 'A') {
+    if (partnerMessageState.selectedDateB === key) {
+      partnerMessageState.compareHint = 'A와 B는 같은 날짜를 선택할 수 없어요.';
+      renderPartnerComparePanel();
+      return;
+    }
+    partnerMessageState.selectedDateA = key;
+    partnerMessageState.selectTarget = 'B';
+    partnerMessageState.compareHint = '';
+    renderPartnerComparePanel();
+    return;
+  }
+
+  if (partnerMessageState.selectedDateA === key) {
+    partnerMessageState.compareHint = 'A와 B는 같은 날짜를 선택할 수 없어요.';
+    renderPartnerComparePanel();
+    return;
+  }
+
+  partnerMessageState.selectedDateB = key;
+  partnerMessageState.selectTarget = 'A';
+  partnerMessageState.compareHint = '';
+  renderPartnerComparePanel();
+}
+
+function renderPartnerCompareCalendar(noteMap, year, month) {
+  const container = document.getElementById('partnerCompareCalendar');
+  if (!container) return;
+
+  const firstDay = new Date(Date.UTC(year, month - 1, 1));
+  const lastDay = new Date(Date.UTC(year, month, 0));
+  const daysInMonth = lastDay.getUTCDate();
+  const leadingBlank = firstDay.getUTCDay();
+  const trailingBlank = (7 - ((leadingBlank + daysInMonth) % 7)) % 7;
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  const cells = [];
+
+  for (let i = 0; i < leadingBlank; i++) {
+    cells.push('<span class="partner-compare-day is-outside" aria-hidden="true"></span>');
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const hasNote = noteMap.has(dateKey);
+    const isA = partnerMessageState.selectedDateA === dateKey;
+    const isB = partnerMessageState.selectedDateB === dateKey;
+    const classes = ['partner-compare-day', hasNote ? 'is-recorded' : 'is-empty'];
+    if (!hasNote) classes.push('is-disabled');
+    if (isA) classes.push('is-a');
+    if (isB) classes.push('is-b');
+
+    const labels = [];
+    if (isA) labels.push('A');
+    if (isB) labels.push('B');
+    const badgeHtml = labels.length > 0 ? `<span class="partner-compare-day-badge">${labels.join('/')}</span>` : '';
+    const dot = hasNote ? '<span class="partner-compare-day-dot" aria-hidden="true"></span>' : '';
+    const title = `${dateKey} ${hasNote ? '기록 있음' : '기록 없음'}`;
+
+    cells.push(
+      '<button type="button" class="' + classes.join(' ') + '" data-date="' + dateKey + '" title="' + title + '" aria-label="' + title + '"' + (hasNote ? '' : ' disabled') + '>' +
+      badgeHtml +
+      '<span class="partner-compare-day-num">' + day + '</span>' +
+      dot +
+      '</button>'
+    );
+  }
+
+  for (let i = 0; i < trailingBlank; i++) {
+    cells.push('<span class="partner-compare-day is-outside" aria-hidden="true"></span>');
+  }
+
+  container.innerHTML =
+    '<div class="partner-compare-weekdays">' +
+    weekdays.map((day) => '<span class="partner-compare-weekday">' + day + '</span>').join('') +
+    '</div>' +
+    '<div class="partner-compare-grid">' + cells.join('') + '</div>' +
+    '<div class="partner-compare-legend">' +
+    '<span class="partner-compare-legend-item"><span class="partner-compare-legend-dot is-empty"></span>기록 없음</span>' +
+    '<span class="partner-compare-legend-item"><span class="partner-compare-legend-dot is-recorded"></span>기록 있음</span>' +
+    '<span class="partner-compare-legend-item"><span class="partner-compare-legend-dot is-a"></span>A 선택</span>' +
+    '<span class="partner-compare-legend-item"><span class="partner-compare-legend-dot is-b"></span>B 선택</span>' +
+    '</div>';
+
+  container.querySelectorAll('.partner-compare-day[data-date]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = normalizeRecordDateKey(btn.getAttribute('data-date'));
+      if (!key) return;
+      setPartnerCompareDate(key);
+    });
   });
 }
 
-function extractPartnerGoalSuggestion(markdownText) {
-  const plain = String(markdownText || '')
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/^#+\s*/gm, '')
-    .replace(/[*_`>-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  if (!plain) return '';
+function renderPartnerComparePanel() {
+  const monthSelect = document.getElementById('partnerCompareMonthSelect');
+  const monthLabel = document.getElementById('partnerCompareMonthLabel');
+  const summary = document.getElementById('partnerCompareSelectionSummary');
+  const generateBtn = document.getElementById('partnerCompareGenerateBtn');
+  const targetABtn = document.getElementById('partnerCompareTargetABtn');
+  const targetBBtn = document.getElementById('partnerCompareTargetBBtn');
+  if (!monthSelect || !monthLabel || !summary || !generateBtn || !targetABtn || !targetBBtn) return;
 
-  const sentences = plain.split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
-  const candidate = sentences.find((s) => /다음|실천|계획|시도|해보|기록/.test(s) && s.length >= 12 && s.length <= 90);
-  if (candidate) return candidate;
+  const year = Number(partnerMessageState.selectedYear) || new Date().getFullYear();
+  const month = Number(partnerMessageState.selectedMonth) || (new Date().getMonth() + 1);
+  const noteMap = getPartnerMessageNoteMap(partnerMessageState.records);
 
-  const first = sentences[0] || plain;
-  return first.length > 90 ? (first.slice(0, 90) + '...') : first;
+  monthSelect.innerHTML = Array.from({ length: 12 }, (_, i) => {
+    const value = i + 1;
+    const selected = value === month ? ' selected' : '';
+    return '<option value="' + value + '"' + selected + '>' + value + '월</option>';
+  }).join('');
+  monthLabel.textContent = `${year}년 ${month}월`;
+
+  targetABtn.classList.toggle('is-active', partnerMessageState.selectTarget === 'A');
+  targetBBtn.classList.toggle('is-active', partnerMessageState.selectTarget === 'B');
+  targetABtn.textContent = partnerMessageState.selectTarget === 'A' ? 'A 선택중' : 'A 선택';
+  targetBBtn.textContent = partnerMessageState.selectTarget === 'B' ? 'B 선택중' : 'B 선택';
+
+  renderPartnerCompareCalendar(noteMap, year, month);
+
+  const selectedA = partnerMessageState.selectedDateA || '미선택';
+  const selectedB = partnerMessageState.selectedDateB || '미선택';
+  const targetText = partnerMessageState.selectTarget === 'A' ? '지금은 A를 선택 중' : '지금은 B를 선택 중';
+  const hint = String(partnerMessageState.compareHint || '').trim();
+  const hintHtml = hint ? `<span class="partner-compare-selection-hint">${escapeHtml(hint)}</span>` : '';
+
+  summary.innerHTML =
+    '<span class="partner-compare-selection-item">A: ' + escapeHtml(selectedA) + '</span>' +
+    '<span class="partner-compare-selection-item">B: ' + escapeHtml(selectedB) + '</span>' +
+    '<span class="partner-compare-selection-target">' + escapeHtml(targetText) + '</span>' +
+    hintHtml;
+
+  const ready = Boolean(
+    partnerMessageState.selectedDateA &&
+    partnerMessageState.selectedDateB &&
+    partnerMessageState.selectedDateA !== partnerMessageState.selectedDateB &&
+    noteMap.has(partnerMessageState.selectedDateA) &&
+    noteMap.has(partnerMessageState.selectedDateB)
+  );
+  generateBtn.disabled = !ready;
 }
 
-function setPartnerGoalSuggestion(markdownText) {
-  latestPartnerGoalSuggestion = extractPartnerGoalSuggestion(markdownText);
-
-  const btn = document.getElementById('partnerMessageGoalBtn');
-  const hint = document.getElementById('partnerMessageGoalHint');
-  if (!btn || !hint) return;
-
-  if (!latestPartnerGoalSuggestion) {
-    btn.disabled = true;
-    hint.textContent = 'AI 메시지를 먼저 받아보세요.';
-    return;
-  }
-
-  btn.disabled = false;
-  hint.textContent = `추천 실천: ${latestPartnerGoalSuggestion}`;
-}
-
-async function applyPartnerMessageGoal() {
-  const hint = document.getElementById('partnerMessageGoalHint');
-  const btn = document.getElementById('partnerMessageGoalBtn');
-
-  if (!latestPartnerGoalSuggestion) {
-    if (hint) hint.textContent = '먼저 성장 파트너 메시지를 받아주세요.';
-    return;
-  }
-  if (!currentStudent || !currentClassCode) {
-    if (hint) hint.textContent = '학생 정보가 없어 목표를 저장할 수 없습니다.';
-    return;
-  }
-  if (isDemoMode) {
-    showDemoBlockModal();
-    return;
-  }
-
-  const period = document.querySelector('.summary-period-btn.active')?.dataset.period || 'week';
-  const goalType = period === 'month' ? 'monthly' : 'weekly';
-
-  if (btn) btn.disabled = true;
-  try {
-    await db.from('student_goals').insert({
-      class_code: currentClassCode,
-      student_id: String(currentStudent.id),
-      goal_text: latestPartnerGoalSuggestion,
-      goal_type: goalType
-    });
-
-    if (hint) hint.textContent = '목표로 저장되었습니다. 🎯';
-    if (typeof loadGoals === 'function') loadGoals();
-  } catch (error) {
-    if (hint) hint.textContent = '목표 저장 중 오류가 발생했습니다.';
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-}
-
-async function generatePartnerMessage(period = 'week') {
-  const p = (period === 'month' || period === 'all') ? period : 'week';
-  activatePartnerMessageTab(p);
-
-  if (p === 'all') {
-    return generateGrowthReport({ targetAreaId: 'summaryReportArea', suppressButtonLoading: true });
-  }
-  return generateSummaryReport(p, { targetAreaId: 'summaryReportArea', skipTabActivation: true });
-}
-
-async function generateSummaryReport(period, options = {}) {
+async function generateComparePartnerMessage() {
   if (!currentStudent || !currentClassCode) return;
 
-  const p = (period === 'month') ? 'month' : 'week';
-  if (!options.skipTabActivation) activatePartnerMessageTab(p);
-
-  const area = document.getElementById(options.targetAreaId || 'summaryReportArea');
+  const area = document.getElementById('summaryReportArea');
   if (!area) return;
 
-  area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">🤖 성장 파트너가 메시지를 작성 중...</div>';
-  setPartnerGoalSuggestion('');
-
-  const kr = new Date(new Date().getTime() + 9 * 60 * 60 * 1000);
-  const endDate = kr.toISOString().split('T')[0];
-  const startDate = new Date(kr);
-  startDate.setDate(startDate.getDate() - (p === 'week' ? 7 : 30));
-  const startStr = startDate.toISOString().split('T')[0];
+  area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">🤖 성장 파트너가 기록 변화를 비교 중...</div>';
 
   try {
-    const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
+    const records = await ensurePartnerMessageRecordsLoaded();
+    const noteMap = getPartnerMessageNoteMap(records);
+    const dateA = normalizeRecordDateKey(partnerMessageState.selectedDateA);
+    const dateB = normalizeRecordDateKey(partnerMessageState.selectedDateB);
 
-    const [dailyRes, projectRes, goalsRes] = await Promise.allSettled([
-      db.from('daily_reflections')
-        .select('*')
-        .eq('class_code', currentClassCode)
-        .eq('student_id', String(currentStudent.id))
-        .gte('reflection_date', startStr)
-        .lte('reflection_date', endDate)
-        .order('reflection_date', { ascending: true }),
-      db.from('project_reflections')
-        .select('*')
-        .eq('class_code', currentClassCode)
-        .eq('student_id', String(currentStudent.id))
-        .gte('reflection_date', startStr)
-        .lte('reflection_date', endDate)
-        .order('reflection_date', { ascending: false }),
-      db.from('student_goals')
-        .select('*')
-        .eq('class_code', currentClassCode)
-        .eq('student_id', String(currentStudent.id))
-        .order('created_at', { ascending: false })
-    ]);
-
-    const records = (dailyRes.status === 'fulfilled' && Array.isArray(dailyRes.value?.data)) ? dailyRes.value.data : [];
-    const projects = (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) ? projectRes.value.data : [];
-    const goals = (goalsRes.status === 'fulfilled' && Array.isArray(goalsRes.value?.data)) ? goalsRes.value.data : [];
-
-    if (records.length === 0 && projects.length === 0 && goals.length === 0) {
-      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📋</span><div class="empty-desc">이 기간에 기록이 없어요. 먼저 배움 노트를 남겨보세요!</div></div>';
+    if (!dateA || !dateB) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">🗓️</span><div class="empty-desc">A와 B 날짜를 먼저 선택해 주세요.</div></div>';
+      return;
+    }
+    if (dateA === dateB) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">A와 B는 서로 다른 날짜를 선택해 주세요.</div></div>';
       return;
     }
 
-    const clip = (s, maxLen) => {
-      if (!s) return '';
-      const t = String(s).replace(/\s+/g, ' ').trim();
-      return t.length > maxLen ? (t.slice(0, maxLen) + '...') : t;
-    };
+    const noteA = String(noteMap.get(dateA) || '').trim();
+    const noteB = String(noteMap.get(dateB) || '').trim();
+    if (!noteA || !noteB) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-desc">선택한 날짜의 배움노트가 부족해 비교할 수 없어요.</div></div>';
+      return;
+    }
 
-    const inputObj = {
-      student_partner: partner ? {
-        type_code: partner.type_code,
-        type_name: partner.type_name,
-        axes: partner.axes || null,
-        axes_raw: partner.axes_raw || null,
-        style_guide: partner.style_guide || null
-      } : null,
-      self_context: {
-        report_kind: p === 'week' ? 'summary_week' : 'summary_month',
-        date_range: `${startStr} ~ ${endDate}`,
-        record_counts: {
-          daily_reflections: records.length,
-          project_reflections: projects.length,
-          goals: goals.length
-        },
-        daily_reflections_sample: records.slice(-10).map(r => ({
-          date: r.reflection_date,
-          learning_text: clip(r.learning_text, 220) || null,
-          subject_tags: Array.isArray(r.subject_tags) ? r.subject_tags : []
-        })),
-        project_reflections_sample: projects.slice(0, 5).map(pj => ({
-          date: pj.reflection_date,
-          project_name: pj.project_name || '',
-          comment: clip(pj.comment, 180) || null
-        })),
-        goals_snapshot: goals.slice(0, 8).map(g => ({
-          goal: g.goal_text || '',
-          status: g.is_completed ? 'done' : 'ongoing'
-        }))
-      }
-    };
-
-    const header1 = '이번 주/이번 달 돌아보기';
-    const header2 = (partner?.axes_raw?.info_processing === '디테일형')
-      ? '근거와 구체 포인트'
-      : '패턴과 변화 흐름';
-    const header3 = getExecutionStrategyHeader(partner);
-
-    const prompt = [
-      '[ROLE]',
-      "너는 '배움로그'의 AI 성장 파트너다.",
-      '학생에게 1:1로 말하는 톤으로, 반말은 쓰지 않되 딱딱하지 않은 친근한 존댓말(해요체)을 사용한다.',
-      "교사가 아니라 '옆에서 같이 고민해주는 파트너' 느낌으로 작성한다.",
-      '',
-      '[INPUT]',
-      JSON.stringify(inputObj, null, 2),
-      '',
-      '[8 TYPE LIBRARY]',
-      buildPartnerTypeLibraryText(),
-      '',
-      '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
-      `## ${header1}`,
-      `## ${header2}`,
-      `## ${header3}`,
-      '',
-      '[작성 규칙]',
-      '1) 인사말 없이 바로 시작.',
-      '2) student_partner의 3개 축(coaching_style/info_processing/execution_strategy)을 반드시 조합 적용.',
-      '3) #함께 성장형이면 협력 활동, #혼자 집중형이면 개인 활동을 실천 제안에 포함.',
-      '4) 기록이 짧거나 부족해도 비판하지 말고, 기록한 것 자체를 인정한 뒤 다음 단계를 제안.',
-      '5) 해당 유형의 "이런 말이 힘이 돼요" 예시를 참고해 유사 톤으로 작성.',
-      '6) 한국어로만 작성, 10~16문장 내외.'
-    ].join('\n');
-
+    const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
+    const partnerTypeText = buildPartnerTypeText(partner);
+    const prompt = buildComparePartnerPromptExact({ partnerTypeText, dateA, noteA, dateB, noteB });
     const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 900 } });
 
-    const output = (result.ok && result.text)
-      ? String(result.text)
-      : (p === 'week'
-        ? '## 이번 주/이번 달 돌아보기\n이번 주 기록이 잘 쌓였어요.\n\n## 패턴과 변화 흐름\n반복되는 강점이 보이고 있어요.\n\n## 다음 성장 계획(실천)\n이번 주에는 실천 한 가지를 정해서 기록해보세요.'
-        : '## 이번 주/이번 달 돌아보기\n이번 달 기록이 잘 쌓였어요.\n\n## 패턴과 변화 흐름\n반복되는 강점이 보이고 있어요.\n\n## 다음 성장 계획(실천)\n다음 달에는 실천 한 가지를 정해서 기록해보세요.');
-
-    area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
-    setPartnerGoalSuggestion(output);
-  } catch (error) {
-    area.innerHTML = '<div style="color:var(--color-danger);">메시지 생성 중 오류가 발생했습니다.</div>';
-    setPartnerGoalSuggestion('');
-  }
-}
-
-async function generateGrowthReport(options = {}) {
-  if (!currentStudent || !currentClassCode) return;
-
-  const area = document.getElementById(options.targetAreaId || 'growthReportArea');
-  if (!area) return;
-
-  const btn = document.getElementById('growthReportBtn');
-  if (btn && !options.suppressButtonLoading) setLoading(true, btn, '🤖 분석 중...');
-
-  area.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">전체 기록을 분석하고 있어요...</div>';
-  setPartnerGoalSuggestion('');
-
-  try {
-    const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
-
-    const [dailyRes, projectRes, goalsRes] = await Promise.allSettled([
-      db.from('daily_reflections')
-        .select('*')
-        .eq('class_code', currentClassCode)
-        .eq('student_id', String(currentStudent.id))
-        .order('reflection_date', { ascending: true }),
-      db.from('project_reflections')
-        .select('*')
-        .eq('class_code', currentClassCode)
-        .eq('student_id', String(currentStudent.id))
-        .order('reflection_date', { ascending: false }),
-      db.from('student_goals')
-        .select('*')
-        .eq('class_code', currentClassCode)
-        .eq('student_id', String(currentStudent.id))
-        .order('created_at', { ascending: false })
-    ]);
-
-    const records = (dailyRes.status === 'fulfilled' && Array.isArray(dailyRes.value?.data)) ? dailyRes.value.data : [];
-    const projects = (projectRes.status === 'fulfilled' && Array.isArray(projectRes.value?.data)) ? projectRes.value.data : [];
-    const goals = (goalsRes.status === 'fulfilled' && Array.isArray(goalsRes.value?.data)) ? goalsRes.value.data : [];
-
-    if (records.length < 1 && projects.length === 0 && goals.length === 0) {
-      area.innerHTML = '<div class="empty-state"><span class="empty-icon">📝</span><div class="empty-desc">분석할 기록이 아직 없어요.</div></div>';
-      if (btn && !options.suppressButtonLoading) setLoading(false, btn, '🤖 AI 성장 리포트 받기');
+    if (!(result.ok && result.text)) {
+      area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">성장 파트너의 메세지를 받지 못했어요. 다시 눌러주세요.</div></div>';
       return;
     }
 
-    const clip = (s, maxLen) => {
-      if (!s) return '';
-      const t = String(s).replace(/\s+/g, ' ').trim();
-      return t.length > maxLen ? (t.slice(0, maxLen) + '...') : t;
-    };
-
-    const firstDate = records.length ? records[0].reflection_date : null;
-    const lastDate = records.length ? records[records.length - 1].reflection_date : null;
-    const date_range = (firstDate && lastDate) ? `${firstDate} ~ ${lastDate}` : getDefaultQueryDate();
-
-    const inputObj = {
-      student_partner: partner ? {
-        type_code: partner.type_code,
-        type_name: partner.type_name,
-        axes: partner.axes || null,
-        axes_raw: partner.axes_raw || null,
-        style_guide: partner.style_guide || null
-      } : null,
-      self_context: {
-        report_kind: 'growth_all',
-        date_range,
-        record_counts: {
-          daily_reflections: records.length,
-          project_reflections: projects.length,
-          goals: goals.length
-        },
-        daily_reflections_sample: records.slice(-14).map(r => ({
-          date: r.reflection_date,
-          learning_text: clip(r.learning_text, 220) || null,
-          subject_tags: Array.isArray(r.subject_tags) ? r.subject_tags : []
-        })),
-        project_reflections_sample: projects.slice(0, 6).map(pj => ({
-          date: pj.reflection_date,
-          project_name: pj.project_name || '',
-          comment: clip(pj.comment, 180) || null
-        })),
-        goals_snapshot: goals.slice(0, 10).map(g => ({
-          goal: g.goal_text || '',
-          status: g.is_completed ? 'done' : 'ongoing'
-        }))
-      }
-    };
-
-    const header1 = '나의 전체 성장 분석';
-    const header2 = (partner?.axes_raw?.info_processing === '디테일형')
-      ? '근거와 구체 포인트'
-      : '패턴과 변화 흐름';
-    const header3 = getExecutionStrategyHeader(partner);
-
-    const prompt = [
-      '[ROLE]',
-      "너는 '배움로그'의 AI 성장 파트너다.",
-      '학생에게 1:1로 말하는 톤으로, 반말은 쓰지 않되 딱딱하지 않은 친근한 존댓말(해요체)을 사용한다.',
-      "교사가 아니라 '옆에서 같이 고민해주는 파트너' 느낌으로 작성한다.",
-      '',
-      '[INPUT]',
-      JSON.stringify(inputObj, null, 2),
-      '',
-      '[8 TYPE LIBRARY]',
-      buildPartnerTypeLibraryText(),
-      '',
-      '[OUTPUT: 카드 UI 최적화 / 마크다운만]',
-      `## ${header1}`,
-      `## ${header2}`,
-      `## ${header3}`,
-      '',
-      '[작성 규칙]',
-      '1) 인사말 없이 바로 시작.',
-      '2) student_partner의 3개 축(coaching_style/info_processing/execution_strategy)을 반드시 조합 적용.',
-      '3) #함께 성장형이면 협력 활동, #혼자 집중형이면 개인 활동을 실천 제안에 포함.',
-      '4) 기록이 짧거나 부족해도 비판하지 말고, 기록한 것 자체를 인정한 뒤 다음 단계를 제안.',
-      '5) 해당 유형의 "이런 말이 힘이 돼요" 예시를 참고해 유사 톤으로 작성.',
-      '6) 한국어로만 작성, 12~20문장 내외.'
-    ].join('\n');
-
-    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 1100 } });
-
-    const output = (result.ok && result.text)
-      ? String(result.text)
-      : '## 나의 전체 성장 분석\n지금까지의 기록이 잘 쌓이고 있어요.\n\n## 패턴과 변화 흐름\n반복되는 강점이 분명히 보입니다.\n\n## 다음 성장 계획(실천)\n이번 주에는 한 가지 실천을 정해서 꾸준히 기록해보세요.';
-
+    const output = sanitizeAiSummaryText(result.text);
     area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
-    setPartnerGoalSuggestion(output);
   } catch (error) {
-    area.innerHTML = '<div style="color:var(--color-danger);">리포트 생성 중 오류가 발생했습니다.</div>';
-    setPartnerGoalSuggestion('');
-  } finally {
-    const btn = document.getElementById('growthReportBtn');
-    if (btn && !options.suppressButtonLoading) setLoading(false, btn, '🤖 AI 성장 리포트 받기');
+    area.innerHTML = '<div style="color:var(--color-danger);">기록 비교 피드백 생성 중 오류가 발생했습니다.</div>';
   }
 }
 

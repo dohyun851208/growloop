@@ -210,10 +210,10 @@ async function run() {
   // Teacher page checks: 3, 11, 12.
   const teacherPage = await context.newPage();
   await teacherPage.goto(`http://${HOST}:${PORT}/app.html?demo=teacher`, { waitUntil: 'networkidle' });
-  await teacherPage.waitForFunction(() => typeof window.switchTeacherMainTab === 'function');
+  await teacherPage.waitForFunction(() => typeof window.switchMiniTab === 'function');
   await teacherPage.waitForTimeout(700);
-  await teacherPage.evaluate(() => {
-    window.switchTeacherMainTab('diary');
+  await teacherPage.evaluate(async () => {
+    if (typeof window.switchMiniTab === 'function') await window.switchMiniTab('diary');
     if (typeof window.switchTeacherDiarySubTab === 'function') window.switchTeacherDiarySubTab('comment');
   });
   await teacherPage.waitForTimeout(300);
@@ -230,7 +230,8 @@ async function run() {
   mark(3, teacherAligned, `teacher type label boxes = ${JSON.stringify(teacherBoxes)}`);
 
   const teacherTabLabel = await teacherPage.locator('button[onclick="switchTeacherDiarySubTab(\'comment\')"]').first().innerText();
-  mark(11, teacherTabLabel.includes('세특생성'), `teacher diary subtab text = ${teacherTabLabel}`);
+  const hintTabLabel = await teacherPage.locator('button[onclick="switchTeacherDiarySubTab(\'hint\')"]').first().innerText();
+  mark(11, teacherTabLabel.includes('세특생성') && hintTabLabel.includes('수업 개선 단서'), `teacher diary subtabs = comment:${teacherTabLabel}, hint:${hintTabLabel}`);
 
   const previewBtnExists = await teacherPage.locator('#teacherSubjectCommentPreviewBtn').count();
   const sourceWrapExists = await teacherPage.locator('#teacherSubjectCommentSourceWrap').count();

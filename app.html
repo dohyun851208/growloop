@@ -43,11 +43,7 @@
                 <input type="text" id="onboardClassName" placeholder="예: 부평서초6-1" required>
                 <label>클래스 코드</label>
                 <input type="text" id="onboardClassCode" placeholder="선생님이 알려준 코드 (예: 부평서초34)" maxlength="20" required>
-                <div class="type-selector">
-                    <label><input type="radio" name="onboardType" value="individual" checked> 👤 개인</label>
-                    <label><input type="radio" name="onboardType" value="group"> 👥 모둠</label>
-                </div>
-                <label id="onboardIdLabel">나의 번호</label>
+                <label>나의 번호</label>
                 <input type="number" id="onboardStudentNumber" placeholder="번호 입력 (예: 15)" required>
                 <button type="button" id="saveOnboardBtn" onclick="saveStudentOnboarding()"
                     class="btn-onboard-student">설정 완료</button>
@@ -261,23 +257,55 @@
 
                             <div class="accent-box summary-report-card dashboard-ai-card">
                                 <span class="box-label">💬 성장 파트너의 메시지</span>
-                                <div class="summary-period-row">
-                                    <button type="button" class="summary-period-btn active" data-period="week"
-                                        onclick="generatePartnerMessage('week')">📅 이번 주</button>
-                                    <button type="button" class="summary-period-btn" data-period="month"
-                                        onclick="generatePartnerMessage('month')">📆 이번 달</button>
-                                    <button type="button" class="summary-period-btn" data-period="all"
-                                        onclick="generatePartnerMessage('all')">🧭 전체</button>
+                                <div class="partner-message-mode-row">
+                                    <button type="button" class="partner-message-mode-btn active" data-mode="daily"
+                                        onclick="generatePartnerMessage('daily')">🗒️ 일간 피드백</button>
+                                    <button type="button" class="partner-message-mode-btn" data-mode="compare"
+                                        onclick="generatePartnerMessage('compare')">🔎 기록 비교 피드백</button>
+                                </div>
+                                <div id="partnerDailyActionRow" class="partner-daily-action-row">
+                                    <button type="button" class="partner-daily-generate-btn"
+                                        onclick="generateDailyPartnerMessage()">일간 피드백 생성하기</button>
+                                </div>
+                                <div id="partnerComparePanel" class="partner-compare-panel hidden">
+                                    <div class="partner-compare-toolbar">
+                                        <div class="partner-compare-target-row">
+                                            <button type="button" id="partnerCompareTargetABtn"
+                                                class="partner-compare-target-btn is-active"
+                                                onclick="setPartnerCompareTarget('A')">A 선택중</button>
+                                            <button type="button" id="partnerCompareTargetBBtn"
+                                                class="partner-compare-target-btn"
+                                                onclick="setPartnerCompareTarget('B')">B 선택</button>
+                                        </div>
+                                        <div class="partner-compare-month-row">
+                                            <button type="button" class="partner-compare-month-btn"
+                                                onclick="navigatePartnerCompareMonth(-1)"
+                                                aria-label="이전 달">‹</button>
+                                            <span id="partnerCompareMonthLabel"
+                                                class="partner-compare-month-label">-</span>
+                                            <select id="partnerCompareMonthSelect" class="partner-compare-month-select"
+                                                onchange="setPartnerCompareMonth(this.value)"
+                                                aria-label="비교 달 선택"></select>
+                                            <button type="button" class="partner-compare-month-btn"
+                                                onclick="navigatePartnerCompareMonth(1)"
+                                                aria-label="다음 달">›</button>
+                                        </div>
+                                    </div>
+                                    <div id="partnerCompareCalendar" class="partner-compare-calendar">
+                                        <div class="empty-state"><span class="empty-icon">🗓️</span>
+                                            <div class="empty-desc">비교할 날짜를 선택해 주세요.</div>
+                                        </div>
+                                    </div>
+                                    <div id="partnerCompareSelectionSummary" class="partner-compare-selection-summary">
+                                        A와 B 날짜를 달력에서 선택해 주세요.
+                                    </div>
+                                    <button type="button" id="partnerCompareGenerateBtn"
+                                        class="partner-compare-generate-btn" onclick="generateComparePartnerMessage()"
+                                        disabled>비교 피드백 생성</button>
                                 </div>
                                 <div id="summaryReportArea">
                                     <div class="empty-state"><span class="empty-icon">💬</span>
-                                        <div class="empty-desc">기간을 선택해 성장 파트너의 메시지를 받아보세요.</div>
-                                    </div>
-                                </div>
-                                <div class="partner-goal-link-row">
-                                    <button type="button" id="partnerMessageGoalBtn" class="partner-goal-link-btn"
-                                        onclick="applyPartnerMessageGoal()" disabled>🎯 이걸 목표로 설정!</button>
-                                    <div id="partnerMessageGoalHint" class="partner-goal-link-hint">AI 메시지를 먼저 받아보세요.
+                                        <div class="empty-desc">모드를 고른 뒤 피드백 생성 버튼을 눌러 메시지를 받아보세요.</div>
                                     </div>
                                 </div>
                             </div>
@@ -611,7 +639,7 @@
                     </button>
                     <button class="nav-item" onclick="switchMiniTab('settings')">
                         <span class="nav-icon">👤</span>
-                        <span class="nav-label">학급 관리</span>
+                        <span class="nav-label">관리</span>
                     </button>
                 </nav>
                 <!-- 친구로 배움 하위 탭 -->
@@ -655,6 +683,7 @@
                     <div class="sub-tab-container sub-tab-gap-15">
                         <button type="button" class="sub-tab-btn active" onclick="switchTeacherDiarySubTab('overview')">📊 참여현황</button>
                         <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('student')">📝 개별보기</button>
+                        <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('hint')">🧭 수업 개선 단서</button>
                         <button type="button" class="sub-tab-btn" onclick="switchTeacherDiarySubTab('comment')">🧑‍🏫 세특생성</button>
                     </div>
 
@@ -703,16 +732,35 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+
+                    <div id="teacherDiaryHintTab" class="hidden">
                     <div id="emotionAlertArea" class="accent-box box-violet hidden">
-                        <span class="box-label">🗂️ 어려움 모아보기</span>
+                        <span class="box-label">🧭 수업 개선 단서</span>
+                        <div class="diary-date-filter-wrap">
+                            <label class="diary-date-label">📅 조회 날짜</label>
+                            <input type="date" id="diaryHintViewDate" class="class-tone-input diary-date-input"
+                                onchange="handleTeacherHintDateChange()">
+                        </div>
                         <p class="emotion-alert-desc">
-                            선택 날짜의 배움노트에서 <strong>기록된 어려움</strong>을 모아 보여줍니다. (클릭하면 해당 학생 노트로 이동)
+                            1단계 날짜(이 탭 조회 날짜) → 2단계 과목 → 3단계 단서 유형(어려운 점/헷갈리는 점/아직 미해결) 순서로 확인합니다. (카드를 누르면 해당 학생 노트로 이동)
                         </p>
+                        <div class="difficulty-map-filter-split">
+                            <div class="difficulty-map-filter-col">
+                                <div class="difficulty-map-filter-col-title">2단계 과목</div>
+                                <div id="difficultyMapTagSummary" class="difficulty-map-tag-summary"></div>
+                            </div>
+                            <div class="difficulty-map-filter-col">
+                                <div class="difficulty-map-filter-col-title">3단계 단서 유형</div>
+                                <div id="difficultyMapSignalSummary" class="difficulty-map-tag-summary difficulty-map-signal-summary"></div>
+                            </div>
+                        </div>
+                        <div id="difficultyMapFilterHint" class="difficulty-map-filter-hint hidden"></div>
                         <div id="emotionAlertList"></div>
+                    </div>
                     </div>
 
                     <!-- 교과세특(평어) 생성: 배움노트 기반 -->
-                    </div>
 
                     <div id="teacherDiaryCommentTab" class="hidden">
                     <div id="teacherSubjectCommentSection" class="teacher-subject-comment-card">
@@ -1004,69 +1052,349 @@
                     </div>
                 </div>
                 <div id="settingsMiniTab" class="hidden">
-                    <div id="classInfoCard" class="accent-box box-amber class-tone-section">
-                        <span class="box-label">📋 우리 학급 정보</span>
-                        <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                            <div class="settings-field" style="flex:1;"><label>학급명</label><input type="text" id="settingClassName" class="class-tone-input"
-                                    placeholder="예: 부평서초6-1" style="font-family:'Jua', sans-serif !important;">
+                    <div id="teacherManageSubTabArea">
+                        <div class="sub-tab-container sub-tab-gap-15 teacher-manage-sub-tab-container">
+                            <button type="button" id="teacherManageClassBtn" class="sub-tab-btn active"
+                                onclick="switchTeacherManageSubTab('class')">학급관리</button>
+                            <button type="button" id="teacherManagePartnerBtn" class="sub-tab-btn"
+                                onclick="switchTeacherManageSubTab('partner')">성장 파트너</button>
+                        </div>
+                    </div>
+
+                    <div id="teacherManageClassTab">
+                        <div id="classInfoCard" class="accent-box box-amber class-tone-section">
+                            <span class="box-label">📋 우리 학급 정보</span>
+                            <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
+                                <div class="settings-field" style="flex:1;"><label>학급명</label><input type="text" id="settingClassName" class="class-tone-input"
+                                        placeholder="예: 부평서초6-1" style="font-family:'Jua', sans-serif !important;">
+                                </div>
+                                <div class="settings-field" style="flex:1;"><label>클래스 코드</label><input type="text" id="settingClassCode" class="class-tone-input"
+                                        placeholder="예: 부평서초34" style="font-family:'Jua', sans-serif !important;"></div>
                             </div>
-                            <div class="settings-field" style="flex:1;"><label>클래스 코드</label><input type="text" id="settingClassCode" class="class-tone-input"
-                                    placeholder="예: 부평서초34" style="font-family:'Jua', sans-serif !important;"></div>
+                            <button onclick="saveClassInfo(this)" style="background:var(--color-result);">💾 학급 정보
+                                저장하기</button>
+                            <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
+                                클래스 코드를 변경하면 학생들도 새로운 코드로 접속해야 합니다. (띄어쓰기 금지)</p>
                         </div>
-                        <button onclick="saveClassInfo(this)" style="background:var(--color-result);">💾 학급 정보
-                            저장하기</button>
-                        <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
-                            클래스 코드를 변경하면 학생들도 새로운 코드로 접속해야 합니다. (띄어쓰기 금지)</p>
-                    </div>
-                    <div id="classCompositionCard" class="accent-box box-violet class-tone-section">
-                        <span class="box-label">🏫 우리 반 구성 설정</span>
-                        <div id="classCompositionFields" class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                            <div class="settings-field" style="flex:1;"><label>👤 학생 수</label><input type="number" id="settingStudentCount" class="class-tone-input"
-                                    min="1" max="50" placeholder="30" style="font-family:'Jua', sans-serif !important;">
+                        <div id="classCompositionCard" class="accent-box box-violet class-tone-section">
+                            <span class="box-label">🏫 우리 반 구성 설정</span>
+                            <div id="classCompositionFields" class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
+                                <div class="settings-field" style="flex:1;"><label>👤 학생 수</label><input type="number" id="settingStudentCount" class="class-tone-input"
+                                        min="1" max="50" placeholder="30" style="font-family:'Jua', sans-serif !important;">
+                                </div>
+                                <div class="settings-field" style="flex:1;"><label>👥 모둠 수</label><input type="number" id="settingGroupCount" class="class-tone-input"
+                                        min="1" max="20" placeholder="6" style="font-family:'Jua', sans-serif !important;">
+                                </div>
                             </div>
-                            <div class="settings-field" style="flex:1;"><label>👥 모둠 수</label><input type="number" id="settingGroupCount" class="class-tone-input"
-                                    min="1" max="20" placeholder="6" style="font-family:'Jua', sans-serif !important;">
+                            <button onclick="saveClassSettingsUI(this)" style="background:var(--color-teacher);">💾 반 구성
+                                저장하기</button>
+                            <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
+                                학생 수와 모둠 수를 설정합니다.</p>
+                        </div>
+                        <div id="classSemesterRangeCard" class="accent-box box-slate class-tone-section">
+                            <span class="box-label">📅 학기 기준 설정</span>
+                            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
+                                여기서 저장한 학기 기간은 스스로배움의 세특생성 1학기/2학기 버튼과 연동됩니다.
+                            </p>
+                            <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:12px;">
+                                <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input type="date" id="settingSemester1Start" class="class-tone-input"
+                                        style="font-family:'Jua', sans-serif !important;"></div>
+                                <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input type="date" id="settingSemester1End" class="class-tone-input"
+                                        style="font-family:'Jua', sans-serif !important;"></div>
+                            </div>
+                            <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
+                                <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input type="date" id="settingSemester2Start" class="class-tone-input"
+                                        style="font-family:'Jua', sans-serif !important;"></div>
+                                <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input type="date" id="settingSemester2End" class="class-tone-input"
+                                        style="font-family:'Jua', sans-serif !important;"></div>
+                            </div>
+                            <button onclick="saveTeacherSemesterSettingsUI(this)" style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
+                        </div>
+                        <div class="accent-box box-blue class-tone-section">
+                            <span class="box-label">👥 학생 번호 매핑 현황</span>
+                            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
+                                각 번호에 등록된 Google 계정을 확인하고 모둠을 배정할 수 있습니다.
+                            </p>
+                            <p id="groupMappingNotice" class="teacher-group-mapping-notice">
+                                모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.
+                            </p>
+                            <div id="studentMappingGrid" class="student-manage-grid"></div>
+                            <button type="button" id="saveGroupMappingBtn" onclick="saveStudentGroupMappings(this)" class="teacher-group-mapping-save-btn" disabled>💾 모둠 배정 일괄 저장</button>
+                        </div>
+                        <div class="accent-box box-red">
+                            <span class="box-label" style="color:var(--color-danger);">⚠️ 데이터 초기화</span>
+                            <p style="color:var(--color-danger); font-size:0.9rem; margin-bottom:15px;">
+                                <strong>주의:</strong>
+                                모든 학급 내 데이터가 삭제됩니다.
+                            </p>
+                            <button id="resetBtn" onclick="resetAllReviewData(this)">학급 데이터 전체 초기화</button>
+                        </div>
+                    </div>
+
+                    <div id="teacherManagePartnerTab" class="hidden">
+                        <div id="teacherPartnerSubTabArea">
+                            <div class="sub-tab-container sub-tab-gap-15 teacher-manage-sub-tab-container">
+                                <button type="button" id="teacherPartnerReferenceBtn" class="sub-tab-btn active"
+                                    onclick="switchTeacherPartnerSubTab('reference')">레퍼런스 자료</button>
+                                <button type="button" id="teacherPartnerIndividualBtn" class="sub-tab-btn"
+                                    onclick="switchTeacherPartnerSubTab('individual')">개별 확인</button>
                             </div>
                         </div>
-                        <button onclick="saveClassSettingsUI(this)" style="background:var(--color-teacher);">💾 반 구성
-                            저장하기</button>
-                        <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
-                            학생 수와 모둠 수를 설정합니다.</p>
-                    </div>
-                    <div id="classSemesterRangeCard" class="accent-box box-slate class-tone-section">
-                        <span class="box-label">📅 학기 기준 설정</span>
-                        <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-                            여기서 저장한 학기 기간은 스스로배움의 세특생성 1학기/2학기 버튼과 연동됩니다.
-                        </p>
-                        <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:12px;">
-                            <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input type="date" id="settingSemester1Start" class="class-tone-input"
-                                    style="font-family:'Jua', sans-serif !important;"></div>
-                            <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input type="date" id="settingSemester1End" class="class-tone-input"
-                                    style="font-family:'Jua', sans-serif !important;"></div>
+
+                        <div id="teacherPartnerReferenceTab">
+                            <div class="accent-box box-amber teacher-partner-reference-card">
+                                <span class="box-label">📘 교사용 레퍼런스: 성장 파트너 유형 시스템</span>
+                                <div class="teacher-partner-reference-doc">
+                                    <div id="teacherPartnerReferenceCards" class="teacher-partner-reference-cards"></div>
+                                    <pre id="teacherPartnerReferenceRaw" class="teacher-partner-reference-source hidden">📘 교사용 레퍼런스: 성장 파트너 유형 시스템
+📌 Part 1. 질문 구조 (8문항 × 4축)
+이 시스템은 학생이 **"어떤 방식으로 피드백을 받고 싶어하는가"**를 파악하기 위한 것입니다. 성격 자체를 분류하는 것이 아니라, 학습 피드백 수용 선호도를 측정합니다.
+
+축	의미	질문	역할
+코칭 스타일	피드백의 톤	Q1(★우선), Q2	주 축
+정보 처리	피드백의 구조	Q3(★우선), Q4	주 축
+실행 전략	실천 제안의 형태	Q5(★우선), Q6	주 축
+학습 환경	활동의 종류	Q7(★우선), Q8	보조태그
+★ 동률 시 우선 질문(Q1, Q3, Q5, Q7)의 답이 적용됩니다.
+
+📌 Part 2. 각 질문의 의미
+축 1: 코칭 스타일 — "이 아이는 직설적 진단을 원하는가, 공감적 동행을 원하는가?"
+Q1. "시험 결과가 기대보다 낮았을 때, 선생님이 어떻게 말해주면 좋겠어?"
+
+A: "구체적으로 분석하고 방법을 알려줘" → 해결형
+B: "같이 방법을 찾아보자고 말해줘" → 지지형
+🔍 교사 해석: 실패 상황에서 학생이 원하는 첫 반응을 봅니다. A를 고른 학생은 감정보다 해결책을 먼저 원하고, B를 고른 학생은 "혼자가 아니다"는 느낌을 먼저 원합니다.
+
+Q2. "모둠 활동에서 내가 맡은 부분의 완성도가 떨어질 때, 어떤 반응이 더 도움이 돼?"
+
+A: "이 부분은 이렇게 고치면 좋을 것 같아." → 해결형
+B: "고생많았어. 다음엔 이 부분을 신경 써줘." → 지지형
+🔍 교사 해석: 동료/교사의 비판적 피드백을 받는 장면입니다. A 학생은 무엇이 틀렸는지 바로 듣고 싶어하고, B 학생은 노력을 인정받은 후에 개선점을 듣고 싶어합니다. B 학생에게 인정 없이 지적부터 하면 방어적이 될 수 있습니다.
+
+축 2: 정보 처리 — "이 아이는 디테일부터 쌓아가는가, 큰 그림부터 잡는가?"
+Q3. "새로운 단원을 배울 때, 어떤 게 더 도움이 돼?"
+
+A: "개념을 읽고 문제 풀이 과정을 쭉 따라가기" → 디테일형
+B: "왜 이 단원을 배우는지, 전체 흐름 중 어디인지 먼저 파악" → 큰 그림형
+🔍 교사 해석: 학습 진입 방식을 봅니다. A 학생은 구체적 예시와 절차를 따라가며 이해하고, B 학생은 "이걸 왜 배우는지" 맥락이 잡혀야 세부 내용이 들어옵니다. B 학생에게 맥락 없이 문제풀이부터 시키면 동기가 떨어질 수 있습니다.
+
+Q4. "내 결과물에 대한 조언을 받을 때, 어떤 형식이 더 좋아?"
+
+A: "항목별 점수와 구체적 근거" → 디테일형
+B: "전체적인 흐름 요약과 다음 방향" → 큰 그림형
+🔍 교사 해석: 피드백 수신 형태의 선호입니다. A 학생은 "어디서 몇 점 감점됐고 왜"를 원하고, B 학생은 "전체적으로 이런 느낌이고 다음에 이 방향"을 원합니다. A 학생에게 "전체적으로 괜찮아"라고만 하면 불만족하고, B 학생에게 항목별 점수만 나열하면 압도당할 수 있습니다.
+
+축 3: 실행 전략 — "이 아이는 계획 세우기를 좋아하는가, 일단 해보기를 좋아하는가?"
+Q5. "시험 2주 전, 어떤 공부 방식이 나한테 더 맞아?"
+
+A: "과목별 계획표를 짜고 매일 체크" → 계획형
+B: "일단 시작하고 그날 상태에 따라 조절" → 탐색형
+🔍 교사 해석: 시간 관리 성향을 봅니다. A 학생은 구조와 일정이 있으면 안정감을 느끼고, B 학생은 유연성이 있어야 지속할 수 있습니다. B 학생에게 빡빡한 계획표를 강요하면 오히려 포기가 빨라집니다.
+
+Q6. "방학 동안 뭔가를 배우고 싶을 때, 어떻게 시작해?"
+
+A: "목표와 일정을 먼저 정하고 단계적으로" → 계획형
+B: "일단 관심 가는 걸 해보면서 방향을 잡아가기" → 탐색형
+🔍 교사 해석: 자기주도 학습의 시작 패턴입니다. A 학생은 로드맵이 있어야 시작하고, B 학생은 호기심이 출발점입니다. 두 유형 모두 가치 있지만, B 학생에게 "먼저 계획을 세워와"라고 하면 시작 자체를 못할 수 있습니다.
+
+축 4 (보조): 학습 환경 — "이 아이는 협력형인가, 독립형인가?"
+Q7. "어려운 내용을 이해하고 싶을 때, 어떤 방법을 더 좋아해?"
+
+A: "친구나 선생님한테 물어보면서 정리" → 함께 성장형
+B: "혼자 자료를 찾아보며 정리" → 혼자 집중형
+🔍 교사 해석: 학습 곤란 상황에서의 대처 방식입니다. A 학생은 대화를 통해 이해를 구성하고, B 학생은 스스로 정리하는 시간이 필요합니다.
+
+Q8. "시험공부 할 때 어떤 환경이 더 집중이 잘 돼?"
+
+A: "친구와 같이 문제 내고 풀기" → 함께 성장형
+B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
+🔍 교사 해석: 집중 환경 선호입니다. 이 축은 주 유형을 바꾸지 않고 보조태그(#함께 성장형 / #혼자 집중형)로 작동합니다. AI가 실천 활동을 제안할 때 협력 활동(모둠 토론, 짝 설명 등)을 넣을지, 개인 활동(노트 정리, 혼자 풀기 등)을 넣을지 결정합니다.
+
+📌 Part 3. 8가지 유형별 교사 가이드
+3개 주 축의 조합으로 8가지 유형이 만들어집니다.
+
+🎯 유형 1: 구체적인 계획가 (해결 × 디테일 × 계획)
+이런 아이입니다:
+
+"뭐가 틀렸는지 정확히 알려주세요"가 입버릇인 학생
+점수표, 체크리스트, 일정표를 좋아함
+모호한 피드백("좀 더 노력해봐")에 불만을 느낌
+계획을 세우면 실행력이 높은 편
+교사가 이 학생에게 피드백할 때:
+
+✅ "3번 문제 유형에서 실수가 반복되고 있어. 이번 주 월수는 이 유형 5문제씩, 목금은 이 유형으로 연습하자."
+❌ "전반적으로 잘하고 있으니까 조금만 더 힘내."
+주의할 점:
+
+이 학생은 감정적 위로보다 정보를 원합니다. 틀린 부분을 정확히 짚어주는 것이 존중의 표현이라고 느낍니다.
+다만 지적만 나열하면 좌절할 수 있으므로, "잘된 부분 1개 + 개선점 2개 + 실행 계획"의 구조가 효과적입니다.
+계획을 세워주면 스스로 실행하는 힘이 있으므로, 중간 점검 정도만 해주면 됩니다.
+🛠 유형 2: 구체적인 도전가 (해결 × 디테일 × 탐색)
+이런 아이입니다:
+
+뭐가 문제인지는 정확히 알고 싶지만, 정해진 계획표는 싫어하는 학생
+"이거 해봐" 하면 바로 시도하는 행동력이 있음
+장기 계획보다 "오늘 당장 해볼 것 하나"에 반응함
+틀에 박힌 반복 학습은 금방 지루해함
+교사가 이 학생에게 피드백할 때:
+
+✅ "이 부분에서 실수가 나왔어. 이 방법으로 딱 3문제만 풀어봐. 맞으면 다음 단계 가자."
+❌ "2주 동안 이 계획표대로 매일 해와."
+주의할 점:
+
+구체적인 지적은 환영하지만, 장기 로드맵은 부담으로 느낍니다.
+작고 명확한 미션 1개를 주고 결과를 같이 확인하는 사이클이 이 학생에게 가장 효과적입니다.
+실험 결과를 메모하게 하면 자기 학습 패턴을 스스로 발견하게 됩니다.
+🗺 유형 3: 큰 그림형 계획가 (해결 × 큰 그림 × 계획)
+이런 아이입니다:
+
+"이거 왜 해요?"를 먼저 묻는 학생
+세부 항목보다 전체 방향과 우선순위를 중시함
+방향이 잡히면 스스로 계획을 세우는 능력이 있음
+의미 없는 반복에는 동기 저하가 빠름
+교사가 이 학생에게 피드백할 때:
+
+✅ "전체적으로 보면 이 방향이야. 이번 주는 이것부터, 다음 주는 저것. 이 순서로 하면 시험 범위가 정리될 거야."
+❌ "1번은 ○, 2번은 △, 3번은 ×…" (항목별 나열만)
+주의할 점:
+
+이 학생에게는 **"왜 이 순서인지"**를 설명해주는 것이 핵심입니다.
+우선순위를 함께 정해주면 이후 실행은 스스로 잘합니다.
+숲을 보여주고 나무 순서를 잡아주되, 각 나무를 어떻게 심을지는 학생에게 맡기세요.
+🚀 유형 4: 큰 그림형 도전가 (해결 × 큰 그림 × 탐색)
+이런 아이입니다:
+
+호기심이 많고 다양한 것에 관심을 가지는 학생
+정해진 틀보다 "이런 것도 해볼까?"에 눈이 반짝임
+방향만 알려주면 자기만의 방식으로 탐색함
+너무 구체적인 지시는 오히려 창의성을 막는다고 느낌
+교사가 이 학생에게 피드백할 때:
+
+✅ "이런 방향도 있어. 한번 해보고 맞는지 느껴봐. 아니면 이쪽도 재밌을 거야."
+❌ "이 순서대로 따라 해. 다른 건 나중에."
+주의할 점:
+
+이 학생은 선택지를 주면 동기부여가 됩니다.
+"A 방법과 B 방법이 있는데, 뭐가 더 맞을 것 같아?"처럼 옵션을 제시하세요.
+산만해 보일 수 있지만, 다양한 시도 속에서 자기 방식을 찾는 타입입니다. 탐색 자체를 인정해주는 것이 중요합니다.
+단, "결국 어디로 가고 있는지"를 가끔 환기시켜주면 좋습니다.
+📋 유형 5: 함께하는 계획가 (지지 × 디테일 × 계획)
+이런 아이입니다:
+
+잘한 점을 먼저 인정받으면 개선점도 기꺼이 받아들이는 학생
+단계별 안내가 있으면 안심하고 따라감
+피드백의 순서(인정→개선→실행)가 중요
+꼼꼼하고 성실하지만, 자신감이 낮을 수 있음
+교사가 이 학생에게 피드백할 때:
+
+✅ "이건 진짜 잘했어. 여기는 같이 해보자. 먼저 이것부터, 그 다음에 이것."
+❌ "여기 틀렸고, 여기도 부족하고, 이건 다시 해와."
+주의할 점:
+
+**"잘한 점 먼저"**가 이 학생에게는 선택이 아니라 필수입니다.
+인정 없이 지적부터 시작하면 "나는 못하는 사람"이라는 인식이 강화됩니다.
+계획이 있으면 실행을 잘하므로, 1단계→2단계→3단계로 나눠주면 차근차근 따라갑니다.
+중간중간 "여기까지 잘하고 있어"라는 확인이 큰 힘이 됩니다.
+🤝 유형 6: 함께하는 도전가 (지지 × 디테일 × 탐색)
+이런 아이입니다:
+
+따뜻한 분위기에서 "같이 해보자"고 하면 용기를 내는 학생
+큰 계획보다 "일단 이것만 해볼까?" 식의 가벼운 시작을 좋아함
+실패에 대한 두려움이 있을 수 있어서, 심리적 안전감이 중요
+누군가와 함께하면 시도 자체를 더 잘함
+교사가 이 학생에게 피드백할 때:
+
+✅ "이건 잘했어! 여기는 이렇게 한번 해볼까? 부담 없이 하나만."
+❌ "여기 틀렸으니까 이 10문제 풀어와."
+주의할 점:
+
+**"같이"**라는 단어가 이 학생에게는 마법의 단어입니다.
+혼자 과제를 안겨주면 시작 자체가 어렵지만, "선생님이랑 같이 한번 보자" 또는 "친구랑 해봐"라고 하면 시도합니다.
+작은 성공 경험을 쌓게 해주는 것이 장기적으로 가장 효과적입니다.
+실패해도 "시도한 것 자체가 좋았어"라는 메시지가 다음 시도로 이어집니다.
+🫶 유형 7: 공감하는 계획가 (지지 × 큰 그림 × 계획)
+이런 아이입니다:
+
+기분이나 컨디션에 따라 학습 효율이 크게 달라지는 학생
+감정을 먼저 알아줘야 그 다음 내용이 들어옴
+방향만 잡아주면 스스로 정리하는 힘이 있음
+세부 사항보다 "결국 내가 잘 되고 있는지"가 중요
+교사가 이 학생에게 피드백할 때:
+
+✅ "많이 노력했지? 방향은 맞아. 이번 주는 이것만 해보자."
+❌ "1번에서 3점 감점, 2번에서 2점 감점…" (감정 터치 없이 숫자만)
+주의할 점:
+
+첫 문장이 공감이어야 합니다. "힘들었겠다", "노력한 거 보여", "걱정했구나" 등.
+공감 한 문장 + 방향 한 문장 + 이번 주 할 것 하나. 이 3단계가 이 학생의 골든 패턴입니다.
+감정을 무시하고 바로 과제를 주면, 할 수 있는 능력이 있어도 하지 않게 됩니다.
+"지금 어디쯤 왔는지" 알려주면 안심하고 다음 단계로 넘어갑니다.
+🌈 유형 8: 공감하는 도전가 (지지 × 큰 그림 × 탐색)
+이런 아이입니다:
+
+감성적이면서도 새로운 것에 열린 학생
+강요보다 영감을 통해 움직이는 타입
+"이런 것도 해보면 재밌을 거야"라는 한마디에 반응함
+정해진 계획보다 자기만의 페이스를 중시함
+예술적이거나 창의적인 활동에 잘 반응하는 경우가 많음
+교사가 이 학생에게 피드백할 때:
+
+✅ "충분히 잘하고 있어. 이런 것도 해보면 재밌을 거야. 어떻게 생각해?"
+❌ "이 계획표대로 해와. 감정은 나중에."
+주의할 점:
+
+이 학생에게는 질문이 가장 좋은 피드백 도구입니다.
+"이거 해봐"보다 "이런 건 어떨 것 같아?"가 훨씬 효과적입니다.
+감정 공감 → 흥미 자극 → 작은 실험 제안의 순서로 접근하세요.
+결과보다 과정에서 느낀 것을 물어봐주면 스스로 성찰이 깊어집니다.
+가장 자유로운 유형이지만, 방향 없이 표류할 수 있으므로 가끔 "지금 어디쯤인 것 같아?"라고 물어봐주면 좋습니다.
+📌 Part 4. 보조태그 활용법
+보조태그는 위 8가지 유형에 덧붙여서 실천 활동의 종류를 조절합니다.
+
+보조태그	의미	실천 활동 예시
+#함께 성장형	다른 사람과 함께할 때 더 잘 배움	친구와 설명 연습, 모둠 토론, 같이 문제 풀기, 짝 피드백
+#혼자 집중형	혼자 집중할 때 더 잘 배움	노트 정리, 혼자 풀어보기, 조용히 복습, 자기만의 요약 만들기
+교사 팁:
+
+같은 "구체적인 계획가"라도 #함께 성장형이면 "친구와 계획 공유하고 매일 체크"를, #혼자 집중형이면 "혼자 계획표에 체크하며 진행"을 제안합니다.
+보조태그는 강제가 아닌 권장입니다.
+
+상황에 따라 혼자 하는 아이도 모둠 활동이 필요할 수 있고, 함께 하는 아이도 혼자 정리할 시간이 필요합니다.
+📌 Part 5. 한눈에 보기
+유형	톤	구조	실천	핵심 키워드
+🎯 구체적인 계획가	직설 진단	항목별 근거	일정+체크	"정확히, 계획대로"
+🛠 구체적인 도전가	직설 진단	항목별 근거	작은 실험	"정확히, 일단 해봐"
+🗺 큰 그림형 계획가	방향 제시	흐름 요약	우선순위	"전체 방향, 순서대로"
+🚀 큰 그림형 도전가	방향 제시	흐름 요약	선택지	"전체 방향, 골라봐"
+📋 함께하는 계획가	인정 후 제안	잘한 점+개선	단계별	"잘했어, 이 순서로"
+🤝 함께하는 도전가	인정 후 제안	잘한 점+개선	가벼운 시도	"잘했어, 이것만 해볼까"
+🫶 공감하는 계획가	공감 먼저	방향+안심	이번 주 하나	"힘들었지, 이것만"
+🌈 공감하는 도전가	공감 먼저	방향+영감	흥미 자극	"잘하고 있어, 이건 어때?"</pre>
+                                </div>
+                            </div>
                         </div>
-                        <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                            <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input type="date" id="settingSemester2Start" class="class-tone-input"
-                                    style="font-family:'Jua', sans-serif !important;"></div>
-                            <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input type="date" id="settingSemester2End" class="class-tone-input"
-                                    style="font-family:'Jua', sans-serif !important;"></div>
+
+                        <div id="teacherPartnerIndividualTab" class="hidden">
+                            <div class="accent-box box-blue class-tone-section">
+                                <span class="box-label">👥 학생별 성장 파트너 개별 확인</span>
+                                <p class="teacher-partner-individual-desc">
+                                    우리 반 학생의 성장 파트너 유형과 보조태그를 한눈에 확인하고, 클릭하면 Q1~Q8 응답까지 자세히 볼 수 있습니다.
+                                </p>
+                                <div id="teacherPartnerSummary" class="teacher-partner-summary-grid"></div>
+                                <div class="teacher-partner-individual-grid">
+                                    <div id="teacherPartnerList" class="teacher-partner-list"></div>
+                                    <div id="teacherPartnerDetail" class="teacher-partner-detail">
+                                        <div class="empty-state">
+                                            <span class="empty-icon">🧠</span>
+                                            <div class="empty-title">학생을 선택해 주세요</div>
+                                            <div class="empty-desc">왼쪽 목록에서 학생 번호를 누르면 성장 파트너 상세를 볼 수 있습니다.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="saveTeacherSemesterSettingsUI(this)" style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
                     </div>
-                    <div class="accent-box box-blue class-tone-section">
-                        <span class="box-label">👥 학생 번호 매핑 현황</span>
-                        <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-                            각 번호에 등록된 Google 계정을 확인하고, 필요시 등록을 해제할 수 있습니다.
-                        </p>
-                        <div id="studentMappingGrid" class="student-manage-grid"></div>
-                    </div>
-                    <div class="accent-box box-red">
-                        <span class="box-label" style="color:var(--color-danger);">⚠️ 데이터 초기화</span>
-                        <p style="color:var(--color-danger); font-size:0.9rem; margin-bottom:15px;">
-                            <strong>주의:</strong>
-                            모든 학급 내 데이터가 삭제됩니다.
-                        </p>
-                        <button id="resetBtn" onclick="resetAllReviewData(this)">학급 데이터 전체 초기화</button>
-                    </div>
+
                     <div id="settingMsg" class="message"></div>
                 </div>
             </div>
