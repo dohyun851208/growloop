@@ -101,6 +101,7 @@ let demoRole = null;
 const DEMO_FIXED_QUERY_DATE = '2026-03-01';
 const DEMO_PERSONALITY_STORAGE_KEY = 'demo_student_personality_v2';
 const DEMO_PERSONALITY_STORAGE_KEY_LEGACY = 'demo_student_personality_v1';
+const DEMO_TEACHER_GROUP_MAPPING_STORAGE_KEY = 'demo_teacher_group_mapping_v1';
 const LOGIN_ROLE_HINT_KEY = 'baeumlog_pending_role';
 
 function normalizeRoleHint(value) {
@@ -151,6 +152,24 @@ function saveDemoPersonalityToStorage(personality) {
   if (!personality) return;
   if (!personality.partner_type_code && !personality.question_responses) return;
   try { sessionStorage.setItem(DEMO_PERSONALITY_STORAGE_KEY, JSON.stringify(personality)); } catch (error) { }
+}
+
+function loadDemoTeacherGroupMappingFromStorage() {
+  try {
+    const raw = sessionStorage.getItem(DEMO_TEACHER_GROUP_MAPPING_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object') ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function saveDemoTeacherGroupMappingToStorage(mapping) {
+  try {
+    const payload = (mapping && typeof mapping === 'object') ? mapping : {};
+    sessionStorage.setItem(DEMO_TEACHER_GROUP_MAPPING_STORAGE_KEY, JSON.stringify(payload));
+  } catch (_) { }
 }
 
 function getKstTodayStr() {
@@ -4237,16 +4256,39 @@ function refreshStudentGroupMappingDirtyUi() {
   if (saveBtn) {
     saveBtn.disabled = dirtyCount === 0;
     saveBtn.classList.toggle('is-dirty', dirtyCount > 0);
-    saveBtn.textContent = dirtyCount > 0
-      ? '💾 모둠 배정 일괄 저장 (' + dirtyCount + '건)'
-      : '💾 모둠 배정 일괄 저장';
+    if (isDemoMode) {
+      saveBtn.textContent = dirtyCount > 0
+        ? '🔒 체험 모드: 저장 불가 (' + dirtyCount + '건 변경)'
+        : '🔒 체험 모드: 저장 불가';
+    } else {
+      saveBtn.textContent = dirtyCount > 0
+        ? '💾 모둠 배정 일괄 저장 (' + dirtyCount + '건)'
+        : '💾 모둠 배정 일괄 저장';
+    }
   }
 
   if (notice) {
-    notice.textContent = dirtyCount > 0
-      ? '변경 ' + dirtyCount + '건이 있습니다. 저장 시 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.'
-      : '모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.';
+    if (isDemoMode) {
+      notice.textContent = dirtyCount > 0
+        ? '체험 모드에서는 모둠 선택은 가능하지만 저장되지 않습니다.'
+        : '체험 모드입니다. 모둠 선택 체험만 가능하고 실제 저장은 차단됩니다.';
+    } else {
+      notice.textContent = dirtyCount > 0
+        ? '변경 ' + dirtyCount + '건이 있습니다. 저장 시 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.'
+        : '모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.';
+    }
   }
+}
+
+function persistDemoTeacherGroupMappingDraft() {
+  if (!isDemoMode || !studentGroupMappingState) return;
+  const draft = studentGroupMappingState.draft || {};
+  const payload = {};
+  Object.keys(draft).forEach((profileId) => {
+    if (!String(profileId).startsWith('demo-')) return;
+    payload[profileId] = normalizeGroupAssignmentValue(draft[profileId]);
+  });
+  saveDemoTeacherGroupMappingToStorage(payload);
 }
 
 function handleStudentGroupMappingChange(selectEl) {
@@ -4257,6 +4299,9 @@ function handleStudentGroupMappingChange(selectEl) {
   studentGroupMappingState.draft[profileId] = newValue;
   const row = selectEl.closest('.teacher-student-auth-item');
   if (row) row.classList.toggle('is-group-dirty', (studentGroupMappingState.original[profileId] || '') !== newValue);
+  if (isDemoMode && profileId.startsWith('demo-')) {
+    persistDemoTeacherGroupMappingDraft();
+  }
   refreshStudentGroupMappingDirtyUi();
 }
 
@@ -4288,6 +4333,7 @@ async function loadStudentMappingData() {
     draft: {},
     meta: {}
   };
+  const demoGroupDraft = isDemoMode ? loadDemoTeacherGroupMappingFromStorage() : {};
 
   grid.innerHTML = '';
 
@@ -4301,6 +4347,54 @@ async function loadStudentMappingData() {
     row.appendChild(label);
 
     const p = profileMap[i];
+    if (!p && isDemoMode) {
+      const demoProfileId = 'demo-' + String(i);
+      const email = document.createElement('span');
+      email.className = 'teacher-student-auth-email';
+      email.title = '체험 학생';
+      email.textContent = '(체험 학생)';
+      row.appendChild(email);
+
+      const controls = document.createElement('div');
+      controls.className = 'teacher-group-mapping-controls';
+
+      const select = document.createElement('select');
+      select.className = 'teacher-group-select';
+      select.dataset.profileId = demoProfileId;
+
+      const unassigned = document.createElement('option');
+      unassigned.value = '';
+      unassigned.textContent = '미배정';
+      select.appendChild(unassigned);
+
+      for (let g = 1; g <= groupCount; g++) {
+        const option = document.createElement('option');
+        option.value = String(g);
+        option.textContent = g + '모둠';
+        select.appendChild(option);
+      }
+
+      const savedDraft = normalizeGroupAssignmentValue(
+        demoGroupDraft[demoProfileId] || demoGroupDraft[String(i)] || ''
+      );
+      select.value = savedDraft;
+      select.addEventListener('change', () => handleStudentGroupMappingChange(select));
+      controls.appendChild(select);
+
+      const demoNote = document.createElement('span');
+      demoNote.className = 'teacher-group-note';
+      demoNote.textContent = '체험용';
+      controls.appendChild(demoNote);
+      row.appendChild(controls);
+
+      studentGroupMappingState.original[demoProfileId] = savedDraft;
+      studentGroupMappingState.draft[demoProfileId] = savedDraft;
+      studentGroupMappingState.meta[demoProfileId] = { studentNumber: String(i), isDemoVirtual: true };
+
+      grid.appendChild(row);
+      continue;
+    }
+
     if (!p) {
       const empty = document.createElement('span');
       empty.className = 'teacher-student-auth-empty';
