@@ -1742,6 +1742,9 @@ input[type="date"].class-tone-input {
 }
 
 #settingsMiniTab #studentMappingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
     border-radius: 12px;
@@ -1751,11 +1754,16 @@ input[type="date"].class-tone-input {
 }
 
 #settingsMiniTab #studentMappingGrid .student-auth-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
     border-radius: 10px;
-    padding: 10px 8px;
-    margin-bottom: 8px;
+    padding: 10px;
+    margin-bottom: 0;
+    text-align: left;
 }
 
 
@@ -1929,8 +1937,8 @@ button:active {
 }
 
 /* 학생용 주요 버튼 */
-.accent-box.box-blue button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item):not(.difficulty-map-tag-chip):not(.teacher-partner-item),
-.accent-box.box-violet button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item):not(.difficulty-map-tag-chip):not(.teacher-partner-item),
+.accent-box.box-blue button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item):not(.difficulty-map-tag-chip):not(.teacher-partner-item):not(.teacher-praise-action),
+.accent-box.box-violet button:not(.template-btn):not(.tag-btn):not(.subject-tag-btn):not(.diary-student-chip):not(.emotion-alert-item):not(.difficulty-map-tag-chip):not(.teacher-partner-item):not(.teacher-praise-action),
 #selfEvaluationSection button[style*="color-blue"],
 #selfEvaluationSection button[onclick*="save"],
 #selfEvaluationSection button[onclick*="submit"],
@@ -3453,30 +3461,39 @@ input:checked+.switch-slider:before {
     border: 1.5px solid #d1d5db;
     background: #ffffff;
     color: #4b5563;
+    box-shadow: none !important;
+    filter: none !important;
+    transform: none !important;
     transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 #teacherMain #praiseMiniTab .teacher-praise-action.approve {
-    background: #475569;
-    color: #ffffff;
-    border-color: #475569;
+    background: #e8f8ee !important;
+    color: #166534 !important;
+    border-color: #b7e6c8 !important;
+    box-shadow: 0 1px 4px rgba(22, 101, 52, 0.08) !important;
 }
 
 #teacherMain #praiseMiniTab .teacher-praise-action.reject {
-    background: #ffffff;
-    color: #6b7280;
-    border-color: #d1d5db;
+    background: #ffffff !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+    box-shadow: none !important;
 }
 
 #teacherMain #praiseMiniTab .teacher-praise-action.approve:hover {
-    background: #334155;
-    border-color: #334155;
+    background: #dcf4e6 !important;
+    border-color: #9ddab4 !important;
+    box-shadow: 0 2px 8px rgba(22, 101, 52, 0.12) !important;
+    transform: translateY(-1px);
 }
 
 #teacherMain #praiseMiniTab .teacher-praise-action.reject:hover {
-    background: #f8fafc;
-    color: #475569;
-    border-color: #94a3b8;
+    background: #f8fafc !important;
+    color: #334155 !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+    transform: translateY(-1px);
 }
 
 #teacherMain .teacher-list-loading {
@@ -3504,17 +3521,21 @@ input:checked+.switch-slider:before {
 /* Teacher settings: mapping list and danger card */
 #teacherMain #settingsMiniTab .teacher-student-auth-item {
     display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    text-align: left;
 }
 
 #teacherMain #settingsMiniTab .teacher-student-auth-label {
-    min-width: 45px;
+    min-width: 0;
+    width: 100%;
     margin: 0;
 }
 
 #teacherMain #settingsMiniTab .teacher-student-auth-email {
-    flex: 1;
+    width: 100%;
+    max-width: 100%;
     font-size: 0.8rem;
     color: var(--color-teacher);
     overflow: hidden;
@@ -3523,7 +3544,7 @@ input:checked+.switch-slider:before {
 }
 
 #teacherMain #settingsMiniTab .teacher-student-auth-empty {
-    flex: 1;
+    width: 100%;
     font-size: 0.8rem;
     color: var(--text-sub);
 }
@@ -3541,12 +3562,16 @@ input:checked+.switch-slider:before {
 
 #teacherMain #settingsMiniTab .teacher-group-mapping-controls {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: 100%;
 }
 
 #teacherMain #settingsMiniTab .teacher-group-select {
-    min-width: 110px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     margin: 0;
     padding: 7px 10px;
     border: 1.5px solid #d1d5db;
@@ -3555,11 +3580,14 @@ input:checked+.switch-slider:before {
     color: #334155;
     font-family: 'Jua', sans-serif !important;
     font-size: 0.86rem;
+    box-sizing: border-box;
 }
 
 #teacherMain #settingsMiniTab .teacher-group-note {
+    width: 100%;
     font-size: 0.75rem;
     color: #6b7280;
+    line-height: 1.35;
 }
 
 #teacherMain #settingsMiniTab .teacher-group-legacy-badge {
@@ -3795,6 +3823,205 @@ input:checked+.switch-slider:before {
     font-size: 0.78rem;
 }
 
+#teacherMain #settingsMiniTab .teacher-partner-question-accordion-list {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-accordion {
+    border: 1px solid #dbe3ef;
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary::-webkit-details-marker {
+    display: none;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary::marker {
+    content: '';
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary-text {
+    display: grid;
+    gap: 2px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary-text strong {
+    color: #0f172a;
+    font-size: 0.84rem;
+    line-height: 1.35;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary-text span {
+    color: #64748b;
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary-state {
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-summary-state::before {
+    content: '+';
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-accordion[open] .teacher-partner-question-summary-state::before {
+    content: '-';
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-panel {
+    padding: 10px 12px 12px;
+    display: grid;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-guide {
+    margin: 0;
+    color: #334155;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #f8fafc;
+    padding: 8px 10px;
+    display: grid;
+    gap: 6px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-card h5 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 0.8rem;
+    line-height: 1.45;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    color: #334155;
+    font-size: 0.77rem;
+    line-height: 1.45;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+    flex: 0 0 auto;
+    margin-top: 1px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-badge.is-a {
+    color: #1d4ed8;
+    background: #dbeafe;
+    border: 1px solid #bfdbfe;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-badge.is-b {
+    color: #0f766e;
+    background: #ccfbf1;
+    border: 1px solid #99f6e4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-question-note {
+    margin: 0;
+    color: #475569;
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-accordion-list {
+    margin-top: 10px;
+    display: grid;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-panel {
+    padding: 10px 12px 12px;
+    display: grid;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-block {
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #f8fafc;
+    padding: 8px 10px;
+    display: grid;
+    gap: 6px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-block h5 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 0.8rem;
+    line-height: 1.4;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-block p {
+    margin: 0;
+    color: #334155;
+    font-size: 0.77rem;
+    line-height: 1.5;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-list {
+    margin: 0;
+    padding-left: 18px;
+    color: #334155;
+    font-size: 0.77rem;
+    line-height: 1.5;
+    display: grid;
+    gap: 4px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-feedback {
+    border-radius: 8px;
+    padding: 7px 8px;
+    font-size: 0.77rem;
+    line-height: 1.5;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-feedback.is-good {
+    color: #14532d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-type-feedback.is-bad {
+    color: #475569;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+}
+
 #teacherMain #settingsMiniTab .teacher-partner-axis-chip-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3921,6 +4148,133 @@ input:checked+.switch-slider:before {
     color: #0f172a;
 }
 
+/* Teacher reference tab: tune readability (about -30% from current scale) */
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .box-label {
+    font-size: 1.05rem !important;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-intro-badge {
+    font-size: 0.76rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-intro-title {
+    font-size: 1.07rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-intro-desc {
+    font-size: 0.92rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-visual-title {
+    font-size: 0.86rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-table th,
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-table td {
+    font-size: 0.86rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-table.is-compact th,
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-table.is-compact td {
+    font-size: 0.84rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-note {
+    font-size: 0.82rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-axis-chip-head {
+    font-size: 0.84rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-axis-chip-qs {
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-axis-chip-desc {
+    font-size: 0.79rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-type-icon-emoji {
+    font-size: 1.13rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-type-icon-name {
+    font-size: 0.79rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-support-tag {
+    font-size: 0.82rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-support-desc {
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-support-ex {
+    font-size: 0.78rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-part-kicker {
+    font-size: 0.76rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-part-title {
+    font-size: 1rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-reference-part-body {
+    font-size: 0.95rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-summary-text strong {
+    font-size: 0.88rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-summary-text span {
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-summary-state {
+    font-size: 0.86rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-guide {
+    font-size: 0.84rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-card h5 {
+    font-size: 0.84rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-choice {
+    font-size: 0.81rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-badge {
+    font-size: 0.7rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-question-note {
+    font-size: 0.8rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-type-block h5 {
+    font-size: 0.84rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-type-block p {
+    font-size: 0.81rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-type-list {
+    font-size: 0.81rem;
+}
+
+#teacherMain #settingsMiniTab #teacherPartnerReferenceTab .teacher-partner-type-feedback {
+    font-size: 0.81rem;
+}
+
 #teacherMain #settingsMiniTab .teacher-partner-individual-desc {
     margin: 0 0 12px;
     color: #64748b;
@@ -3987,6 +4341,7 @@ input:checked+.switch-slider:before {
 }
 
 #teacherMain #settingsMiniTab .teacher-partner-item {
+    --teacher-partner-item-accent: #cbd5e1;
     width: 100%;
     margin: 0;
     padding: 10px 12px;
@@ -4013,19 +4368,19 @@ input:checked+.switch-slider:before {
     bottom: 10px;
     width: 4px;
     border-radius: 0 4px 4px 0;
-    background: #cbd5e1;
+    background: var(--teacher-partner-item-accent);
 }
 
-#teacherMain #settingsMiniTab .teacher-partner-item.is-done::before {
-    background: #22c55e;
+#teacherMain #settingsMiniTab .teacher-partner-item.is-done {
+    --teacher-partner-item-accent: #22c55e;
 }
 
-#teacherMain #settingsMiniTab .teacher-partner-item.is-pending::before {
-    background: #f59e0b;
+#teacherMain #settingsMiniTab .teacher-partner-item.is-pending {
+    --teacher-partner-item-accent: #f59e0b;
 }
 
-#teacherMain #settingsMiniTab .teacher-partner-item.is-empty::before {
-    background: #94a3b8;
+#teacherMain #settingsMiniTab .teacher-partner-item.is-empty {
+    --teacher-partner-item-accent: #94a3b8;
 }
 
 #teacherMain #settingsMiniTab .teacher-partner-item:hover {
@@ -4237,6 +4592,80 @@ input:checked+.switch-slider:before {
     line-height: 1.4;
 }
 
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 9px 10px;
+    display: grid;
+    gap: 8px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-title {
+    color: #1e293b;
+    font-size: 0.88rem;
+    font-family: 'Jua', sans-serif;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-axes {
+    color: #64748b;
+    font-size: 0.76rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-block {
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #ffffff;
+    padding: 8px 9px;
+    display: grid;
+    gap: 5px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-block h5 {
+    margin: 0;
+    color: #334155;
+    font-size: 0.78rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-list {
+    margin: 0;
+    padding-left: 16px;
+    color: #475569;
+    font-size: 0.75rem;
+    line-height: 1.45;
+    display: grid;
+    gap: 3px;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-feedback {
+    border-radius: 8px;
+    padding: 6px 7px;
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-feedback.is-good {
+    color: #14532d;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+#teacherMain #settingsMiniTab .teacher-partner-guide-detail-feedback.is-bad {
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid #d1d5db;
+}
+
 #teacherMain #settingsMiniTab .teacher-partner-rls-hint {
     margin-top: 8px;
     padding: 9px 10px;
@@ -4279,6 +4708,23 @@ input:checked+.switch-slider:before {
     #teacherMain #settingsMiniTab .teacher-partner-axis-chip-grid,
     #teacherMain #settingsMiniTab .teacher-partner-support-grid {
         grid-template-columns: 1fr;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-question-summary {
+        padding: 9px 10px;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-question-panel {
+        padding: 9px 10px 10px;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-question-choice {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    #teacherMain #settingsMiniTab .teacher-partner-type-panel {
+        padding: 9px 10px 10px;
     }
 }
 

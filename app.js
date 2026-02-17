@@ -1541,6 +1541,115 @@ function formatTeacherPartnerReferenceText(raw) {
     .replace(/\n/g, '<br>');
 }
 
+function adaptTeacherFriendlyReferenceHeading(heading, partNumber) {
+  let text = String(heading || '').trim();
+  if (partNumber === 1) {
+    text = text.replace(/\(8문항\s*×\s*4(?:축|영역)\)/, '(8문항 × 4영역 => 총 16유형)');
+  }
+  if (partNumber === 2) {
+    text = text.replace('각 질문의 의미', '각 질문의 의미(교실 해석 가이드)');
+  }
+  return text;
+}
+
+function adaptTeacherFriendlyReferenceCopy(raw, partNumber) {
+  let text = String(raw || '');
+  if (!text) return text;
+
+  if (partNumber === 1) {
+    text = text.replace(
+      '이 시스템은 학생이 **"어떤 방식으로 피드백을 받고 싶어하는가"**를 파악하기 위한 것입니다. 성격 자체를 분류하는 것이 아니라, 학습 피드백 수용 선호도를 측정합니다.',
+      '이 시스템은 학생의 **피드백 선호 방식**을 파악하기 위한 것입니다. 성격 유형을 분류하려는 목적이 아니라, "어떤 방식으로 조언을 들을 때 더 잘 받아들이는가"를 확인하는 도구입니다.'
+    );
+    text = text.replace(/^축\t의미\t질문\t역할$/m, '영역\t무엇을 보는가\t질문\t역할');
+    text = text.replace(
+      /^코칭 스타일\t피드백의 톤\tQ1\(★우선\), Q2\t주 축$/m,
+      '피드백 방식\t문제점을 바로 짚는 피드백 vs 공감 후 방향을 제시하는 피드백\tQ1(★우선), Q2\t주요 영역'
+    );
+    text = text.replace(
+      /^정보 처리\t피드백의 구조\tQ3\(★우선\), Q4\t주 축$/m,
+      '정보 처리\t세부부터 이해하기 vs 전체 흐름부터 이해하기\tQ3(★우선), Q4\t주요 영역'
+    );
+    text = text.replace(
+      /^실행 전략\t실천 제안의 형태\tQ5\(★우선\), Q6\t주 축$/m,
+      '실행 전략\t계획표 중심 실행 vs 해보면서 조정\tQ5(★우선), Q6\t주요 영역'
+    );
+    text = text.replace(
+      /^학습 환경\t활동의 종류\tQ7\(★우선\), Q8\t보조태그$/m,
+      '학습 환경\t함께 대화하며 학습 vs 혼자 집중 학습\tQ7(★우선), Q8\t보조 태그'
+    );
+    text = text.replace('★ 동률 시 우선 질문(Q1, Q3, Q5, Q7)의 답이 적용됩니다.', '★ 동점일 때는 우선 질문(Q1, Q3, Q5, Q7)의 답이 적용됩니다.');
+    text = text.replace(
+      /(?:^|\n)영역\t무엇을 보는가\t질문\t역할\n피드백 방식\t문제점을 바로 짚는 피드백 vs 공감 후 방향을 제시하는 피드백\tQ1\(★우선\), Q2\t주요 영역\n정보 처리\t세부부터 이해하기 vs 전체 흐름부터 이해하기\tQ3\(★우선\), Q4\t주요 영역\n실행 전략\t계획표 중심 실행 vs 해보면서 조정\tQ5\(★우선\), Q6\t주요 영역\n학습 환경\t함께 대화하며 학습 vs 혼자 집중 학습\tQ7\(★우선\), Q8\t보조 태그\n★ 동점일 때는 우선 질문\(Q1, Q3, Q5, Q7\)의 답이 적용됩니다\./m,
+      ''
+    );
+    text = text.replace(/\n{3,}/g, '\n\n').trim();
+    text += '\n\n현장 적용 메모: 이 표는 학생을 고정 유형으로 낙인찍기 위한 표가 아닙니다. 같은 학생도 과목, 시기, 컨디션에 따라 선호 방식이 달라질 수 있으니 정기적으로 다시 확인해 주세요.';
+  }
+
+  const lineMap = [
+    [/축 1: 코칭 스타일/g, '영역 1: 피드백 방식'],
+    [/축 2: 정보 처리/g, '영역 2: 정보 처리'],
+    [/축 3: 실행 전략/g, '영역 3: 실행 전략'],
+    [/축 4 \(보조\): 학습 환경/g, '영역 4 (보조): 학습 환경'],
+    [/코칭 스타일/g, '피드백 방식'],
+    [/주 축/g, '주요 영역'],
+    [/보조태그/g, '보조 태그'],
+    [/🔍\s*교사 해석:/g, '🔍 선생님이 알아야 할 점:'],
+    [/→ 해결형/g, '→ 직접형(해결형)'],
+    [/→ 지지형/g, '→ 공감형(지지형)'],
+    [/이 아이는/g, '이 학생은'],
+    [/이런 아이입니다:/g, '이런 학생입니다:'],
+    [/교사가 이 학생에게 피드백할 때:/g, '선생님이 이 학생에게 피드백할 때:'],
+    [/주의할 점:/g, '수업에서 기억할 점:']
+  ];
+  lineMap.forEach(([pattern, replacement]) => {
+    text = text.replace(pattern, replacement);
+  });
+
+  if (partNumber === 2) {
+    text = text.replace(
+      '영역 1: 피드백 방식 — "이 학생은 직설적 진단을 원하는가, 공감적 동행을 원하는가?"',
+      '영역 1: 피드백 방식 — "이 학생은 직접적인 지적을 원하는가, 공감적인 대화를 원하는가?"'
+    );
+    text = text.replace(
+      '영역 2: 정보 처리 — "이 학생은 디테일부터 쌓아가는가, 큰 그림부터 잡는가?"',
+      '영역 2: 정보 처리 — "이 학생은 세부부터 이해하는가, 전체 흐름부터 파악하는가?"'
+    );
+    text = text.replace(
+      '영역 3: 실행 전략 — "이 학생은 계획 세우기를 좋아하는가, 일단 해보기를 좋아하는가?"',
+      '영역 3: 실행 전략 — "이 학생은 계획형으로 움직이는가, 먼저 시도하며 조정하는가?"'
+    );
+    text = text.replace(
+      '영역 4 (보조): 학습 환경 — "이 학생은 협력형인가, 독립형인가?"',
+      '영역 4 (보조): 학습 환경 — "이 학생은 함께 배울 때 강한가, 혼자 집중할 때 강한가?"'
+    );
+    text = text.replace(
+      'A를 고른 학생은 감정보다 해결책을 먼저 원하고, B를 고른 학생은 "혼자가 아니다"는 느낌을 먼저 원합니다.',
+      'A를 고른 학생은 감정보다 해결책을 먼저 원하고, B를 고른 학생은 "혼자가 아니다"는 느낌을 먼저 원합니다. 같은 내용이라도 말의 순서에 따라 수용도가 크게 달라질 수 있습니다.'
+    );
+    text = text.replace(
+      '이 축은 주 유형을 바꾸지 않고 보조 태그(#함께 성장형 / #혼자 집중형)로 작동합니다.',
+      '이 영역은 주 유형을 바꾸지 않고 보조 태그(#함께 성장형 / #혼자 집중형)로 작동합니다.'
+    );
+    text += '\n\n수업 적용 팁: 답을 A/B로 나눠 확인할 때는 "왜 그렇게 골랐는지"를 한 문장으로 설명하게 하면 해석 정확도가 높아집니다. 응답 결과는 상담, 수행평가 안내, 모둠 활동 설계와 연결해서 활용하면 효과가 큽니다.';
+  }
+
+  if (partNumber === 3) {
+    text += '\n\n활용 팁: 유형 설명은 학생에게 꼬리표처럼 전달하기보다, "앞으로 어떤 피드백 방식이 더 도움이 되는지"를 함께 찾는 대화 자료로 활용해 주세요.';
+  }
+
+  if (partNumber === 4) {
+    text += '\n\n실무 메모: 보조 태그는 활동 선택의 힌트입니다. 수업 목표에 따라 협력 활동과 개인 활동을 번갈아 배치하면, 한쪽 선호가 강한 학생도 균형 있게 성장할 수 있습니다.';
+  }
+
+  if (partNumber === 5) {
+    text += '\n\n실무 적용 팁: 위 표는 고정 라벨이 아니라 수업 맥락에 따라 유연하게 활용하는 기준표입니다. 학생 상태와 과제 성격에 맞춰 조합해 사용하세요. 특히 평가 직후, 수행 과제 시작 전, 상담 주간처럼 피드백 수요가 높은 시점에 다시 확인하면 활용도가 높아집니다.';
+  }
+
+  return text;
+}
+
 function getTeacherPartnerTypeEmojiByName(typeName) {
   const normalized = String(typeName || '').replace(/\s+/g, '');
   if (!normalized) return '🧠';
@@ -1551,10 +1660,10 @@ function getTeacherPartnerTypeEmojiByName(typeName) {
 
 function buildTeacherPartnerReferencePart1Visual() {
   const rows = [
-    ['코칭 스타일', '피드백의 톤', 'Q1(★우선), Q2', '주 축'],
-    ['정보 처리', '피드백의 구조', 'Q3(★우선), Q4', '주 축'],
-    ['실행 전략', '실천 제안의 형태', 'Q5(★우선), Q6', '주 축'],
-    ['학습 환경', '활동의 종류', 'Q7(★우선), Q8', '보조태그']
+    ['피드백 방식', '문제점을 바로 짚는 피드백 vs 공감 후 방향을 제시하는 피드백', 'Q1(★우선), Q2', '주요 영역'],
+    ['정보 처리', '세부부터 이해하기 vs 전체 흐름부터 이해하기', 'Q3(★우선), Q4', '주요 영역'],
+    ['실행 전략', '계획표 중심 실행 vs 해보면서 조정', 'Q5(★우선), Q6', '주요 영역'],
+    ['학습 환경', '함께 대화하며 학습 vs 혼자 집중 학습', 'Q7(★우선), Q8', '보조 태그']
   ];
   const body = rows.map((row) =>
     '<tr>' +
@@ -1569,113 +1678,383 @@ function buildTeacherPartnerReferencePart1Visual() {
     '<div class="teacher-partner-reference-visual-title">질문 구조 빠른표</div>' +
     '<div class="teacher-partner-reference-table-wrap">' +
     '<table class="teacher-partner-reference-table">' +
-    '<thead><tr><th>축</th><th>의미</th><th>질문</th><th>역할</th></tr></thead>' +
+    '<thead><tr><th>영역</th><th>무엇을 보는가</th><th>질문</th><th>역할</th></tr></thead>' +
     '<tbody>' + body + '</tbody>' +
     '</table>' +
     '</div>' +
-    '<p class="teacher-partner-reference-note">동률 시 우선 질문(Q1, Q3, Q5, Q7)의 답이 적용됩니다.</p>' +
+    '<p class="teacher-partner-reference-note">동점일 때는 우선 질문(Q1, Q3, Q5, Q7)의 답이 적용됩니다.</p>' +
     '</section>'
   );
 }
 
 function buildTeacherPartnerReferencePart2Visual() {
-  const axis = [
-    ['축 1', '코칭 스타일', 'Q1, Q2', '직설적 진단 vs 공감적 동행'],
-    ['축 2', '정보 처리', 'Q3, Q4', '디테일형 vs 큰 그림형'],
-    ['축 3', '실행 전략', 'Q5, Q6', '계획형 vs 탐색형'],
-    ['축 4', '학습 환경(보조)', 'Q7, Q8', '함께 성장형 vs 혼자 집중형']
+  const areas = [
+    {
+      title: '영역 1: 피드백 방식',
+      subtitle: 'Q1, Q2 · 직접형(해결형) vs 공감형(지지형)',
+      guide: '"이 학생은 직접적인 지적을 원하는가, 공감적인 대화를 원하는가?"',
+      questions: [
+        {
+          no: 'Q1',
+          prompt: '"시험 결과가 기대보다 낮았을 때, 선생님이 어떻게 말해주면 좋겠어?"',
+          answerA: '"구체적으로 분석하고 방법을 알려줘" → 직접형(해결형)',
+          answerB: '"같이 방법을 찾아보자고 말해줘" → 공감형(지지형)',
+          note: '실패 상황에서 학생이 원하는 첫 반응을 봅니다. A를 고른 학생은 감정보다 해결책을 먼저 원하고, B를 고른 학생은 "혼자가 아니다"는 느낌을 먼저 원합니다. 같은 내용이라도 말의 순서에 따라 수용도가 크게 달라질 수 있습니다.'
+        },
+        {
+          no: 'Q2',
+          prompt: '"모둠 활동에서 내가 맡은 부분의 완성도가 떨어질 때, 어떤 반응이 더 도움이 돼?"',
+          answerA: '"이 부분은 이렇게 고치면 좋을 것 같아." → 직접형(해결형)',
+          answerB: '"고생많았어. 다음엔 이 부분을 신경 써줘." → 공감형(지지형)',
+          note: '동료/교사의 비판적 피드백을 받는 장면입니다. A 학생은 무엇이 틀렸는지 바로 듣고 싶어하고, B 학생은 노력을 인정받은 후에 개선점을 듣고 싶어합니다. B 학생에게 인정 없이 지적부터 하면 방어적이 될 수 있습니다.'
+        }
+      ]
+    },
+    {
+      title: '영역 2: 정보 처리',
+      subtitle: 'Q3, Q4 · 디테일형 vs 큰 그림형',
+      guide: '"이 학생은 세부부터 이해하는가, 전체 흐름부터 파악하는가?"',
+      questions: [
+        {
+          no: 'Q3',
+          prompt: '"새로운 단원을 배울 때, 어떤 게 더 도움이 돼?"',
+          answerA: '"개념을 읽고 문제 풀이 과정을 쭉 따라가기" → 디테일형',
+          answerB: '"왜 이 단원을 배우는지, 전체 흐름 중 어디인지 먼저 파악" → 큰 그림형',
+          note: '학습 진입 방식을 봅니다. A 학생은 구체적 예시와 절차를 따라가며 이해하고, B 학생은 "이걸 왜 배우는지" 맥락이 잡혀야 세부 내용이 들어옵니다. B 학생에게 맥락 없이 문제풀이부터 시키면 동기가 떨어질 수 있습니다.'
+        },
+        {
+          no: 'Q4',
+          prompt: '"내 결과물에 대한 조언을 받을 때, 어떤 형식이 더 좋아?"',
+          answerA: '"항목별 점수와 구체적 근거" → 디테일형',
+          answerB: '"전체적인 흐름 요약과 다음 방향" → 큰 그림형',
+          note: '피드백 수신 형태의 선호입니다. A 학생은 "어디서 몇 점 감점됐고 왜"를 원하고, B 학생은 "전체적으로 이런 느낌이고 다음에 이 방향"을 원합니다. A 학생에게 "전체적으로 괜찮아"라고만 하면 불만족하고, B 학생에게 항목별 점수만 나열하면 압도당할 수 있습니다.'
+        }
+      ]
+    },
+    {
+      title: '영역 3: 실행 전략',
+      subtitle: 'Q5, Q6 · 계획형 vs 탐색형',
+      guide: '"이 학생은 계획형으로 움직이는가, 먼저 시도하며 조정하는가?"',
+      questions: [
+        {
+          no: 'Q5',
+          prompt: '"시험 2주 전, 어떤 공부 방식이 나한테 더 맞아?"',
+          answerA: '"과목별 계획표를 짜고 매일 체크" → 계획형',
+          answerB: '"일단 시작하고 그날 상태에 따라 조절" → 탐색형',
+          note: '시간 관리 성향을 봅니다. A 학생은 구조와 일정이 있으면 안정감을 느끼고, B 학생은 유연성이 있어야 지속할 수 있습니다. B 학생에게 빡빡한 계획표를 강요하면 오히려 포기가 빨라집니다.'
+        },
+        {
+          no: 'Q6',
+          prompt: '"방학 동안 뭔가를 배우고 싶을 때, 어떻게 시작해?"',
+          answerA: '"목표와 일정을 먼저 정하고 단계적으로" → 계획형',
+          answerB: '"일단 관심 가는 걸 해보면서 방향을 잡아가기" → 탐색형',
+          note: '자기주도 학습의 시작 패턴입니다. A 학생은 로드맵이 있어야 시작하고, B 학생은 호기심이 출발점입니다. 두 유형 모두 가치 있지만, B 학생에게 "먼저 계획을 세워와"라고 하면 시작 자체를 못할 수 있습니다.'
+        }
+      ]
+    },
+    {
+      title: '영역 4 (보조): 학습 환경',
+      subtitle: 'Q7, Q8 · 함께 성장형 vs 혼자 집중형',
+      guide: '"이 학생은 함께 배울 때 강한가, 혼자 집중할 때 강한가?"',
+      questions: [
+        {
+          no: 'Q7',
+          prompt: '"어려운 내용을 이해하고 싶을 때, 어떤 방법을 더 좋아해?"',
+          answerA: '"친구나 선생님한테 물어보면서 정리" → 함께 성장형',
+          answerB: '"혼자 자료를 찾아보며 정리" → 혼자 집중형',
+          note: '학습 곤란 상황에서의 대처 방식입니다. A 학생은 대화를 통해 이해를 구성하고, B 학생은 스스로 정리하는 시간이 필요합니다.'
+        },
+        {
+          no: 'Q8',
+          prompt: '"시험공부 할 때 어떤 환경이 더 집중이 잘 돼?"',
+          answerA: '"친구와 같이 문제 내고 풀기" → 함께 성장형',
+          answerB: '"조용히 혼자 집중해서 풀기" → 혼자 집중형',
+          note: '집중 환경 선호입니다. 이 영역은 주 유형을 바꾸지 않고 보조 태그(#함께 성장형 / #혼자 집중형)로 작동합니다. AI가 실천 활동을 제안할 때 협력 활동(모둠 토론, 짝 설명 등)을 넣을지, 개인 활동(노트 정리, 혼자 풀기 등)을 넣을지 결정합니다.'
+        }
+      ]
+    }
   ];
+
+  const areaDetails = areas.map((area, index) => (
+    '<details class="teacher-partner-question-accordion"' + (index === 0 ? ' open' : '') + '>' +
+    '<summary class="teacher-partner-question-summary">' +
+    '<div class="teacher-partner-question-summary-text">' +
+    '<strong>' + escapeHtml(area.title) + '</strong>' +
+    '<span>' + escapeHtml(area.subtitle) + '</span>' +
+    '</div>' +
+    '<span class="teacher-partner-question-summary-state" aria-hidden="true"></span>' +
+    '</summary>' +
+    '<div class="teacher-partner-question-panel">' +
+    '<p class="teacher-partner-question-guide">' + escapeHtml(area.guide) + '</p>' +
+    area.questions.map((q) => (
+      '<article class="teacher-partner-question-card">' +
+      '<h5>' + escapeHtml(q.no + '. ' + q.prompt.replace(/^"|"$/g, '')) + '</h5>' +
+      '<div class="teacher-partner-question-choice">' +
+      '<span class="teacher-partner-question-badge is-a">A</span>' +
+      '<span>' + escapeHtml(q.answerA) + '</span>' +
+      '</div>' +
+      '<div class="teacher-partner-question-choice">' +
+      '<span class="teacher-partner-question-badge is-b">B</span>' +
+      '<span>' + escapeHtml(q.answerB) + '</span>' +
+      '</div>' +
+      '<p class="teacher-partner-question-note"><strong>🔍 선생님이 알아야 할 점:</strong> ' + escapeHtml(q.note) + '</p>' +
+      '</article>'
+    )).join('') +
+    '</div>' +
+    '</details>'
+  )).join('');
+
   return (
     '<section class="teacher-partner-reference-visual">' +
-    '<div class="teacher-partner-reference-visual-title">질문 해석 축 미리보기</div>' +
-    '<div class="teacher-partner-axis-chip-grid">' +
-    axis.map((item) =>
-      '<article class="teacher-partner-axis-chip">' +
-      '<div class="teacher-partner-axis-chip-head"><strong>' + escapeHtml(item[0]) + '</strong> · ' + escapeHtml(item[1]) + '</div>' +
-      '<div class="teacher-partner-axis-chip-qs">' + escapeHtml(item[2]) + '</div>' +
-      '<div class="teacher-partner-axis-chip-desc">' + escapeHtml(item[3]) + '</div>' +
-      '</article>'
-    ).join('') +
+    '<div class="teacher-partner-reference-visual-title">영역별 해석 펼침</div>' +
+    '<p class="teacher-partner-reference-note">영역 카드를 눌러 Q1~Q8의 A/B 응답 의미와 해석 포인트를 확인하세요.</p>' +
+    '<div class="teacher-partner-question-accordion-list">' +
+    areaDetails +
+    '</div>' +
+    '<p class="teacher-partner-reference-note">수업 적용 팁: 답을 A/B로 나눠 확인할 때는 "왜 그렇게 골랐는지"를 한 문장으로 설명하게 하면 해석 정확도가 높아집니다. 응답 결과는 상담, 수행평가 안내, 모둠 활동 설계와 연결해서 활용하면 효과가 큽니다.</p>' +
     '</div>' +
     '</section>'
   );
 }
 
 function buildTeacherPartnerReferencePart3Visual() {
-  const names = [
-    '구체적인 계획가',
-    '구체적인 도전가',
-    '큰 그림형 계획가',
-    '큰 그림형 도전가',
-    '함께하는 계획가',
-    '함께하는 도전가',
-    '공감하는 계획가',
-    '공감하는 도전가'
+  const typeGuides = [
+    {
+      title: '구체적인 계획가',
+      axes: '해결 × 디테일 × 계획',
+      traits: [
+        '"뭐가 틀렸는지 정확히 알려주세요"가 입버릇인 학생',
+        '점수표, 체크리스트, 일정표를 좋아함',
+        '모호한 피드백("좀 더 노력해봐")에 불만을 느낌',
+        '계획을 세우면 실행력이 높은 편'
+      ],
+      good: '"3번 문제 유형에서 실수가 반복되고 있어. 이번 주 월수는 A 유형 5문제씩, 목금은 B 유형으로 연습하자."',
+      bad: '"전반적으로 잘하고 있으니까 조금만 더 힘내."',
+      notes: [
+        '이 학생은 감정적 위로보다 정보를 원합니다. 틀린 부분을 정확히 짚어주는 것이 존중의 표현이라고 느낍니다.',
+        '다만 지적만 나열하면 좌절할 수 있으므로, "잘된 부분 1개 + 개선점 2개 + 실행 계획"의 구조가 효과적입니다.',
+        '계획을 세워주면 스스로 실행하는 힘이 있으므로, 중간 점검 정도만 해주면 됩니다.'
+      ]
+    },
+    {
+      title: '구체적인 도전가',
+      axes: '해결 × 디테일 × 탐색',
+      traits: [
+        '뭐가 문제인지는 정확히 알고 싶지만, 정해진 계획표는 싫어하는 학생',
+        '"이거 해봐" 하면 바로 시도하는 행동력이 있음',
+        '장기 계획보다 "오늘 당장 해볼 것 하나"에 반응함',
+        '틀에 박힌 반복 학습은 금방 지루해함'
+      ],
+      good: '"이 부분에서 실수가 나왔어. 이 방법으로 딱 3문제만 풀어봐. 맞으면 다음 단계로 넘어가자."',
+      bad: '"2주 동안 이 계획표대로 매일 해와."',
+      notes: [
+        '구체적인 지적은 환영하지만, 장기 로드맵은 부담으로 느낍니다.',
+        '작고 명확한 미션 1개를 주고 결과를 같이 확인하는 사이클이 이 학생에게 가장 효과적입니다.',
+        '실험 결과를 메모하게 하면 자기 학습 패턴을 스스로 발견하게 됩니다.'
+      ]
+    },
+    {
+      title: '큰 그림형 계획가',
+      axes: '해결 × 큰 그림 × 계획',
+      traits: [
+        '"이거 왜 해요?"를 먼저 묻는 학생',
+        '세부 항목보다 전체 방향과 우선순위를 중시함',
+        '방향이 잡히면 스스로 계획을 세우는 능력이 있음',
+        '의미 없는 반복에는 동기 저하가 빠름'
+      ],
+      good: '"전체적으로 보면 이 방향이야. 이번 주는 이것부터, 다음 주는 저것. 이 순서로 하면 시험 범위가 정리될 거야."',
+      bad: '"1번은 ○, 2번은 △, 3번은 ×…" (항목별 나열만)',
+      notes: [
+        '이 학생에게는 "왜 이 순서인지"를 설명해주는 것이 핵심입니다.',
+        '우선순위를 함께 정해주면 이후 실행은 스스로 잘합니다.',
+        '숲을 보여주고 나무 순서를 잡아주되, 각 나무를 어떻게 심을지는 학생에게 맡기세요.'
+      ]
+    },
+    {
+      title: '큰 그림형 도전가',
+      axes: '해결 × 큰 그림 × 탐색',
+      traits: [
+        '호기심이 많고 다양한 것에 관심을 가지는 학생',
+        '정해진 틀보다 "이런 것도 해볼까?"에 눈이 반짝임',
+        '방향만 알려주면 자기만의 방식으로 탐색함',
+        '너무 구체적인 지시는 오히려 창의성을 막는다고 느낌'
+      ],
+      good: '"이런 방향도 있어. 한번 해보고 맞는지 느껴봐. 아니면 이쪽도 재밌을 거야."',
+      bad: '"이 순서대로 따라 해. 다른 건 나중에."',
+      notes: [
+        '이 학생은 선택지를 주면 동기부여가 됩니다.',
+        '"A 방법과 B 방법이 있는데, 뭐가 더 맞을 것 같아?"처럼 옵션을 제시하세요.',
+        '산만해 보일 수 있지만, 다양한 시도 속에서 자기 방식을 찾는 타입입니다. 탐색 자체를 인정해주는 것이 중요합니다.',
+        '단, "결국 어디로 가고 있는지"를 가끔 환기시켜주면 좋습니다.'
+      ]
+    },
+    {
+      title: '함께하는 계획가',
+      axes: '지지 × 디테일 × 계획',
+      traits: [
+        '잘한 점을 먼저 인정받으면 개선점도 기꺼이 받아들이는 학생',
+        '단계별 안내가 있으면 안심하고 따라감',
+        '피드백의 순서(인정→개선→실행)가 중요',
+        '꼼꼼하고 성실하지만, 자신감이 낮을 수 있음'
+      ],
+      good: '"이건 진짜 잘했어. 여기는 같이 해보자. 먼저 이것부터, 그 다음에 이것."',
+      bad: '"여기 틀렸고, 여기도 부족하고, 이건 다시 해와."',
+      notes: [
+        '"잘한 점 먼저"가 이 학생에게는 선택이 아니라 필수입니다.',
+        '인정 없이 지적부터 시작하면 "나는 못하는 사람"이라는 인식이 강화됩니다.',
+        '계획이 있으면 실행을 잘하므로, 1단계→2단계→3단계로 나눠주면 차근차근 따라갑니다.',
+        '중간중간 "여기까지 잘하고 있어"라는 확인이 큰 힘이 됩니다.'
+      ]
+    },
+    {
+      title: '함께하는 도전가',
+      axes: '지지 × 디테일 × 탐색',
+      traits: [
+        '따뜻한 분위기에서 "같이 해보자"고 하면 용기를 내는 학생',
+        '큰 계획보다 "일단 이것만 해볼까?" 식의 가벼운 시작을 좋아함',
+        '실패에 대한 두려움이 있을 수 있어서, 심리적 안전감이 중요',
+        '누군가와 함께하면 시도 자체를 더 잘함'
+      ],
+      good: '"이건 잘했어! 여기는 이렇게 한번 해볼까? 부담 없이 하나만."',
+      bad: '"여기 틀렸으니까 이 10문제 풀어와."',
+      notes: [
+        '"같이"라는 단어가 이 학생에게는 마법의 단어입니다.',
+        '혼자 과제를 안겨주면 시작 자체가 어렵지만, "선생님이랑 같이 한번 보자" 또는 "친구랑 해봐"라고 하면 시도합니다.',
+        '작은 성공 경험을 쌓게 해주는 것이 장기적으로 가장 효과적입니다.',
+        '실패해도 "시도한 것 자체가 좋았어"라는 메시지가 다음 시도로 이어집니다.'
+      ]
+    },
+    {
+      title: '공감하는 계획가',
+      axes: '지지 × 큰 그림 × 계획',
+      traits: [
+        '기분이나 컨디션에 따라 학습 효율이 크게 달라지는 학생',
+        '감정을 먼저 알아줘야 그 다음 내용이 들어옴',
+        '방향만 잡아주면 스스로 정리하는 힘이 있음',
+        '세부 사항보다 "결국 내가 잘 되고 있는지"가 중요'
+      ],
+      good: '"많이 노력했지? 잘하고 있어. 이번 주는 이것만 해보자."',
+      bad: '"1번에서 3점 감점, 2번에서 2점 감점…" (감정 터치 없이 숫자만)',
+      notes: [
+        '첫 문장이 공감이어야 합니다. "힘들었겠다", "노력한 거 보여", "걱정했구나" 등.',
+        '공감 한 문장 + 방향 한 문장 + 이번 주 할 것 하나. 이 3단계가 이 학생에게 맞는 방법입니다.',
+        '감정을 무시하고 바로 과제를 주면, 할 수 있는 능력이 있어도 하지 않게 됩니다.',
+        '"지금 어디쯤 왔는지" 알려주면 안심하고 다음 단계로 넘어갑니다.'
+      ]
+    },
+    {
+      title: '공감하는 도전가',
+      axes: '지지 × 큰 그림 × 탐색',
+      traits: [
+        '감성적이면서도 새로운 것에 열린 학생',
+        '강요보다 영감을 통해 움직이는 타입',
+        '"이런 것도 해보면 재밌을 거야"라는 한마디에 반응함',
+        '정해진 계획보다 자기만의 페이스를 중시함',
+        '예술적이거나 창의적인 활동에 잘 반응하는 경우가 많음'
+      ],
+      good: '"충분히 잘하고 있어. 이런 것도 해보면 재밌을 거야. 어떻게 생각해?"',
+      bad: '"됐고 이 계획표대로 해와."',
+      notes: [
+        '이 학생에게는 질문이 가장 좋은 피드백 도구입니다.',
+        '"이거 해봐"보다 "이런 건 어떨 것 같아?"가 훨씬 효과적입니다.',
+        '감정 공감 → 흥미 자극 → 작은 실험 제안의 순서로 접근하세요.',
+        '결과보다 과정에서 느낀 것을 물어봐주면 스스로 성찰이 깊어집니다.',
+        '가장 자유로운 유형이지만, 방향 없이 표류할 수 있으므로 가끔 "전체적으로 봤을 때 지금 어떤 단계 인 것 같아?"라고 물어봐주면 좋습니다.'
+      ]
+    }
   ];
+
   return (
     '<section class="teacher-partner-reference-visual">' +
-    '<div class="teacher-partner-reference-visual-title">8가지 유형 아이콘 맵</div>' +
-    '<div class="teacher-partner-type-icon-grid">' +
-    names.map((name) =>
-      '<div class="teacher-partner-type-icon-card">' +
-      '<span class="teacher-partner-type-icon-emoji">' + escapeHtml(getTeacherPartnerTypeEmojiByName(name)) + '</span>' +
-      '<span class="teacher-partner-type-icon-name">' + escapeHtml(name) + '</span>' +
-      '</div>'
+    '<div class="teacher-partner-reference-visual-title">8가지 유형별 클릭 가이드</div>' +
+    '<p class="teacher-partner-reference-note">3개 주요 영역의 조합으로 8가지 유형이 만들어집니다. 유형 카드를 눌러서 학생 특징, 피드백 예시, 수업에서 기억할 점을 확인하세요.</p>' +
+    '<div class="teacher-partner-type-accordion-list">' +
+    typeGuides.map((item, index) =>
+      '<details class="teacher-partner-question-accordion"' + (index === 0 ? ' open' : '') + '>' +
+      '<summary class="teacher-partner-question-summary">' +
+      '<div class="teacher-partner-question-summary-text">' +
+      '<strong>' + escapeHtml(getTeacherPartnerTypeEmojiByName(item.title) + ' ' + item.title) + '</strong>' +
+      '<span>' + escapeHtml(item.axes) + '</span>' +
+      '</div>' +
+      '<span class="teacher-partner-question-summary-state" aria-hidden="true"></span>' +
+      '</summary>' +
+      '<div class="teacher-partner-type-panel">' +
+      '<article class="teacher-partner-type-block">' +
+      '<h5>이런 학생입니다:</h5>' +
+      '<ul class="teacher-partner-type-list">' +
+      item.traits.map((line) => '<li>' + escapeHtml(line) + '</li>').join('') +
+      '</ul>' +
+      '</article>' +
+      '<article class="teacher-partner-type-block">' +
+      '<h5>선생님이 이 학생에게 피드백할 때:</h5>' +
+      '<div class="teacher-partner-type-feedback is-good">✅ ' + escapeHtml(item.good) + '</div>' +
+      '<div class="teacher-partner-type-feedback is-bad">❌ ' + escapeHtml(item.bad) + '</div>' +
+      '</article>' +
+      '<article class="teacher-partner-type-block">' +
+      '<h5>수업에서 기억할 점:</h5>' +
+      '<ul class="teacher-partner-type-list">' +
+      item.notes.map((line) => '<li>' + escapeHtml(line) + '</li>').join('') +
+      '</ul>' +
+      '</article>' +
+      '</div>' +
+      '</details>'
     ).join('') +
     '</div>' +
+    '<p class="teacher-partner-reference-note">활용 팁: 유형 설명은 학생에게 꼬리표처럼 전달하기보다, "앞으로 어떤 피드백 방식이 더 도움이 되는지"를 함께 찾는 대화 자료로 활용해 주세요.</p>' +
     '</section>'
   );
 }
 
 function buildTeacherPartnerReferencePart4Visual() {
-  return (
-    '<section class="teacher-partner-reference-visual">' +
-    '<div class="teacher-partner-reference-visual-title">보조태그 활용 카드</div>' +
-    '<div class="teacher-partner-support-grid">' +
-    '<article class="teacher-partner-support-card">' +
-    '<div class="teacher-partner-support-tag">#함께 성장형</div>' +
-    '<div class="teacher-partner-support-desc">다른 사람과 함께할 때 더 잘 배움</div>' +
-    '<div class="teacher-partner-support-ex">친구와 설명 연습, 모둠 토론, 같이 문제 풀기, 짝 피드백</div>' +
-    '</article>' +
-    '<article class="teacher-partner-support-card">' +
-    '<div class="teacher-partner-support-tag">#혼자 집중형</div>' +
-    '<div class="teacher-partner-support-desc">혼자 집중할 때 더 잘 배움</div>' +
-    '<div class="teacher-partner-support-ex">노트 정리, 혼자 풀어보기, 조용히 복습, 자기만의 요약 만들기</div>' +
-    '</article>' +
-    '</div>' +
-    '</section>'
-  );
-}
-
-function buildTeacherPartnerReferencePart5Visual() {
-  const rows = [
-    ['구체적인 계획가', '직설 진단', '항목별 근거', '일정+체크', '"정확히, 계획대로"'],
-    ['구체적인 도전가', '직설 진단', '항목별 근거', '작은 실험', '"정확히, 일단 해봐"'],
-    ['큰 그림형 계획가', '방향 제시', '흐름 요약', '우선순위', '"전체 방향, 순서대로"'],
-    ['큰 그림형 도전가', '방향 제시', '흐름 요약', '선택지', '"전체 방향, 골라봐"'],
-    ['함께하는 계획가', '인정 후 제안', '잘한 점+개선', '단계별', '"잘했어, 이 순서로"'],
-    ['함께하는 도전가', '인정 후 제안', '잘한 점+개선', '가벼운 시도', '"잘했어, 이것만 해볼까"'],
-    ['공감하는 계획가', '공감 먼저', '방향+안심', '이번 주 하나', '"힘들었지, 이것만"'],
-    ['공감하는 도전가', '공감 먼저', '방향+영감', '흥미 자극', '"잘하고 있어, 이건 어때?"']
+  const tags = [
+    {
+      tag: '#함께 성장형',
+      meaning: '다른 사람과 함께할 때 더 잘 배움',
+      examples: '친구와 설명 연습, 모둠 토론, 같이 문제 풀기, 짝 피드백',
+      classTip: '같은 "구체적인 계획가"라도 #함께 성장형이면 "친구와 계획 공유하고 매일 체크"를 제안합니다.'
+    },
+    {
+      tag: '#혼자 집중형',
+      meaning: '혼자 집중할 때 더 잘 배움',
+      examples: '노트 정리, 혼자 풀어보기, 조용히 복습, 자기만의 요약 만들기',
+      classTip: '같은 "구체적인 계획가"라도 #혼자 집중형이면 "혼자 계획표에 체크하며 진행"을 제안합니다.'
+    }
   ];
-  const body = rows.map((row) =>
-    '<tr>' +
-    '<td><span class="teacher-partner-table-type">' + escapeHtml(getTeacherPartnerTypeEmojiByName(row[0]) + ' ' + row[0]) + '</span></td>' +
-    '<td>' + escapeHtml(row[1]) + '</td>' +
-    '<td>' + escapeHtml(row[2]) + '</td>' +
-    '<td>' + escapeHtml(row[3]) + '</td>' +
-    '<td>' + escapeHtml(row[4]) + '</td>' +
-    '</tr>'
-  ).join('');
+
   return (
     '<section class="teacher-partner-reference-visual">' +
-    '<div class="teacher-partner-reference-visual-title">한눈에 보기 표</div>' +
-    '<div class="teacher-partner-reference-table-wrap">' +
-    '<table class="teacher-partner-reference-table is-compact">' +
-    '<thead><tr><th>유형</th><th>톤</th><th>구조</th><th>실천</th><th>핵심 키워드</th></tr></thead>' +
-    '<tbody>' + body + '</tbody>' +
-    '</table>' +
+    '<div class="teacher-partner-reference-visual-title">보조 태그 클릭 가이드</div>' +
+    '<p class="teacher-partner-reference-note">보조 태그는 위 8가지 유형에 덧붙여서 실천 활동의 종류를 조절합니다. 각 태그를 눌러 의미와 적용 예시를 확인하세요.</p>' +
+    '<div class="teacher-partner-type-accordion-list">' +
+    tags.map((item, index) =>
+      '<details class="teacher-partner-question-accordion"' + (index === 0 ? ' open' : '') + '>' +
+      '<summary class="teacher-partner-question-summary">' +
+      '<div class="teacher-partner-question-summary-text">' +
+      '<strong>' + escapeHtml(item.tag) + '</strong>' +
+      '<span>' + escapeHtml(item.meaning) + '</span>' +
+      '</div>' +
+      '<span class="teacher-partner-question-summary-state" aria-hidden="true"></span>' +
+      '</summary>' +
+      '<div class="teacher-partner-type-panel">' +
+      '<article class="teacher-partner-type-block">' +
+      '<h5>의미</h5>' +
+      '<p>' + escapeHtml(item.meaning) + '</p>' +
+      '</article>' +
+      '<article class="teacher-partner-type-block">' +
+      '<h5>실천 활동 예시</h5>' +
+      '<p>' + escapeHtml(item.examples) + '</p>' +
+      '</article>' +
+      '<article class="teacher-partner-type-block">' +
+      '<h5>교사 적용 예시</h5>' +
+      '<p>' + escapeHtml(item.classTip) + '</p>' +
+      '</article>' +
+      '</div>' +
+      '</details>'
+    ).join('') +
     '</div>' +
+    '<p class="teacher-partner-reference-note">교사 팁: 보조 태그는 강제가 아닌 권장입니다.</p>' +
+    '<p class="teacher-partner-reference-note">상황에 따라 혼자 하는 아이도 모둠 활동이 필요할 수 있고, 함께 하는 아이도 혼자 정리할 시간이 필요합니다.</p>' +
+    '<p class="teacher-partner-reference-note">실무 메모: 보조 태그는 활동 선택의 힌트입니다. 수업 목표에 따라 협력 활동과 개인 활동을 번갈아 배치하면, 한쪽 선호가 강한 학생도 균형 있게 성장할 수 있습니다.</p>' +
     '</section>'
   );
 }
@@ -1685,8 +2064,207 @@ function buildTeacherPartnerReferencePartVisual(partNumber) {
   if (partNumber === 2) return buildTeacherPartnerReferencePart2Visual();
   if (partNumber === 3) return buildTeacherPartnerReferencePart3Visual();
   if (partNumber === 4) return buildTeacherPartnerReferencePart4Visual();
-  if (partNumber === 5) return buildTeacherPartnerReferencePart5Visual();
+  if (partNumber === 5) return '';
   return '';
+}
+
+function getTeacherPartnerGuideCatalogForDetail() {
+  return [
+    {
+      title: '구체적인 계획가',
+      axes: '해결 × 디테일 × 계획',
+      traits: [
+        '"뭐가 틀렸는지 정확히 알려주세요"가 입버릇인 학생',
+        '점수표, 체크리스트, 일정표를 좋아함',
+        '모호한 피드백("좀 더 노력해봐")에 불만을 느낌',
+        '계획을 세우면 실행력이 높은 편'
+      ],
+      good: '"3번 문제 유형에서 실수가 반복되고 있어. 이번 주 월수는 A 유형 5문제씩, 목금은 B 유형으로 연습하자."',
+      bad: '"전반적으로 잘하고 있으니까 조금만 더 힘내."',
+      notes: [
+        '이 학생은 감정적 위로보다 정보를 원합니다. 틀린 부분을 정확히 짚어주는 것이 존중의 표현이라고 느낍니다.',
+        '다만 지적만 나열하면 좌절할 수 있으므로, "잘된 부분 1개 + 개선점 2개 + 실행 계획"의 구조가 효과적입니다.',
+        '계획을 세워주면 스스로 실행하는 힘이 있으므로, 중간 점검 정도만 해주면 됩니다.'
+      ]
+    },
+    {
+      title: '구체적인 도전가',
+      axes: '해결 × 디테일 × 탐색',
+      traits: [
+        '뭐가 문제인지는 정확히 알고 싶지만, 정해진 계획표는 싫어하는 학생',
+        '"이거 해봐" 하면 바로 시도하는 행동력이 있음',
+        '장기 계획보다 "오늘 당장 해볼 것 하나"에 반응함',
+        '틀에 박힌 반복 학습은 금방 지루해함'
+      ],
+      good: '"이 부분에서 실수가 나왔어. 이 방법으로 딱 3문제만 풀어봐. 맞으면 다음 단계로 넘어가자."',
+      bad: '"2주 동안 이 계획표대로 매일 해와."',
+      notes: [
+        '구체적인 지적은 환영하지만, 장기 로드맵은 부담으로 느낍니다.',
+        '작고 명확한 미션 1개를 주고 결과를 같이 확인하는 사이클이 이 학생에게 가장 효과적입니다.',
+        '실험 결과를 메모하게 하면 자기 학습 패턴을 스스로 발견하게 됩니다.'
+      ]
+    },
+    {
+      title: '큰 그림형 계획가',
+      axes: '해결 × 큰 그림 × 계획',
+      traits: [
+        '"이거 왜 해요?"를 먼저 묻는 학생',
+        '세부 항목보다 전체 방향과 우선순위를 중시함',
+        '방향이 잡히면 스스로 계획을 세우는 능력이 있음',
+        '의미 없는 반복에는 동기 저하가 빠름'
+      ],
+      good: '"전체적으로 보면 이 방향이야. 이번 주는 이것부터, 다음 주는 저것. 이 순서로 하면 시험 범위가 정리될 거야."',
+      bad: '"1번은 ○, 2번은 △, 3번은 ×…" (항목별 나열만)',
+      notes: [
+        '이 학생에게는 "왜 이 순서인지"를 설명해주는 것이 핵심입니다.',
+        '우선순위를 함께 정해주면 이후 실행은 스스로 잘합니다.',
+        '숲을 보여주고 나무 순서를 잡아주되, 각 나무를 어떻게 심을지는 학생에게 맡기세요.'
+      ]
+    },
+    {
+      title: '큰 그림형 도전가',
+      axes: '해결 × 큰 그림 × 탐색',
+      traits: [
+        '호기심이 많고 다양한 것에 관심을 가지는 학생',
+        '정해진 틀보다 "이런 것도 해볼까?"에 눈이 반짝임',
+        '방향만 알려주면 자기만의 방식으로 탐색함',
+        '너무 구체적인 지시는 오히려 창의성을 막는다고 느낌'
+      ],
+      good: '"이런 방향도 있어. 한번 해보고 맞는지 느껴봐. 아니면 이쪽도 재밌을 거야."',
+      bad: '"이 순서대로 따라 해. 다른 건 나중에."',
+      notes: [
+        '이 학생은 선택지를 주면 동기부여가 됩니다.',
+        '"A 방법과 B 방법이 있는데, 뭐가 더 맞을 것 같아?"처럼 옵션을 제시하세요.',
+        '산만해 보일 수 있지만, 다양한 시도 속에서 자기 방식을 찾는 타입입니다. 탐색 자체를 인정해주는 것이 중요합니다.',
+        '단, "결국 어디로 가고 있는지"를 가끔 환기시켜주면 좋습니다.'
+      ]
+    },
+    {
+      title: '함께하는 계획가',
+      axes: '지지 × 디테일 × 계획',
+      traits: [
+        '잘한 점을 먼저 인정받으면 개선점도 기꺼이 받아들이는 학생',
+        '단계별 안내가 있으면 안심하고 따라감',
+        '피드백의 순서(인정→개선→실행)가 중요',
+        '꼼꼼하고 성실하지만, 자신감이 낮을 수 있음'
+      ],
+      good: '"이건 진짜 잘했어. 여기는 같이 해보자. 먼저 이것부터, 그 다음에 이것."',
+      bad: '"여기 틀렸고, 여기도 부족하고, 이건 다시 해와."',
+      notes: [
+        '"잘한 점 먼저"가 이 학생에게는 선택이 아니라 필수입니다.',
+        '인정 없이 지적부터 시작하면 "나는 못하는 사람"이라는 인식이 강화됩니다.',
+        '계획이 있으면 실행을 잘하므로, 1단계→2단계→3단계로 나눠주면 차근차근 따라갑니다.',
+        '중간중간 "여기까지 잘하고 있어"라는 확인이 큰 힘이 됩니다.'
+      ]
+    },
+    {
+      title: '함께하는 도전가',
+      axes: '지지 × 디테일 × 탐색',
+      traits: [
+        '따뜻한 분위기에서 "같이 해보자"고 하면 용기를 내는 학생',
+        '큰 계획보다 "일단 이것만 해볼까?" 식의 가벼운 시작을 좋아함',
+        '실패에 대한 두려움이 있을 수 있어서, 심리적 안전감이 중요',
+        '누군가와 함께하면 시도 자체를 더 잘함'
+      ],
+      good: '"이건 잘했어! 여기는 이렇게 한번 해볼까? 부담 없이 하나만."',
+      bad: '"여기 틀렸으니까 이 10문제 풀어와."',
+      notes: [
+        '"같이"라는 단어가 이 학생에게는 마법의 단어입니다.',
+        '혼자 과제를 안겨주면 시작 자체가 어렵지만, "선생님이랑 같이 한번 보자" 또는 "친구랑 해봐"라고 하면 시도합니다.',
+        '작은 성공 경험을 쌓게 해주는 것이 장기적으로 가장 효과적입니다.',
+        '실패해도 "시도한 것 자체가 좋았어"라는 메시지가 다음 시도로 이어집니다.'
+      ]
+    },
+    {
+      title: '공감하는 계획가',
+      axes: '지지 × 큰 그림 × 계획',
+      traits: [
+        '기분이나 컨디션에 따라 학습 효율이 크게 달라지는 학생',
+        '감정을 먼저 알아줘야 그 다음 내용이 들어옴',
+        '방향만 잡아주면 스스로 정리하는 힘이 있음',
+        '세부 사항보다 "결국 내가 잘 되고 있는지"가 중요'
+      ],
+      good: '"많이 노력했지? 잘하고 있어. 이번 주는 이것만 해보자."',
+      bad: '"1번에서 3점 감점, 2번에서 2점 감점…" (감정 터치 없이 숫자만)',
+      notes: [
+        '첫 문장이 공감이어야 합니다. "힘들었겠다", "노력한 거 보여", "걱정했구나" 등.',
+        '공감 한 문장 + 방향 한 문장 + 이번 주 할 것 하나. 이 3단계가 이 학생에게 맞는 방법입니다.',
+        '감정을 무시하고 바로 과제를 주면, 할 수 있는 능력이 있어도 하지 않게 됩니다.',
+        '"지금 어디쯤 왔는지" 알려주면 안심하고 다음 단계로 넘어갑니다.'
+      ]
+    },
+    {
+      title: '공감하는 도전가',
+      axes: '지지 × 큰 그림 × 탐색',
+      traits: [
+        '감성적이면서도 새로운 것에 열린 학생',
+        '강요보다 영감을 통해 움직이는 타입',
+        '"이런 것도 해보면 재밌을 거야"라는 한마디에 반응함',
+        '정해진 계획보다 자기만의 페이스를 중시함',
+        '예술적이거나 창의적인 활동에 잘 반응하는 경우가 많음'
+      ],
+      good: '"충분히 잘하고 있어. 이런 것도 해보면 재밌을 거야. 어떻게 생각해?"',
+      bad: '"됐고 이 계획표대로 해와."',
+      notes: [
+        '이 학생에게는 질문이 가장 좋은 피드백 도구입니다.',
+        '"이거 해봐"보다 "이런 건 어떨 것 같아?"가 훨씬 효과적입니다.',
+        '감정 공감 → 흥미 자극 → 작은 실험 제안의 순서로 접근하세요.',
+        '결과보다 과정에서 느낀 것을 물어봐주면 스스로 성찰이 깊어집니다.',
+        '가장 자유로운 유형이지만, 방향 없이 표류할 수 있으므로 가끔 "전체적으로 봤을 때 지금 어떤 단계 인 것 같아?"라고 물어봐주면 좋습니다.'
+      ]
+    }
+  ];
+}
+
+function getTeacherPartnerGuideByPartner(partner) {
+  if (!partner) return null;
+  const catalog = getTeacherPartnerGuideCatalogForDetail();
+  const normalize = (value) => String(value || '').replace(/\s+/g, '').trim();
+  const byName = normalize(partner.type_name);
+  if (byName) {
+    const direct = catalog.find((item) => normalize(item.title) === byName);
+    if (direct) return direct;
+  }
+  const code = String(partner.type_code || '').trim();
+  if (code && PARTNER_TYPE_BY_CODE && PARTNER_TYPE_BY_CODE[code]) {
+    const codeName = normalize(PARTNER_TYPE_BY_CODE[code].type_name);
+    const mapped = catalog.find((item) => normalize(item.title) === codeName);
+    if (mapped) return mapped;
+  }
+  return null;
+}
+
+function renderTeacherPartnerGuideDetailSection(partner) {
+  const guide = getTeacherPartnerGuideByPartner(partner);
+  if (!guide) return '';
+  return (
+    '<div class="teacher-partner-detail-section teacher-partner-guide-detail-section">' +
+    '<h4>유형별 교사 가이드</h4>' +
+    '<div class="teacher-partner-guide-detail-card">' +
+    '<div class="teacher-partner-guide-detail-head">' +
+    '<div class="teacher-partner-guide-detail-title">' + escapeHtml((partner.emoji || '🧠') + ' ' + String(guide.title || '')) + '</div>' +
+    '<div class="teacher-partner-guide-detail-axes">' + escapeHtml(String(guide.axes || '')) + '</div>' +
+    '</div>' +
+    '<div class="teacher-partner-guide-detail-block">' +
+    '<h5>이런 학생입니다</h5>' +
+    '<ul class="teacher-partner-guide-detail-list">' +
+    (Array.isArray(guide.traits) ? guide.traits : []).map((line) => '<li>' + escapeHtml(String(line || '')) + '</li>').join('') +
+    '</ul>' +
+    '</div>' +
+    '<div class="teacher-partner-guide-detail-block">' +
+    '<h5>선생님이 이 학생에게 피드백할 때</h5>' +
+    '<div class="teacher-partner-guide-detail-feedback is-good">✅ ' + escapeHtml(String(guide.good || '-')) + '</div>' +
+    '<div class="teacher-partner-guide-detail-feedback is-bad">❌ ' + escapeHtml(String(guide.bad || '-')) + '</div>' +
+    '</div>' +
+    '<div class="teacher-partner-guide-detail-block">' +
+    '<h5>수업에서 기억할 점</h5>' +
+    '<ul class="teacher-partner-guide-detail-list">' +
+    (Array.isArray(guide.notes) ? guide.notes : []).map((line) => '<li>' + escapeHtml(String(line || '')) + '</li>').join('') +
+    '</ul>' +
+    '</div>' +
+    '</div>' +
+    '</div>'
+  );
 }
 
 function renderTeacherPartnerReferenceCards() {
@@ -1707,17 +2285,7 @@ function renderTeacherPartnerReferenceCards() {
   if (chunks.length > 0 && !chunks[0].startsWith('📌 Part')) {
     introChunk = chunks.shift();
   }
-
-  const introLines = introChunk.split('\n').map(s => s.trim()).filter(Boolean);
-  const introTitle = introLines.length > 0 ? introLines[0] : '📘 교사용 레퍼런스: 성장 파트너 유형 시스템';
-  const introDesc = introLines.length > 1 ? introLines.slice(1).join(' ') : '성장 파트너 유형 시스템의 질문 구조, 해석, 유형별 가이드를 확인하세요.';
-
-  const introHtml =
-    '<article class="teacher-partner-reference-intro-card">' +
-    '<div class="teacher-partner-reference-intro-badge">Guide</div>' +
-    '<h3 class="teacher-partner-reference-intro-title">' + escapeHtml(introTitle) + '</h3>' +
-    '<p class="teacher-partner-reference-intro-desc">' + escapeHtml(introDesc) + '</p>' +
-    '</article>';
+  void introChunk;
 
   const partHtml = chunks.map((chunk, index) => {
     const lines = chunk.split('\n');
@@ -1726,21 +2294,24 @@ function renderTeacherPartnerReferenceCards() {
     const partNumMatch = heading.match(/Part\s*(\d+)/i);
     const partKicker = partNumMatch ? ('Part ' + partNumMatch[1]) : ('Part ' + (index + 1));
     const partNumber = partNumMatch ? Number(partNumMatch[1]) : (index + 1);
+    if (partNumber === 5) return '';
+    const friendlyHeading = adaptTeacherFriendlyReferenceHeading(heading, partNumber);
+    const friendlyBody = adaptTeacherFriendlyReferenceCopy(body, partNumber);
     const visualHtml = buildTeacherPartnerReferencePartVisual(partNumber);
 
     return (
       '<article class="teacher-partner-reference-part-card">' +
       '<div class="teacher-partner-reference-part-head">' +
       '<span class="teacher-partner-reference-part-kicker">' + escapeHtml(partKicker) + '</span>' +
-      '<h4 class="teacher-partner-reference-part-title">' + escapeHtml(heading) + '</h4>' +
+      '<h4 class="teacher-partner-reference-part-title">' + escapeHtml(friendlyHeading) + '</h4>' +
       '</div>' +
       visualHtml +
-      '<div class="teacher-partner-reference-part-body">' + formatTeacherPartnerReferenceText(body) + '</div>' +
+      ((partNumber === 2 || partNumber === 3 || partNumber === 4) ? '' : ('<div class="teacher-partner-reference-part-body">' + formatTeacherPartnerReferenceText(friendlyBody) + '</div>')) +
       '</article>'
     );
   }).join('');
 
-  container.innerHTML = introHtml + partHtml;
+  container.innerHTML = partHtml;
   container.dataset.rendered = '1';
 }
 
@@ -1789,6 +2360,18 @@ function switchTeacherPartnerSubTab(tab) {
   loadTeacherPartnerIndividualData();
 }
 
+function getTeacherPartnerListAccentColor(row, index) {
+  const donePalette = ['#22c55e', '#0ea5e9', '#8b5cf6', '#f59e0b', '#14b8a6', '#f97316', '#ec4899', '#6366f1'];
+  const pendingPalette = ['#f59e0b', '#f97316', '#eab308', '#f43f5e', '#fb7185'];
+  const emptyPalette = ['#94a3b8', '#64748b', '#8b95a7', '#7c8ea3', '#a3afbf'];
+  const num = parseOptionalPositiveInt(row?.studentNumber);
+  const seed = (num && num > 0) ? num : ((Number(index) || 0) + 1);
+  const slot = (seed - 1);
+  if (row?.status === '진단완료') return donePalette[slot % donePalette.length];
+  if (row?.status === '미진단') return pendingPalette[slot % pendingPalette.length];
+  return emptyPalette[slot % emptyPalette.length];
+}
+
 function renderTeacherPartnerIndividual(rows) {
   const summaryEl = document.getElementById('teacherPartnerSummary');
   const listEl = document.getElementById('teacherPartnerList');
@@ -1823,7 +2406,7 @@ function renderTeacherPartnerIndividual(rows) {
     return;
   }
 
-  listEl.innerHTML = items.map((row) => {
+  listEl.innerHTML = items.map((row, index) => {
     const statusClass = row.status === '진단완료'
       ? 'is-done'
       : (row.status === '미진단' ? 'is-pending' : 'is-empty');
@@ -1836,8 +2419,9 @@ function renderTeacherPartnerIndividual(rows) {
     const supportTag = row.supportTag || '-';
     const email = row.profile?.google_email || '(미등록)';
     const activeClass = String(row.studentNumber) === String(teacherPartnerSelectedStudentNumber || '') ? ' is-active' : '';
+    const accentColor = getTeacherPartnerListAccentColor(row, index);
     return (
-      '<button type="button" class="teacher-partner-item ' + itemToneClass + activeClass + '" data-student-number="' + escapeHtml(String(row.studentNumber)) + '" onclick="renderTeacherPartnerDetail(\'' + escapeHtml(String(row.studentNumber)) + '\')">' +
+      '<button type="button" class="teacher-partner-item ' + itemToneClass + activeClass + '" style="--teacher-partner-item-accent:' + accentColor + ';" data-student-number="' + escapeHtml(String(row.studentNumber)) + '" onclick="renderTeacherPartnerDetail(\'' + escapeHtml(String(row.studentNumber)) + '\')">' +
       '<div class="teacher-partner-item-head">' +
       '<span class="teacher-partner-student">' + escapeHtml(String(row.studentNumber)) + '번</span>' +
       '<span class="teacher-partner-status ' + statusClass + '">' + escapeHtml(row.status) + '</span>' +
@@ -1892,6 +2476,7 @@ function renderTeacherPartnerDetail(studentNumber) {
 
   const partner = row.partner;
   const axes = (partner.axes_raw || partner.axes || {});
+  const guideSectionHtml = renderTeacherPartnerGuideDetailSection(partner);
   const responses = normalizePartnerQuestionResponses(row.personality?.question_responses);
   const questionList = Array.isArray(personalityQuestions) ? personalityQuestions : [];
   const questionMap = {};
@@ -1932,6 +2517,7 @@ function renderTeacherPartnerDetail(studentNumber) {
     '<div><span>학습 환경</span><strong>' + escapeHtml(String(axes.learning_env || '-')) + '</strong></div>' +
     '</div>' +
     '</div>' +
+    guideSectionHtml +
     '<div class="teacher-partner-detail-section">' +
     '<h4>Q1~Q8 응답</h4>' +
     '<div class="teacher-partner-answer-grid">' + answerHtml + '</div>' +
@@ -1970,12 +2556,14 @@ async function loadTeacherPartnerIndividualData() {
     if (profilesRes.error) throw profilesRes.error;
     if (personalityRes.error) throw personalityRes.error;
 
-    const studentCount = Number(classRes.data?.student_count) || 30;
+    const classStudentCount = parseOptionalPositiveInt(classRes.data?.student_count);
     const profileMap = new Map();
+    let inferredStudentCount = 0;
     (profilesRes.data || []).forEach((row) => {
       const num = parseOptionalPositiveInt(row?.student_number);
       if (!num) return;
       profileMap.set(String(num), row);
+      if (num > inferredStudentCount) inferredStudentCount = num;
     });
 
     const personalityMap = new Map();
@@ -1983,7 +2571,20 @@ async function loadTeacherPartnerIndividualData() {
       const sid = parseOptionalPositiveInt(row?.student_id);
       if (!sid) return;
       personalityMap.set(String(sid), row);
+      if (sid > inferredStudentCount) inferredStudentCount = sid;
     });
+
+    const studentCount = classStudentCount || inferredStudentCount;
+    if (!classStudentCount && inferredStudentCount > 0) {
+      console.warn('[teacher-partner] classes.student_count unavailable. inferred studentCount=', inferredStudentCount);
+    }
+    if (!studentCount) {
+      teacherPartnerIndividualRows = [];
+      teacherPartnerSelectedStudentNumber = '';
+      renderTeacherPartnerIndividual([]);
+      detailEl.innerHTML = getTeacherPartnerEmptyDetailHtml('표시할 학생이 없습니다', '학급 학생 수 또는 학생 등록 데이터를 확인해 주세요.', '📭');
+      return;
+    }
 
     const rows = [];
     for (let i = 1; i <= studentCount; i++) {
