@@ -5,3 +5,5 @@
 .env.*
 !.env.example
 partner.txt
+
+.vercel

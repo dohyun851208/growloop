@@ -191,8 +191,9 @@
 
                                 </div>
                                 <textarea id="learningText"
-                                    placeholder="📚 오늘 배운 내용: 국어 토론에서 발표 논리와 표현을 정리하고, 사회 자료를 읽으며 핵심 문장을 표시했어.&#10;✅ 내가 잘한 점: 수학 계산과 과학 실험 기록을 순서대로 정리해서 실수를 줄였고, 영어 문장을 끝까지 읽고 근거를 찾았어.&#10;😵 어려웠던 점: 체육 활동 뒤 집중을 다시 올리는 게 어려웠고, 음악·미술·도덕·실과 내용을 한 번에 연결해 설명하는 게 헷갈렸어.&#10;💡 이해/해결 방법: 모둠활동에서 친구와 역할을 나눠 토론하고, 발표 전에 핵심 키워드 3개를 먼저 적은 뒤 기타 활동 메모까지 붙여 흐름을 맞췄어.&#10;❓ 아직 헷갈리는 점: 자료 근거를 더 짧게 요약해 말하는 연습이 필요해.&#10;🌱 일상에 적용해볼 점: 내일은 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 기준으로 복습 노트를 만들어볼래."
-                                    class="student-note-textarea"></textarea>
+                                    placeholder="오늘 배운 내용: 사회 발표 준비에서 자료를 정리하고 모둠 발표 순서를 맞췄어요.&#10;내가 잘한 점: 핵심 문장을 짧게 바꿔 전달력이 좋아졌고 친구 피드백도 반영했어요.&#10;어려웠던 점: 질문을 받으면 바로 답할 근거를 찾는 데 시간이 걸렸어요.&#10;이해/해결 방법: 예상 질문을 3개 정리하고 근거 문장을 카드로 만들어 연습했어요.&#10;아직 헷갈리는 점: 낯선 질문이 들어왔을 때 답변을 구조적으로 시작하는 방법이 더 필요해요.&#10;일상에 적용해볼 점: 발표 전에 핵심-근거-예시 순서로 짧게 말하는 연습을 계속할게요."
+                                    class="student-note-textarea" oninput="updateLearningCharCount()"></textarea>
+                                <div id="learningCharCount" class="char-count-right">0자 / 150자</div>
                                 <label class="subject-tag-label">과목/활동 태그 (여러 개 선택 가능)</label>
                                 <div class="subject-tags student-tags-wrap">
                                     <button type="button" class="subject-tag-btn" onclick="toggleSubjectTag('국어')">📖
@@ -244,17 +245,17 @@
                         <!-- 성장 대시보드 탭 -->
                         <div id="dashboardTab" class="hidden">
                             <div class="accent-box dashboard-overview-card">
-                                <span class="box-label">📌 나의 성장 요약</span>
+                                <span class="box-label">📌 배움 노트 요약</span>
                                 <div id="streakBadgeArea" class="streak-badge-area dashboard-overview-streak">
                                     <div id="streakDisplay" class="streak-display"></div>
                                     <div id="badgeContainer" class="badge-container-center"></div>
                                 </div>
                                 <div class="dashboard-overview-divider"></div>
                                 <div class="dashboard-overview-keywords">
-                                    <div class="dashboard-overview-subtitle">나의 성장 신호</div>
+                                    <div class="dashboard-overview-subtitle">배움노트 키워드 분석 결과</div>
                                     <div id="learningWordCloud" class="word-cloud">
                                         <div class="empty-state">
-                                            <div class="empty-desc">신호를 보려면 기록이 필요해요.</div>
+                                            <div class="empty-desc">분석 결과를 보려면 기록이 필요해요.</div>
                                         </div>
                                     </div>
                                 </div>
@@ -366,25 +367,20 @@
                             <div class="accent-box box-amber">
                                 <span class="box-label">🌟 프로젝트 돌아보기</span>
                                 <label>프로젝트 이름</label>
-                                <input type="text" id="projectName" placeholder="예: 세계 여행 가이드북 만들기">
+                                <input type="text" id="projectName" placeholder="예: 우리 반 전용 보드게임 만들기">
 
                                 <div class="guide-buttons guide-scroll-row">
                                     <button type="button" class="template-btn"
                                         onclick="insertTemplate('👍 잘된 점: \n', 'projectComment')">👍 잘된 점</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('🤔 아쉬운 점/어려웠던 점: \n', 'projectComment')">🤔 아쉬운
-                                        점</button>
+                                        onclick="insertTemplate('🧐 아쉬운 점/어려웠던 점: \n', 'projectComment')">🧐 아쉬운 점/어려웠던 점</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('✨ 인상적인 순간/배운 점: \n', 'projectComment')">✨
-                                        인상/배움</button>
-
+                                        onclick="insertTemplate('✨ 인상적인 순간: \n', 'projectComment')">✨ 인상적인 순간</button>
                                     <button type="button" class="template-btn"
-                                        onclick="insertTemplate('💪 다음 도전: \n', 'projectComment')">💪 다음 도전</button>
-                                    <button type="button" class="template-btn"
-                                        onclick="insertTemplate('🎯 다음을 위한 팁: \n', 'projectComment')">🎯 다음 팁</button>
+                                        onclick="insertTemplate('📘 배운 점: \n', 'projectComment')">📘 배운 점</button>
                                 </div>
                                 <textarea id="projectComment"
-                                    placeholder="👍 잘된 점: 프로젝트에서 국어·사회 자료를 비교해 핵심을 정리하고, 수학·과학 근거를 넣어 설명 흐름이 또렷했어.&#10;🤔 아쉬운 점/어려웠던 점: 영어 표현, 음악·미술 사례, 체육·도덕·실과 연결 포인트를 한 번에 담으려다 문장이 길어졌어.&#10;✨ 인상적인 순간/배운 점: 토론으로 의견을 모으고 모둠활동 발표에서 역할을 나눴더니 전달이 훨씬 안정적이었어.&#10;💪 다음 도전: 기타 자료까지 포함해 태그(국어·수학·사회·과학·영어·음악·미술·체육·도덕·실과·토론·발표·모둠활동·기타)를 모두 반영한 1페이지 요약본을 만들래.&#10;🎯 다음을 위한 팁: 슬라이드마다 결론 한 줄 → 근거 두 줄 순서로 고정하면 메시지가 더 선명해져."
+                                    placeholder="👍 잘된 점: 모둠 친구들이랑 아이디어를 모아서 우리 반만 아는 퀴즈를 넣었는데, 교실에서 다 같이 게임할 때 친구들이 제가 생각한 것보다 더 좋아해줬어요.&#10;🧐 아쉬운 점/어려웠던 점: 게임 규칙을 너무 복잡하게 만들어서 처음에 친구들한테 설명하는 게 좀 힘들었어요. 보드판 꾸밀 때 테이프를 너무 많이 써서 나중에 뗄 때 조금 지저분해진 게 아쉬웠어요.&#10;✨ 인상적인 순간: 친구가 그린 그림이 제 설명이랑 딱 맞을 때 진짜 통하는 기분이 들어서 신기했어요.&#10;📘 배운 점: 서로 마음이 잘 맞아야 결과물도 잘 나온다는 걸 배웠어요."
                                     class="student-note-textarea"></textarea>
                             </div>
                             <button type="button" id="submitProjectBtn" onclick="submitProjectReflection()"
@@ -401,10 +397,43 @@
                 <!-- 친구로 배움 섹션 -->
                 <div id="peerEvaluationSection" class="hidden">
                     <div class="sub-tab-container">
-                        <button class="sub-tab-btn active" onclick="switchPeerTab('submit')">📝 평가하기</button>
-                        <button class="sub-tab-btn" onclick="switchPeerTab('result')">📊 결과보기</button>
+                        <button class="sub-tab-btn active" data-peer-tab="artifact"
+                            onclick="switchPeerTab('artifact')">🔗 자료등록</button>
+                        <button class="sub-tab-btn" data-peer-tab="submit" onclick="switchPeerTab('submit')">📝
+                            평가하기</button>
+                        <button class="sub-tab-btn" data-peer-tab="result" onclick="switchPeerTab('result')">📊
+                            결과보기</button>
                     </div>
-                    <div id="studentSubmitTab">
+                    <div id="studentArtifactTab">
+                        <div class="accent-box box-teal class-tone-section">
+                            <span class="box-label">🔗 평가 자료 등록</span>
+                            <label>평가 날짜</label>
+                            <input type="date" id="artifactDate" class="class-tone-input diary-date-input" required
+                                onchange="syncAllDates(this.value); loadMyPeerArtifactSection()">
+                            <div class="type-selector">
+                                <label><input type="radio" name="artifactEvalTypeDisplay" value="individual"
+                                        onchange="switchTypeAndLogout('individual')"> 👤 개인평가</label>
+                                <label><input type="radio" name="artifactEvalTypeDisplay" value="group"
+                                        onchange="switchTypeAndLogout('group')"> 👥 모둠평가</label>
+                            </div>
+                            <label id="artifactOwnerLabel">나의 번호</label>
+                            <input type="text" id="artifactOwnerId" readonly class="reviewer-input-readonly">
+                            <label for="artifactUrlInput">공유 URL</label>
+                            <input type="url" id="artifactUrlInput" class="class-tone-input"
+                                placeholder="https://www.canva.com/...">
+                            <button type="button" id="artifactSaveBtn" onclick="saveMyPeerArtifact(this)">자료 URL
+                                저장하기</button>
+                            <p class="peer-artifact-form-hint">자료 제출 없이도 평가 제출은 가능합니다.</p>
+                            <div id="artifactMsg" class="message"></div>
+                            <div id="artifactStatusArea" class="peer-artifact-status-area">
+                                <div class="empty-state">
+                                    <span class="empty-icon">📎</span>
+                                    <div class="empty-desc">등록된 평가 자료가 없습니다.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="studentSubmitTab" class="hidden">
                         <form id="reviewForm">
                             <label>평가 날짜</label>
                             <input type="date" id="reviewDate" class="class-tone-input diary-date-input" required
@@ -417,6 +446,11 @@
                             </div>
                             <div class="accent-box box-blue">
                                 <span class="box-label">🎯 학습 목표 및 평가 과제</span>
+                                <div id="achievementArea" class="achievement-area hidden">
+                                    <div class="objective-label">
+                                        성취 기준</div>
+                                    <div id="achievementList" class="achievement-list"></div>
+                                </div>
                                 <div id="objectiveArea" class="objective-area">
                                     <div class="objective-label">
                                         학습 목표</div>
@@ -441,6 +475,12 @@
                                 </div>
                                 <div id="targetGrid" class="target-grid"></div>
                                 <input type="hidden" id="targetId">
+                                <div id="selectedTargetArtifactArea" class="peer-target-artifact-area">
+                                    <div class="empty-state">
+                                        <span class="empty-icon">📎</span>
+                                        <div class="empty-desc">평가 대상을 먼저 선택해 주세요.</div>
+                                    </div>
+                                </div>
                             </div>
                             <div id="ratingSection" class="accent-box box-amber hidden">
                                 <span class="box-label">평가 기준</span>
@@ -517,7 +557,7 @@
                                 <label><input type="radio" name="praiseAnon" value="anonymous" checked> 🎭 익명</label>
                                 <label><input type="radio" name="praiseAnon" value="named"> 😊 이름 밝히기</label>
                             </div>
-                            <textarea id="praiseContent" placeholder="친구에게 전하고 싶은 칭찬이나 감사의 말을 써주세요! (최소 10자)"
+                            <textarea id="praiseContent" placeholder="친구에게 전하고 싶은 말이나 고마움을 표현해주세요! (최소 10자)"
                                 minlength="10" class="textarea-gap-5" oninput="updatePraiseCharCount()"></textarea>
                             <div id="praiseCharCount" class="char-count-right">0자 / 최소 10자</div>
                             <button type="button" id="praiseSendBtn" onclick="sendPraise()">칭찬 보내기 💝</button>
@@ -593,22 +633,26 @@
 
                     <!-- 박스 3: 학급 변경 -->
                     <div class="accent-box class-tone-section student-class-change-card">
-                        <span class="box-label">🔄 학급 변경</span>
-                        <p class="student-class-change-warning">
-                            ⚠️ 학급을 변경하면 기존 데이터(일기, 평가, 칭찬 등)가 <strong>모두 삭제</strong>됩니다.
-                        </p>
-                        <div class="student-class-change-field">
-                            <label>새 학급명</label>
-                            <input type="text" id="newClassNameInput" placeholder="이동할 학급명 입력 (예: 부평서초6-1)"
-                                class="student-class-change-input">
-                        </div>
-                        <div class="student-class-change-field">
-                            <label>새 학급 코드</label>
-                            <input type="text" id="newClassCodeInput" placeholder="이동할 학급 코드 입력"
-                                class="student-class-change-input">
-                        </div>
-                        <button type="button" onclick="changeClassAndReset()" class="student-class-change-btn">학급
-                            변경하기</button>
+                        <details class="student-class-change-fold">
+                            <summary class="student-class-change-summary">
+                                <span class="box-label">🔄 학급 변경</span>
+                            </summary>
+                            <p class="student-class-change-warning">
+                                ⚠️ 학급을 변경하면 기존 데이터(일기, 평가, 칭찬 등)가 <strong>모두 삭제</strong>됩니다.
+                            </p>
+                            <div class="student-class-change-field">
+                                <label>새 학급명</label>
+                                <input type="text" id="newClassNameInput" placeholder="이동할 학급명 입력 (예: 부평서초6-1)"
+                                    class="student-class-change-input">
+                            </div>
+                            <div class="student-class-change-field">
+                                <label>새 학급 코드</label>
+                                <input type="text" id="newClassCodeInput" placeholder="이동할 학급 코드 입력"
+                                    class="student-class-change-input">
+                            </div>
+                            <button type="button" onclick="changeClassAndReset()" class="student-class-change-btn">학급
+                                변경하기</button>
+                        </details>
                     </div>
                 </div>
             </div>
@@ -648,9 +692,14 @@
                 <!-- 친구로 배움 하위 탭 -->
                 <div id="reviewSubTabArea" class="hidden">
                     <div class="sub-tab-container sub-tab-gap-15">
-                        <button class="sub-tab-btn active" onclick="switchReviewSubTab('ranking')">📊 전체 현황</button>
-                        <button class="sub-tab-btn" onclick="switchReviewSubTab('student')">👤 개별 현황</button>
-                        <button class="sub-tab-btn" onclick="switchReviewSubTab('criteria')">📅 기준 설정</button>
+                        <button class="sub-tab-btn active" data-review-tab="approve"
+                            onclick="switchReviewSubTab('approve')">📎 자료 승인</button>
+                        <button class="sub-tab-btn" data-review-tab="criteria"
+                            onclick="switchReviewSubTab('criteria')">📅 기준 설정</button>
+                        <button class="sub-tab-btn" data-review-tab="ranking" onclick="switchReviewSubTab('ranking')">📊
+                            전체 현황</button>
+                        <button class="sub-tab-btn" data-review-tab="student" onclick="switchReviewSubTab('student')">👤
+                            개별 현황</button>
                     </div>
                 </div>
                 <div id="rankStudentArea" class="accent-box box-violet rank-student-area-card">
@@ -670,12 +719,73 @@
                         </div>
                     </div>
                 </div>
-                <div id="rankingMiniTab">
-                    <div id="teacherDashboard" class="stats-summary teacher-dashboard-gap"></div>
-                    <h3>친구로배움 현황 (내림차순)</h3>
-                    <div class="ranking-table-wrapper ranking-table-scroll">
-                        <div id="rankingTable"></div>
+                <div id="approveMiniTab" class="hidden">
+                    <div class="accent-box box-amber class-tone-section">
+                        <span class="box-label">📎 친구로 배움 자료 승인</span>
+                        <label>조회 날짜</label>
+                        <input type="date" id="approveDate" class="class-tone-input diary-date-input"
+                            onchange="syncAllDates(this.value); loadTeacherArtifactApprovalList(); loadTeacherPeerArtifactEditor()">
+                        <div class="type-selector rank-filter-type-selector">
+                            <label class="rank-filter-option-label">
+                                <input type="radio" name="teacherArtifactEvalType" value="individual" checked
+                                    onchange="loadTeacherArtifactApprovalList(); loadTeacherPeerArtifactEditor()"> 👤
+                                개인</label>
+                            <label class="rank-filter-option-label">
+                                <input type="radio" name="teacherArtifactEvalType" value="group"
+                                    onchange="loadTeacherArtifactApprovalList(); loadTeacherPeerArtifactEditor()"> 👥
+                                모둠</label>
+                        </div>
+                        <label>상태 필터</label>
+                        <select id="teacherArtifactStatusFilter" onchange="loadTeacherArtifactApprovalList()">
+                            <option value="pending" selected>승인 대기</option>
+                            <option value="approved">승인됨</option>
+                            <option value="rejected">반려됨</option>
+                            <option value="all">전체</option>
+                        </select>
                     </div>
+                    <div class="accent-box box-teal class-tone-section">
+                        <span class="box-label">🔗 교사 자료 등록</span>
+                        <p style="font-size:0.86rem; color:var(--text-sub); margin:8px 0 12px;">교사도 대상 번호/모둠을 지정해 자료
+                            URL을 직접 등록할 수 있습니다.</p>
+                        <label id="teacherArtifactTargetLabel">대상 번호</label>
+                        <input type="number" id="teacherArtifactTargetId" class="class-tone-input" min="1"
+                            placeholder="예: 2 (학생 번호)" onchange="loadTeacherPeerArtifactEditor()">
+                        <label for="teacherArtifactUrlInput">공유 URL</label>
+                        <input type="url" id="teacherArtifactUrlInput" class="class-tone-input"
+                            placeholder="https://www.canva.com/...">
+                        <button type="button" id="teacherArtifactSaveBtn" onclick="saveTeacherPeerArtifact(this)">교사 자료
+                            저장하기</button>
+                        <p style="font-size:0.82rem; color:var(--text-sub); margin:8px 0 0;">URL을 비운 채 저장하면 해당 대상 자료가
+                            삭제됩니다.</p>
+                        <div id="teacherArtifactEditorMsg" class="message"></div>
+                        <div id="teacherArtifactEditorStatusArea" class="peer-artifact-status-area">
+                            <div class="empty-state">
+                                <span class="empty-icon">📎</span>
+                                <div class="empty-desc">대상 번호/모둠을 입력하면 현재 등록 상태를 확인할 수 있습니다.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="teacherArtifactApprovalMsg" class="message"></div>
+                    <div class="accent-box box-violet">
+                        <span class="box-label">📋 제출 목록</span>
+                        <div id="teacherArtifactApprovalList">
+                            <div class="empty-state">
+                                <span class="empty-icon">📎</span>
+                                <div class="empty-desc">자료 제출 내역이 없습니다.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="rankingMiniTab" class="hidden">
+                    <div id="teacherDashboard" class="stats-summary teacher-dashboard-gap"></div>
+                    <details id="teacherRankingTableFold" class="teacher-density-fold">
+                        <summary class="teacher-density-fold-summary">
+                            <span class="teacher-density-fold-title">전체 현황표</span>
+                        </summary>
+                        <div class="ranking-table-wrapper ranking-table-scroll">
+                            <div id="rankingTable"></div>
+                        </div>
+                    </details>
                 </div>
                 <div id="studentMiniTab" class="hidden">
                     <h3>대상 번호 선택</h3>
@@ -997,6 +1107,14 @@
                             <input type="date" id="settingDate"
                                 style="width:100%; font-family:'Jua', sans-serif !important; font-size:1.05rem; margin-bottom:15px;"
                                 onchange="syncAllDates(this.value); loadCriteriaForEdit()">
+                            <label>🏷️ 성취 기준</label>
+                            <div class="achievement-standard-input-row">
+                                <input type="text" id="settingAchievementStandardInput" aria-label="성취 기준 입력"
+                                    placeholder="성취 기준을 입력하세요">
+                                <button type="button" class="achievement-standard-add-btn"
+                                    onclick="addAchievementStandard()" aria-label="성취 기준 추가">+</button>
+                            </div>
+                            <div id="settingAchievementStandardList" class="achievement-standard-list"></div>
                             <label>🎯 학습 목표</label><input type="text" id="settingObjective"
                                 placeholder="예: 세계의 다양한 기후와 지형에 따른 사람들의 생활 모습을 조사할 수 있다.">
                             <label>📋 평가 과제</label><input type="text" id="settingTask"
@@ -1109,84 +1227,119 @@
                     </div>
 
                     <div id="teacherManageClassTab">
-                        <div id="classInfoCard" class="accent-box box-amber class-tone-section">
-                            <span class="box-label">📋 우리 학급 정보</span>
-                            <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                                <div class="settings-field" style="flex:1;"><label>학급명</label><input type="text"
-                                        id="settingClassName" class="class-tone-input" placeholder="예: 부평서초6-1"
-                                        style="font-family:'Jua', sans-serif !important;">
-                                </div>
-                                <div class="settings-field" style="flex:1;"><label>클래스 코드</label><input type="text"
-                                        id="settingClassCode" class="class-tone-input" placeholder="예: 부평서초34"
-                                        style="font-family:'Jua', sans-serif !important;"></div>
-                            </div>
-                            <button onclick="saveClassInfo(this)" style="background:var(--color-result);">💾 학급 정보
-                                저장하기</button>
-                            <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
-                                클래스 코드를 변경하면 학생들도 새로운 코드로 접속해야 합니다. (띄어쓰기 금지)</p>
-                        </div>
-                        <div id="classCompositionCard" class="accent-box box-violet class-tone-section">
-                            <span class="box-label">🏫 우리 반 구성 설정</span>
-                            <div id="classCompositionFields" class="settings-two-col"
-                                style="display:flex; gap:15px; margin-bottom:15px;">
-                                <div class="settings-field" style="flex:1;"><label>👤 학생 수</label><input type="number"
-                                        id="settingStudentCount" class="class-tone-input" min="1" max="50"
-                                        placeholder="30" style="font-family:'Jua', sans-serif !important;">
-                                </div>
-                                <div class="settings-field" style="flex:1;"><label>👥 모둠 수</label><input type="number"
-                                        id="settingGroupCount" class="class-tone-input" min="1" max="20" placeholder="6"
-                                        style="font-family:'Jua', sans-serif !important;">
+                        <details class="teacher-manage-accordion" open>
+                            <summary class="teacher-manage-accordion-summary">1. 학급 기본 정보</summary>
+                            <div class="teacher-manage-accordion-body">
+                                <div id="classInfoCard" class="accent-box box-amber class-tone-section">
+                                    <span class="box-label">📋 우리 학급 정보</span>
+                                    <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
+                                        <div class="settings-field" style="flex:1;"><label>학급명</label><input type="text"
+                                                id="settingClassName" class="class-tone-input" placeholder="예: 부평서초6-1"
+                                                style="font-family:'Jua', sans-serif !important;">
+                                        </div>
+                                        <div class="settings-field" style="flex:1;"><label>클래스 코드</label><input
+                                                type="text" id="settingClassCode" class="class-tone-input"
+                                                placeholder="예: 부평서초34"
+                                                style="font-family:'Jua', sans-serif !important;"></div>
+                                    </div>
+                                    <button onclick="saveClassInfo(this)" style="background:var(--color-result);">💾 학급
+                                        정보
+                                        저장하기</button>
+                                    <p
+                                        style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">
+                                        ※
+                                        클래스 코드를 변경하면 학생들도 새로운 코드로 접속해야 합니다. (띄어쓰기 금지)</p>
                                 </div>
                             </div>
-                            <button onclick="saveClassSettingsUI(this)" style="background:var(--color-teacher);">💾 반 구성
-                                저장하기</button>
-                            <p style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">※
-                                학생 수와 모둠 수를 설정합니다.</p>
-                        </div>
-                        <div id="classSemesterRangeCard" class="accent-box box-slate class-tone-section">
-                            <span class="box-label">📅 학기 기준 설정</span>
-                            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-                                여기서 저장한 학기 기간은 스스로배움의 세특생성 1학기/2학기 버튼과 연동됩니다.
-                            </p>
-                            <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:12px;">
-                                <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input type="date"
-                                        id="settingSemester1Start" class="class-tone-input"
-                                        style="font-family:'Jua', sans-serif !important;"></div>
-                                <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input type="date"
-                                        id="settingSemester1End" class="class-tone-input"
-                                        style="font-family:'Jua', sans-serif !important;"></div>
+                        </details>
+                        <details class="teacher-manage-accordion">
+                            <summary class="teacher-manage-accordion-summary">2. 반 구성</summary>
+                            <div class="teacher-manage-accordion-body">
+                                <div id="classCompositionCard" class="accent-box box-violet class-tone-section">
+                                    <span class="box-label">🏫 우리 반 구성 설정</span>
+                                    <div id="classCompositionFields" class="settings-two-col"
+                                        style="display:flex; gap:15px; margin-bottom:15px;">
+                                        <div class="settings-field" style="flex:1;"><label>👤 학생 수</label><input
+                                                type="number" id="settingStudentCount" class="class-tone-input" min="1"
+                                                max="50" placeholder="30"
+                                                style="font-family:'Jua', sans-serif !important;">
+                                        </div>
+                                        <div class="settings-field" style="flex:1;"><label>👥 모둠 수</label><input
+                                                type="number" id="settingGroupCount" class="class-tone-input" min="1"
+                                                max="20" placeholder="6"
+                                                style="font-family:'Jua', sans-serif !important;">
+                                        </div>
+                                    </div>
+                                    <button onclick="saveClassSettingsUI(this)"
+                                        style="background:var(--color-teacher);">💾 반 구성
+                                        저장하기</button>
+                                    <p
+                                        style="font-size:0.8rem; color:var(--text-sub); margin-top:10px; text-align:center;">
+                                        ※
+                                        학생 수와 모둠 수를 설정합니다.</p>
+                                </div>
                             </div>
-                            <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
-                                <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input type="date"
-                                        id="settingSemester2Start" class="class-tone-input"
-                                        style="font-family:'Jua', sans-serif !important;"></div>
-                                <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input type="date"
-                                        id="settingSemester2End" class="class-tone-input"
-                                        style="font-family:'Jua', sans-serif !important;"></div>
+                        </details>
+                        <details class="teacher-manage-accordion">
+                            <summary class="teacher-manage-accordion-summary">3. 학기 기준</summary>
+                            <div class="teacher-manage-accordion-body">
+                                <div id="classSemesterRangeCard" class="accent-box box-slate class-tone-section">
+                                    <span class="box-label">📅 학기 기준 설정</span>
+                                    <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
+                                        여기서 저장한 학기 기간은 스스로배움의 세특생성 1학기/2학기 버튼과 연동됩니다.
+                                    </p>
+                                    <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:12px;">
+                                        <div class="settings-field" style="flex:1;"><label>1학기 시작일</label><input
+                                                type="date" id="settingSemester1Start" class="class-tone-input"
+                                                style="font-family:'Jua', sans-serif !important;"></div>
+                                        <div class="settings-field" style="flex:1;"><label>1학기 종료일</label><input
+                                                type="date" id="settingSemester1End" class="class-tone-input"
+                                                style="font-family:'Jua', sans-serif !important;"></div>
+                                    </div>
+                                    <div class="settings-two-col" style="display:flex; gap:15px; margin-bottom:15px;">
+                                        <div class="settings-field" style="flex:1;"><label>2학기 시작일</label><input
+                                                type="date" id="settingSemester2Start" class="class-tone-input"
+                                                style="font-family:'Jua', sans-serif !important;"></div>
+                                        <div class="settings-field" style="flex:1;"><label>2학기 종료일</label><input
+                                                type="date" id="settingSemester2End" class="class-tone-input"
+                                                style="font-family:'Jua', sans-serif !important;"></div>
+                                    </div>
+                                    <button onclick="saveTeacherSemesterSettingsUI(this)"
+                                        style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
+                                </div>
                             </div>
-                            <button onclick="saveTeacherSemesterSettingsUI(this)"
-                                style="background:var(--color-slate);">💾 학기 기준 저장하기</button>
-                        </div>
-                        <div class="accent-box box-blue class-tone-section">
-                            <span class="box-label">👥 학생 번호 매핑 현황</span>
-                            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-                                각 번호에 등록된 Google 계정을 확인하고 모둠을 배정할 수 있습니다.
-                            </p>
-                            <p id="groupMappingNotice" class="teacher-group-mapping-notice">
-                                모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.
-                            </p>
-                            <div id="studentMappingGrid" class="student-manage-grid"></div>
-                            <button type="button" id="saveGroupMappingBtn" onclick="saveStudentGroupMappings(this)"
-                                class="teacher-group-mapping-save-btn" disabled>💾 모둠 배정 일괄 저장</button>
-                        </div>
-                        <div class="accent-box box-red">
-                            <span class="box-label" style="color:var(--color-danger);">⚠️ 데이터 초기화</span>
-                            <p style="color:var(--color-danger); font-size:0.9rem; margin-bottom:15px;">
-                                <strong>주의:</strong>
-                                모든 학급 내 데이터가 삭제됩니다.
-                            </p>
-                            <button id="resetBtn" onclick="resetAllReviewData(this)">학급 데이터 전체 초기화</button>
-                        </div>
+                        </details>
+                        <details class="teacher-manage-accordion">
+                            <summary class="teacher-manage-accordion-summary">4. 학생 번호 매핑</summary>
+                            <div class="teacher-manage-accordion-body">
+                                <div class="accent-box box-blue class-tone-section">
+                                    <span class="box-label">👥 학생 번호 매핑 현황</span>
+                                    <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
+                                        각 번호에 등록된 Google 계정을 확인하고 모둠을 배정할 수 있습니다.
+                                    </p>
+                                    <p id="groupMappingNotice" class="teacher-group-mapping-notice">
+                                        모둠 변경 시 개인정보 보호를 위해 변경에 연관된 모둠평가 기록(이전+새 모둠)이 초기화됩니다.
+                                    </p>
+                                    <div id="studentMappingGrid" class="student-manage-grid"></div>
+                                    <button type="button" id="saveGroupMappingBtn"
+                                        onclick="saveStudentGroupMappings(this)" class="teacher-group-mapping-save-btn"
+                                        disabled>💾 모둠 배정 일괄 저장</button>
+                                </div>
+                            </div>
+                        </details>
+                        <details class="teacher-manage-accordion">
+                            <summary class="teacher-manage-accordion-summary">5. 데이터 초기화</summary>
+                            <div class="teacher-manage-accordion-body">
+                                <div class="accent-box box-red">
+                                    <span class="box-label" style="color:var(--color-danger);">⚠️ 데이터 초기화</span>
+                                    <p style="color:var(--color-danger); font-size:0.9rem; margin-bottom:15px;">
+                                        <strong>주의:</strong>
+                                        모든 학급 내 데이터가 삭제됩니다.
+                                    </p>
+                                    <button id="resetBtn" onclick="resetAllReviewData(this)">학급 데이터 전체 초기화</button>
+                                </div>
+                            </div>
+                        </details>
                     </div>
 
                     <div id="teacherManagePartnerTab" class="hidden">
@@ -1537,7 +1690,7 @@ B: "조용히 혼자 집중해서 풀기" → 혼자 집중형
 
     <!-- SheetJS (xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="app.js?v=20260216-personality-type-fix-1"></script>
+    <script src="app.js?v=20260218-demo-student1-group-access"></script>
 </body>
 
 </html>

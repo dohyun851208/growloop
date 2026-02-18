@@ -15,10 +15,17 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
 // ============================================
 let currentRatings = {};
 let ratingCriteria = [];
+let achievementStandards = [];
 let currentStudent = null;
 let currentClassCode = '';
 let studentPartner = null; // 8-type growth partner cache
 let studentGroupMappingState = null;
+let settingAchievementStandards = [];
+const ACHIEVEMENT_STANDARD_EVAL_TYPE = 'achievement';
+const MAX_ACHIEVEMENT_STANDARD_COUNT = 6;
+const PEER_ARTIFACT_STATUS_PENDING = 'pending';
+const PEER_ARTIFACT_STATUS_APPROVED = 'approved';
+const PEER_ARTIFACT_STATUS_REJECTED = 'rejected';
 
 const partnerMessageState = {
   mode: 'daily',
@@ -58,22 +65,26 @@ const TEACHER_SUBJECT_COMMENT_SEMESTER_DEFAULTS = {
 const THINK_KEYWORDS = [
   '왜', '어려', '헷갈', '몰랐', '틀렸', '틀린',
   '다시', '고민', '깨달', '알게', '이해가',
-  '처음에', '그런데', '결국', '바꿔', '수정'
+  '처음에', '그런데', '결국', '바꿔', '수정',
+  '궁금', '어떻게', '차이', '비슷', '비교', '이유', '생각지', '반성', '신기', '의문', '질문',
+  '느꼈', '생각했', '알았', '기억', '중요', '배웠', '배움', '알 수 있었', '깨달음'
 ];
 const DASHBOARD_SIGNAL_WINDOW_DAYS = 14;
 const DASHBOARD_EFFORT_KEYWORDS = [
   '노력', '연습', '꾸준', '반복', '계속', '끝까지',
   '실천', '적용', '시도', '재시도', '복습', '점검',
   '다음', '목표', '체크', '루틴', '습관', '집중',
-  '인내', '다짐', '성실', '매일', '분석', '준비'
+  '인내', '다짐', '성실', '매일', '분석', '준비',
+  '완성', '마무리', '성공', '해냄', '정복', '도전', '포기하지', '열심히', '적극', '참여',
+  '해보고', '노력해서', '힘냈', '빠짐없이', '꼼꼼히', '정답을', '끝내'
 ];
-const DASHBOARD_INFO_DETAIL_KEYWORDS = ['근거', '세부', '정확', '단계', '순서', '기준', '오류', '수정', '비교', '분석', '검토'];
-const DASHBOARD_INFO_BIG_PICTURE_KEYWORDS = ['전체', '큰 그림', '흐름', '맥락', '요약', '핵심', '패턴', '연결', '관점', '방향'];
-const DASHBOARD_EXEC_PLAN_KEYWORDS = ['계획', '목표', '순서', '점검', '체크', '루틴', '복습', '준비', '실행'];
-const DASHBOARD_EXEC_EXPLORE_KEYWORDS = ['탐색', '시도', '실험', '질문', '발견', '도전', '확장', '새로운', '다르게'];
+const DASHBOARD_INFO_DETAIL_KEYWORDS = ['근거', '세부', '정확', '단계', '순서', '기준', '오류', '수정', '비교', '분석', '검토', '꼼꼼', '명확', '증거', '팩트', '설명', '자세히', '구체적', '하나하나', '수치', '기록', '증빙', '원인', '결과', '논리', '치밀', '완벽', '확인', '체크리스트', '데이터', '도표', '그래프'];
+const DASHBOARD_INFO_BIG_PICTURE_KEYWORDS = ['전체', '큰 그림', '흐름', '맥락', '요약', '핵심', '패턴', '연결', '관점', '방향', '의미', '가치', '배경', '전망', '구조', '목적', '본질', '조망', '통합', '관계', '영향', '비전', '철학', '통찰', '개념', '숲', '중심 생각', '주제'];
+const DASHBOARD_EXEC_PLAN_KEYWORDS = ['계획', '목표', '순서', '점검', '체크', '루틴', '복습', '준비', '실행', '미리', '예습', '체계', '효율', '달성', '우선순위', '리스트', '시간표', '단계별', '규칙', '습관', '꾸준히', '차근차근', '관리', '스케줄'];
+const DASHBOARD_EXEC_EXPLORE_KEYWORDS = ['탐색', '시도', '실험', '질문', '발견', '도전', '확장', '새로운', '다르게', '호기심', '창의', '아이디어', '변화', '경험', '호기심', '모험', '색다른', '우연히', '갑자기', '발상', '융합', '자유롭게', '실험적인'];
 const DASHBOARD_SUPPORT_COLLAB_TAGS = ['모둠활동', '토론', '발표'];
-const DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS = ['함께', '친구', '모둠', '토론', '발표', '협력', '의견', '역할', '같이', '의논', '도움', '서로', '팀', '협업'];
-const DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS = ['혼자', '스스로', '개별', '집중', '자습', '혼자서', '개인', '자기주도'];
+const DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS = ['함께', '친구', '모둠', '토론', '발표', '협력', '의견', '역할', '같이', '의논', '도움', '서로', '팀', '협업', '배려', '공유', '소통', '나눔', '공감', '공유', '협동', '조언', '피드백', '응원', '조화', '상생', '대화', '소통하는', '멘토', '멘티'];
+const DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS = ['혼자', '스스로', '개별', '집중', '자습', '혼자서', '개인', '자기주도', '몰입', '차분', '나만의', '독자', '독립적으로', '깊이', '고요히', '정적', '내 방식', '홀로', '마이웨이', '주체적', '개인적인 공감', '깊은 고찰'];
 const DASHBOARD_SUPPORT_SOLO_TAGS = ['개별활동', '자습'];
 const TOPIC_TOKEN_STOPWORDS = new Set([
   '수업', '학습', '내용', '오늘', '이번', '저번', '활동', '과정', '결과', '부분',
@@ -170,6 +181,15 @@ function isDemoStudentOne() {
   return isDemoMode && demoRole === 'student' && String(currentStudent?.id || '') === '1';
 }
 
+function isDemoClassStudentOneAccount() {
+  const classCode = String(currentClassCode || '').trim();
+  const studentNumberText = String(currentStudent?.studentNumber ?? currentStudent?.id ?? '').trim();
+  const parsedStudentNumber = Number.parseInt(studentNumberText, 10);
+  const isStudentOne = studentNumberText === '1'
+    || (Number.isFinite(parsedStudentNumber) && parsedStudentNumber === 1 && /^\d+$/.test(studentNumberText));
+  return classCode === '체험용' && isStudentOne;
+}
+
 async function loadDemoPersonalityWithStudentOneDbPriority() {
   if (isDemoStudentOne()) {
     if (!demoStudentOneDbLoaded || !studentPersonality) {
@@ -210,10 +230,18 @@ function isAbortLikeError(error) {
 
 function setAppLayoutMode(mode = 'default') {
   const body = document.body;
-  if (!body) return;
+  const html = document.documentElement;
+  if (!body || !html) return;
+  html.classList.remove('student-layout', 'teacher-layout');
   body.classList.remove('student-layout', 'teacher-layout');
-  if (mode === 'student') body.classList.add('student-layout');
-  if (mode === 'teacher') body.classList.add('teacher-layout');
+  if (mode === 'student') {
+    html.classList.add('student-layout');
+    body.classList.add('student-layout');
+  }
+  if (mode === 'teacher') {
+    html.classList.add('teacher-layout');
+    body.classList.add('teacher-layout');
+  }
 }
 
 function showRoleSelectInApp() {
@@ -374,8 +402,10 @@ function getActivePeerId(typeOverride = null) {
 function syncPeerTypeRadios(type) {
   const radios = document.getElementsByName('evalTypeDisplay');
   const resultRadios = document.getElementsByName('resultEvalTypeDisplay');
+  const artifactRadios = document.getElementsByName('artifactEvalTypeDisplay');
   radios.forEach(r => r.checked = (r.value === type));
   resultRadios.forEach(r => r.checked = (r.value === type));
+  artifactRadios.forEach(r => r.checked = (r.value === type));
 }
 
 function syncPeerReviewerUi() {
@@ -385,11 +415,20 @@ function syncPeerReviewerUi() {
   if (label) label.textContent = type === 'group' ? '나의 모둠' : '나의 번호';
   const reviewerInput = document.getElementById('reviewerId');
   if (reviewerInput) reviewerInput.value = reviewerId;
+  const artifactLabel = document.getElementById('artifactOwnerLabel');
+  if (artifactLabel) artifactLabel.textContent = type === 'group' ? '나의 모둠' : '나의 번호';
+  const artifactOwnerInput = document.getElementById('artifactOwnerId');
+  if (artifactOwnerInput) artifactOwnerInput.value = reviewerId;
 }
 
 async function ensureGroupAssignedOrBlock({ showAlert = true, persistFallback = false } = {}) {
   if (!currentStudent || currentStudent.type !== 'group') return true;
-  const groupNumber = getGroupNumber();
+  let groupNumber = getGroupNumber();
+  if (!groupNumber && isDemoClassStudentOneAccount()) {
+    currentStudent.groupNumber = '1';
+    groupNumber = '1';
+    syncPeerReviewerUi();
+  }
   if (groupNumber) return true;
 
   currentStudent.type = 'individual';
@@ -581,7 +620,7 @@ async function checkAuthAndRoute(retryCount = 0) {
       tMain.style.display = 'block';
       tMain.style.opacity = '1';
 
-      // 교사용 메인 화면 진입 시 기본적으로 '동료평가(review)' 탭을 띄우고 평가 기준 초기화
+      // 교사용 메인 화면 진입 시 기본적으로 '스스로 배움(diary)' 탭을 띄움
       setTimeout(() => {
         switchMiniTab('diary');
       }, 100);
@@ -615,6 +654,11 @@ async function checkAuthAndRoute(retryCount = 0) {
         isLegacyGroupAccount
       };
 
+      // 체험용 1번 학생은 모둠 배정 없이도 모둠평가 체험이 가능하도록 고정 모둠값을 부여
+      if (isDemoClassStudentOneAccount() && !getGroupNumber()) {
+        currentStudent.groupNumber = '1';
+      }
+
       if (currentStudent.type === 'group' && !getGroupNumber() && !currentStudent.isLegacyGroupAccount) {
         currentStudent.type = 'individual';
         try {
@@ -644,6 +688,7 @@ async function checkAuthAndRoute(retryCount = 0) {
         // 각 쿼리를 개별적으로 실행하여 하나가 실패해도 나머지는 작동
         let objTask = { objective: '', task: '' };
         let criteria = [];
+        let standards = [];
         let completed = [];
         let settings = { studentCount: 30, groupCount: 6 };
 
@@ -651,16 +696,19 @@ async function checkAuthAndRoute(retryCount = 0) {
           getObjectiveAndTask(initDate),
           getRatingCriteriaFromDB(initDate),
           getCompletedTargets(initDate, getActivePeerId(currentStudent.type), currentStudent.type),
-          getClassSettings()
+          getClassSettings(),
+          getAchievementStandardsFromDB(initDate)
         ]);
 
         if (results[0].status === 'fulfilled') objTask = results[0].value;
         if (results[1].status === 'fulfilled') criteria = results[1].value;
         if (results[2].status === 'fulfilled') completed = results[2].value;
         if (results[3].status === 'fulfilled') settings = results[3].value;
+        if (results[4].status === 'fulfilled') standards = results[4].value;
 
         document.getElementById('objectiveText').textContent = objTask.objective || '등록된 학습목표가 없습니다.';
         document.getElementById('taskText').textContent = objTask.task || '등록된 평가과제가 없습니다.';
+        renderStudentAchievementStandards(standards);
         ratingCriteria = criteria;
         renderRatingItems(criteria);
 
@@ -767,7 +815,7 @@ function initDemoMode(role) {
     currentStudent = {
       id: '1',
       studentNumber: '1',
-      groupNumber: '',
+      groupNumber: '1',
       type: 'individual',
       name: '1',
       isLegacyGroupAccount: false
@@ -801,8 +849,8 @@ function initDemoMode(role) {
     tMain.style.display = 'block';
     tMain.style.opacity = '1';
 
-    // 교사 기본 탭으로 시작
-    setTimeout(() => { switchMiniTab('review'); }, 100);
+    // 교사 기본 탭으로 시작 (스스로 배움)
+    setTimeout(() => { switchMiniTab('diary'); }, 100);
   }
 
   // 체험 모드 배너 추가
@@ -941,6 +989,9 @@ async function saveTeacherOnboarding() {
 }
 
 syncAllDates(getDefaultQueryDate());
+initAchievementStandardInput();
+setAchievementStandardsForEdit([]);
+renderStudentAchievementStandards([]);
 
 // Initial criteria fetch is deferred until class_code is available.
 // as they are handled inside checkAuthAndRoute after class_code is retrieved
@@ -949,9 +1000,22 @@ document.getElementById('reviewDate').addEventListener('change', function () {
   fetchCriteria(this.value);
   fetchRatingCriteria(this.value);
   if (currentStudent) loadEvalTargetGrid();
+  loadSelectedTargetArtifactAreaForCurrentSelection();
+});
+document.getElementById('artifactDate').addEventListener('change', function () {
+  loadMyPeerArtifactSection();
 });
 document.getElementById('teacherDate').addEventListener('change', function () {
   if (!document.getElementById('teacherMain').classList.contains('hidden')) loadTeacherData();
+});
+document.getElementById('approveDate').addEventListener('change', function () {
+  if (!document.getElementById('teacherMain').classList.contains('hidden')) {
+    loadTeacherArtifactApprovalList();
+    loadTeacherPeerArtifactEditor();
+  }
+});
+document.getElementById('teacherArtifactTargetId')?.addEventListener('change', function () {
+  if (!document.getElementById('teacherMain').classList.contains('hidden')) loadTeacherPeerArtifactEditor();
 });
 
 // ============================================
@@ -975,6 +1039,132 @@ async function getObjectiveAndTask(dateStr) {
   const { data: taskData } = await db.from('tasks').select('task').eq('class_code', currentClassCode).eq('eval_date', dateStr).maybeSingle();
   return { objective: objData ? objData.objective : '', task: taskData ? taskData.task : '' };
 }
+function normalizeAchievementStandard(value) {
+  return String(value || '').trim();
+}
+function sanitizeAchievementStandards(list) {
+  const source = Array.isArray(list) ? list : [];
+  const result = [];
+  source.forEach((item) => {
+    const value = normalizeAchievementStandard(item);
+    if (!value) return;
+    if (result.includes(value)) return;
+    if (result.length >= MAX_ACHIEVEMENT_STANDARD_COUNT) return;
+    result.push(value);
+  });
+  return result;
+}
+function achievementStandardsToColumns(list) {
+  const clean = sanitizeAchievementStandards(list);
+  return {
+    criteria_1: clean[0] || '',
+    criteria_2: clean[1] || '',
+    criteria_3: clean[2] || '',
+    criteria_4: clean[3] || '',
+    criteria_5: clean[4] || '',
+    criteria_6: clean[5] || ''
+  };
+}
+async function getAchievementStandardsFromDB(dateStr) {
+  if (!dateStr || !currentClassCode) return [];
+  try {
+    const { data } = await db
+      .from('rating_criteria')
+      .select('criteria_1,criteria_2,criteria_3,criteria_4,criteria_5,criteria_6')
+      .eq('class_code', currentClassCode)
+      .eq('eval_date', dateStr)
+      .eq('eval_type', ACHIEVEMENT_STANDARD_EVAL_TYPE)
+      .maybeSingle();
+    if (!data) return [];
+    return sanitizeAchievementStandards([
+      data.criteria_1,
+      data.criteria_2,
+      data.criteria_3,
+      data.criteria_4,
+      data.criteria_5,
+      data.criteria_6
+    ]);
+  } catch (error) {
+    console.warn('getAchievementStandardsFromDB error:', error);
+    return [];
+  }
+}
+async function saveAchievementStandardsToDB(dateStr, list) {
+  const payload = {
+    class_code: currentClassCode,
+    eval_date: dateStr,
+    eval_type: ACHIEVEMENT_STANDARD_EVAL_TYPE,
+    ...achievementStandardsToColumns(list)
+  };
+  return db.from('rating_criteria').upsert(payload, { onConflict: 'class_code,eval_date,eval_type' });
+}
+function initAchievementStandardInput() {
+  const input = document.getElementById('settingAchievementStandardInput');
+  if (!input) return;
+  input.value = '';
+}
+function renderSettingAchievementStandards() {
+  const listEl = document.getElementById('settingAchievementStandardList');
+  if (!listEl) return;
+  if (!settingAchievementStandards.length) {
+    listEl.innerHTML = '';
+    return;
+  }
+  listEl.innerHTML = settingAchievementStandards.map((item, idx) =>
+    '<div class="achievement-standard-chip">' +
+    '<span>' + escapeHtml(item) + '</span>' +
+    '<button type="button" class="achievement-standard-remove-btn" onclick="removeAchievementStandard(' + idx + ')" aria-label="성취 기준 삭제">×</button>' +
+    '</div>'
+  ).join('');
+}
+function setAchievementStandardsForEdit(list) {
+  settingAchievementStandards = sanitizeAchievementStandards(list);
+  renderSettingAchievementStandards();
+}
+function addAchievementStandard() {
+  const input = document.getElementById('settingAchievementStandardInput');
+  const value = normalizeAchievementStandard(input ? input.value : '');
+  if (!value) {
+    showModal({ type: 'alert', icon: '⚠️', title: '입력 필요', message: '추가할 성취 기준을 입력해 주세요.' });
+    return;
+  }
+  if (settingAchievementStandards.includes(value)) {
+    showModal({ type: 'alert', icon: 'ℹ️', title: '중복 선택', message: '이미 추가된 성취 기준입니다.' });
+    return;
+  }
+  if (settingAchievementStandards.length >= MAX_ACHIEVEMENT_STANDARD_COUNT) {
+    showModal({
+      type: 'alert',
+      icon: '⚠️',
+      title: '최대 개수 도달',
+      message: '성취 기준은 최대 ' + MAX_ACHIEVEMENT_STANDARD_COUNT + '개까지 추가할 수 있습니다.'
+    });
+    return;
+  }
+  settingAchievementStandards.push(value);
+  if (input) input.value = '';
+  renderSettingAchievementStandards();
+}
+function removeAchievementStandard(index) {
+  if (index < 0 || index >= settingAchievementStandards.length) return;
+  settingAchievementStandards.splice(index, 1);
+  renderSettingAchievementStandards();
+}
+function renderStudentAchievementStandards(list) {
+  const area = document.getElementById('achievementArea');
+  const listEl = document.getElementById('achievementList');
+  if (!area || !listEl) return;
+  achievementStandards = sanitizeAchievementStandards(list);
+  if (!achievementStandards.length) {
+    area.classList.add('hidden');
+    listEl.innerHTML = '';
+    return;
+  }
+  area.classList.remove('hidden');
+  listEl.innerHTML = achievementStandards.map((item) =>
+    '<span class="achievement-badge">' + escapeHtml(item) + '</span>'
+  ).join('');
+}
 async function getRatingCriteriaFromDB(dateStr, evalType) {
   if (!evalType) evalType = currentStudent ? currentStudent.type : 'individual';
   const { data } = await db.from('rating_criteria').select('*').eq('class_code', currentClassCode).eq('eval_date', dateStr).eq('eval_type', evalType).maybeSingle();
@@ -991,6 +1181,657 @@ async function getCompletedTargets(dateStr, reviewerId, reviewType) {
   if (!reviewerId || !reviewType) return [];
   const { data } = await db.from('reviews').select('target_id').eq('class_code', currentClassCode).eq('review_date', dateStr).eq('reviewer_id', String(reviewerId)).eq('review_type', reviewType);
   return (data || []).map(r => r.target_id);
+}
+
+function normalizePeerEvalType(value) {
+  return value === 'group' ? 'group' : 'individual';
+}
+
+function normalizePeerArtifactStatus(value) {
+  if (value === PEER_ARTIFACT_STATUS_APPROVED) return PEER_ARTIFACT_STATUS_APPROVED;
+  if (value === PEER_ARTIFACT_STATUS_REJECTED) return PEER_ARTIFACT_STATUS_REJECTED;
+  return PEER_ARTIFACT_STATUS_PENDING;
+}
+
+function isPeerArtifactTableMissingError(error) {
+  const msg = String(error?.message || '').toLowerCase();
+  return msg.includes('peer_artifacts')
+    && (
+      msg.includes('relation')
+      || msg.includes('does not exist')
+      || msg.includes('schema cache')
+      || msg.includes('could not find')
+      || msg.includes('pgrst')
+    );
+}
+
+function normalizePeerArtifactUrl(rawUrl) {
+  const raw = String(rawUrl || '').trim();
+  if (!raw) return '';
+  try {
+    const parsed = new URL(raw);
+    if (!/^https?:$/i.test(parsed.protocol)) return '';
+    return parsed.href;
+  } catch (_) {
+    return '';
+  }
+}
+
+function getPeerTargetLabel(targetId, evalType) {
+  const suffix = normalizePeerEvalType(evalType) === 'group' ? '모둠' : '번';
+  return String(targetId || '-') + suffix;
+}
+
+function getPeerArtifactStatusMeta(status) {
+  const normalized = normalizePeerArtifactStatus(status);
+  if (normalized === PEER_ARTIFACT_STATUS_APPROVED) return { label: '승인됨', className: 'is-approved' };
+  if (normalized === PEER_ARTIFACT_STATUS_REJECTED) return { label: '반려됨', className: 'is-rejected' };
+  return { label: '승인 대기', className: 'is-pending' };
+}
+
+let selectedTargetArtifactRequestSeq = 0;
+
+function renderSelectedTargetArtifactEmpty(message) {
+  const area = document.getElementById('selectedTargetArtifactArea');
+  if (!area) return;
+  area.innerHTML =
+    '<div class="empty-state">' +
+    '<span class="empty-icon">📎</span>' +
+    '<div class="empty-desc">' + escapeHtml(String(message || '평가 대상을 먼저 선택해 주세요.')) + '</div>' +
+    '</div>';
+}
+
+async function loadApprovedArtifactForTarget(dateStr, evalType, targetId) {
+  const type = normalizePeerEvalType(evalType);
+  if (!dateStr || !targetId || !currentClassCode) return { row: null, error: null };
+  try {
+    const { data, error } = await db.from('peer_artifacts')
+      .select('id,class_code,eval_date,eval_type,target_id,source_url,status,submitted_at,reviewed_at,updated_at')
+      .eq('class_code', currentClassCode)
+      .eq('eval_date', dateStr)
+      .eq('eval_type', type)
+      .eq('target_id', String(targetId))
+      .eq('status', PEER_ARTIFACT_STATUS_APPROVED)
+      .maybeSingle();
+    return { row: data || null, error: error || null };
+  } catch (error) {
+    return { row: null, error };
+  }
+}
+
+async function loadSelectedTargetArtifactAreaForCurrentSelection() {
+  const area = document.getElementById('selectedTargetArtifactArea');
+  if (!area) return;
+
+  const requestSeq = ++selectedTargetArtifactRequestSeq;
+  const targetId = String(document.getElementById('targetId')?.value || '').trim();
+  if (!targetId) {
+    renderSelectedTargetArtifactEmpty('평가 대상을 먼저 선택해 주세요.');
+    return;
+  }
+
+  const evalType = normalizePeerEvalType(currentStudent?.type || 'individual');
+  const targetLabel = getPeerTargetLabel(targetId, evalType);
+  area.innerHTML =
+    '<div class="peer-target-artifact-card">' +
+    '<div class="peer-target-artifact-title">📎 평가 자료</div>' +
+    '<div class="peer-target-artifact-desc">' + escapeHtml(targetLabel) + ' 자료를 확인하는 중입니다...</div>' +
+    '</div>';
+
+  if (isDemoMode) {
+    if (requestSeq !== selectedTargetArtifactRequestSeq) return;
+    area.innerHTML =
+      '<div class="peer-target-artifact-card">' +
+      '<div class="peer-target-artifact-title">📎 평가 자료</div>' +
+      '<div class="peer-target-artifact-desc">' + escapeHtml(targetLabel) + ' 공유 자료가 없습니다. 발표를 보고 평가를 이어갈 수 있어요.</div>' +
+      '</div>';
+    return;
+  }
+
+  const dateStr = String(document.getElementById('reviewDate')?.value || '').trim();
+  const { row, error } = await loadApprovedArtifactForTarget(dateStr, evalType, targetId);
+  if (requestSeq !== selectedTargetArtifactRequestSeq) return;
+
+  if (error) {
+    const msg = isPeerArtifactTableMissingError(error)
+      ? '평가 자료 테이블이 아직 준비되지 않았습니다.'
+      : ('평가 자료를 불러오는 중 오류가 발생했습니다: ' + (error.message || error));
+    area.innerHTML =
+      '<div class="peer-target-artifact-card">' +
+      '<div class="peer-target-artifact-title">📎 평가 자료</div>' +
+      '<div class="peer-target-artifact-desc">' + escapeHtml(msg) + '</div>' +
+      '</div>';
+    return;
+  }
+
+  if (!row) {
+    area.innerHTML =
+      '<div class="peer-target-artifact-card">' +
+      '<div class="peer-target-artifact-title">📎 평가 자료</div>' +
+      '<div class="peer-target-artifact-desc">' + escapeHtml(targetLabel) + ' 공유 자료가 없습니다. 발표를 보고 평가를 이어갈 수 있어요.</div>' +
+      '</div>';
+    return;
+  }
+
+  const safeUrl = normalizePeerArtifactUrl(row.source_url);
+  if (!safeUrl) {
+    area.innerHTML =
+      '<div class="peer-target-artifact-card">' +
+      '<div class="peer-target-artifact-title">📎 평가 자료</div>' +
+      '<div class="peer-target-artifact-desc">등록된 URL 형식이 올바르지 않아 열 수 없습니다.</div>' +
+      '</div>';
+    return;
+  }
+
+  area.innerHTML =
+    '<div class="peer-target-artifact-card">' +
+    '<div class="peer-target-artifact-title">📎 평가 자료</div>' +
+    '<div class="peer-target-artifact-row"><span class="peer-target-artifact-chip">' + escapeHtml(targetLabel) + '</span><span class="peer-target-artifact-chip">승인됨</span></div>' +
+    '<a class="peer-target-artifact-link" href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">자료 열기</a>' +
+    '</div>';
+}
+
+function buildMyPeerArtifactStatusHtml(row) {
+  if (!row) {
+    return '<div class="empty-state"><span class="empty-icon">📎</span><div class="empty-desc">등록된 평가 자료가 없습니다.</div></div>';
+  }
+  const statusMeta = getPeerArtifactStatusMeta(row.status);
+  const safeUrl = normalizePeerArtifactUrl(row.source_url);
+  const reviewedAt = row.reviewed_at ? new Date(row.reviewed_at).toLocaleString('ko-KR') : '';
+  const rejectionReason = String(row.rejection_reason || '').trim();
+  let html =
+    '<div class="peer-artifact-status-item">' +
+    '<div class="peer-artifact-status-head"><span class="peer-artifact-status-badge ' + statusMeta.className + '">' + statusMeta.label + '</span></div>';
+  if (safeUrl) {
+    html += '<a class="peer-target-artifact-link" href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">내 자료 URL 열기</a>';
+  }
+  if (statusMeta.className === 'is-rejected' && rejectionReason) {
+    html += '<div class="peer-artifact-status-note">반려 사유: ' + escapeHtml(rejectionReason) + '</div>';
+  } else if (statusMeta.className === 'is-approved' && reviewedAt) {
+    html += '<div class="peer-artifact-status-note">승인 시각: ' + escapeHtml(reviewedAt) + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+async function loadMyPeerArtifactSection() {
+  const statusArea = document.getElementById('artifactStatusArea');
+  const urlInput = document.getElementById('artifactUrlInput');
+  const msgEl = document.getElementById('artifactMsg');
+  if (!statusArea || !urlInput || !msgEl) return;
+  msgEl.style.display = 'none';
+  msgEl.textContent = '';
+
+  if (!currentStudent || !currentClassCode) {
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">📎</span><div class="empty-desc">학생 정보를 불러오는 중입니다.</div></div>';
+    return;
+  }
+  if (currentStudent.type === 'group') {
+    const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+    if (!canUseGroup) return;
+  }
+
+  syncPeerReviewerUi();
+  const evalType = normalizePeerEvalType(currentStudent.type || 'individual');
+  const targetId = getActivePeerId(evalType);
+  const artifactDateEl = document.getElementById('artifactDate');
+  if (!artifactDateEl) return;
+  const dateStr = String(artifactDateEl.value || document.getElementById('reviewDate')?.value || '').trim();
+  if (!artifactDateEl.value && dateStr) artifactDateEl.value = dateStr;
+
+  if (!targetId) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">📎</span><div class="empty-desc">자료를 등록할 대상 번호/모둠을 확인할 수 없습니다.</div></div>';
+    return;
+  }
+  if (isDemoMode) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">🧪</span><div class="empty-desc">체험 모드에서는 자료 저장이 비활성화됩니다.</div></div>';
+    return;
+  }
+
+  try {
+    const { data, error } = await db.from('peer_artifacts')
+      .select('id,class_code,eval_date,eval_type,target_id,source_url,status,rejection_reason,submitted_at,reviewed_at,updated_at')
+      .eq('class_code', currentClassCode)
+      .eq('eval_date', dateStr)
+      .eq('eval_type', evalType)
+      .eq('target_id', String(targetId))
+      .maybeSingle();
+    if (error) throw error;
+    urlInput.value = String(data?.source_url || '');
+    statusArea.innerHTML = buildMyPeerArtifactStatusHtml(data || null);
+  } catch (error) {
+    if (isPeerArtifactTableMissingError(error)) {
+      showMsg(msgEl, 'peer_artifacts 테이블이 아직 준비되지 않았습니다. 마이그레이션을 적용해 주세요.', 'error');
+      statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">평가 자료 기능을 준비하는 중입니다.</div></div>';
+      return;
+    }
+    showMsg(msgEl, '자료 상태를 불러올 수 없습니다: ' + (error.message || error), 'error');
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">자료 상태 조회 중 오류가 발생했습니다.</div></div>';
+  }
+}
+
+async function saveMyPeerArtifact(btn) {
+  if (isDemoMode) { showDemoBlockModal(); return; }
+  if (!currentStudent || !currentClassCode) return;
+  if (currentStudent.type === 'group') {
+    const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+    if (!canUseGroup) return;
+  }
+
+  const msgEl = document.getElementById('artifactMsg');
+  const urlInput = document.getElementById('artifactUrlInput');
+  const dateStr = String(document.getElementById('artifactDate')?.value || '').trim();
+  const evalType = normalizePeerEvalType(currentStudent.type || 'individual');
+  const targetId = String(getActivePeerId(evalType) || '').trim();
+  if (!dateStr) { showMsg(msgEl, '평가 날짜를 선택해 주세요.', 'error'); return; }
+  if (!targetId) { showMsg(msgEl, '번호/모둠 정보를 확인할 수 없습니다.', 'error'); return; }
+
+  const rawUrl = String(urlInput?.value || '').trim();
+  if (rawUrl && !normalizePeerArtifactUrl(rawUrl)) {
+    showMsg(msgEl, 'URL은 http:// 또는 https:// 형식만 등록할 수 있습니다.', 'error');
+    return;
+  }
+
+  setLoading(true, btn, '저장 중...');
+  try {
+    if (!rawUrl) {
+      const { error } = await db.from('peer_artifacts')
+        .delete()
+        .eq('class_code', currentClassCode)
+        .eq('eval_date', dateStr)
+        .eq('eval_type', evalType)
+        .eq('target_id', targetId);
+      if (error) throw error;
+      showMsg(msgEl, '자료 URL을 삭제했습니다.', 'success');
+      await loadMyPeerArtifactSection();
+      loadSelectedTargetArtifactAreaForCurrentSelection();
+      return;
+    }
+
+    const { data: authData, error: authError } = await db.auth.getUser();
+    if (authError) throw authError;
+    const userId = String(authData?.user?.id || '').trim();
+    if (!userId) throw new Error('로그인 정보를 확인할 수 없습니다.');
+
+    const payload = {
+      class_code: currentClassCode,
+      eval_date: dateStr,
+      eval_type: evalType,
+      target_id: targetId,
+      source_url: normalizePeerArtifactUrl(rawUrl),
+      status: PEER_ARTIFACT_STATUS_PENDING,
+      rejection_reason: null,
+      submitted_by_uid: userId,
+      submitted_at: new Date().toISOString()
+    };
+    const { error } = await db.from('peer_artifacts')
+      .upsert(payload, { onConflict: 'class_code,eval_date,eval_type,target_id' });
+    if (error) throw error;
+    showMsg(msgEl, '자료 URL이 저장되었습니다. 교사 승인 후 다른 친구들이 볼 수 있습니다.', 'success');
+    await loadMyPeerArtifactSection();
+    loadSelectedTargetArtifactAreaForCurrentSelection();
+  } catch (error) {
+    if (isPeerArtifactTableMissingError(error)) {
+      showMsg(msgEl, 'peer_artifacts 테이블이 아직 준비되지 않았습니다. 마이그레이션을 적용해 주세요.', 'error');
+    } else {
+      showMsg(msgEl, '자료 URL 저장에 실패했습니다: ' + (error.message || error), 'error');
+    }
+  } finally {
+    setLoading(false, btn, '자료 URL 저장하기');
+  }
+}
+
+function syncTeacherArtifactEditorUi(evalType) {
+  const normalizedType = normalizePeerEvalType(evalType);
+  const targetLabelEl = document.getElementById('teacherArtifactTargetLabel');
+  const targetInputEl = document.getElementById('teacherArtifactTargetId');
+  const labelText = normalizedType === 'group' ? '대상 모둠' : '대상 번호';
+  const placeholder = normalizedType === 'group' ? '예: 2 (모둠 번호)' : '예: 2 (학생 번호)';
+  if (targetLabelEl) targetLabelEl.textContent = labelText;
+  if (targetInputEl) {
+    targetInputEl.placeholder = placeholder;
+    targetInputEl.setAttribute('aria-label', labelText);
+  }
+}
+
+function buildTeacherPeerArtifactStatusHtml(row, targetLabel) {
+  if (!row) {
+    return '<div class="empty-state"><span class="empty-icon">📎</span><div class="empty-desc">' + escapeHtml(targetLabel) + '에 등록된 자료가 없습니다.</div></div>';
+  }
+  const statusMeta = getPeerArtifactStatusMeta(row.status);
+  const safeUrl = normalizePeerArtifactUrl(row.source_url);
+  const reviewedAt = row.reviewed_at ? new Date(row.reviewed_at).toLocaleString('ko-KR') : '';
+  const rejectionReason = String(row.rejection_reason || '').trim();
+  let html =
+    '<div class="peer-artifact-status-item">' +
+    '<div class="peer-artifact-status-head"><span class="peer-artifact-status-badge ' + statusMeta.className + '">' + statusMeta.label + '</span></div>' +
+    '<div class="peer-artifact-status-note">대상: ' + escapeHtml(targetLabel) + '</div>';
+  if (safeUrl) {
+    html += '<a class="peer-target-artifact-link" href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">등록된 URL 열기</a>';
+  } else {
+    html += '<div class="peer-artifact-status-note">등록된 URL 형식이 올바르지 않습니다.</div>';
+  }
+  if (statusMeta.className === 'is-rejected' && rejectionReason) {
+    html += '<div class="peer-artifact-status-note">반려 사유: ' + escapeHtml(rejectionReason) + '</div>';
+  } else if (statusMeta.className === 'is-approved' && reviewedAt) {
+    html += '<div class="peer-artifact-status-note">승인 시각: ' + escapeHtml(reviewedAt) + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+async function loadTeacherPeerArtifactEditor() {
+  const statusArea = document.getElementById('teacherArtifactEditorStatusArea');
+  const urlInput = document.getElementById('teacherArtifactUrlInput');
+  const msgEl = document.getElementById('teacherArtifactEditorMsg');
+  const targetInput = document.getElementById('teacherArtifactTargetId');
+  if (!statusArea || !urlInput || !msgEl || !targetInput) return;
+
+  const typeEl = document.querySelector('input[name="teacherArtifactEvalType"]:checked');
+  const evalType = normalizePeerEvalType(typeEl ? typeEl.value : 'individual');
+  syncTeacherArtifactEditorUi(evalType);
+
+  msgEl.style.display = 'none';
+  msgEl.textContent = '';
+
+  if (!currentClassCode) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">📎</span><div class="empty-desc">학급 정보를 확인할 수 없습니다.</div></div>';
+    return;
+  }
+  if (isDemoMode) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">🧪</span><div class="empty-desc">체험 모드에서는 교사 자료 등록이 비활성화됩니다.</div></div>';
+    return;
+  }
+
+  const dateStr = String(document.getElementById('approveDate')?.value || document.getElementById('teacherDate')?.value || '').trim();
+  if (!dateStr) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">📅</span><div class="empty-desc">조회 날짜를 먼저 선택해 주세요.</div></div>';
+    return;
+  }
+
+  const rawTargetId = String(targetInput.value || '').trim();
+  if (!rawTargetId) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">👤</span><div class="empty-desc">대상 번호/모둠을 입력해 주세요.</div></div>';
+    return;
+  }
+
+  const parsedTargetId = parseOptionalPositiveInt(rawTargetId);
+  if (!parsedTargetId) {
+    urlInput.value = '';
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">대상 번호/모둠은 1 이상의 숫자만 입력할 수 있습니다.</div></div>';
+    return;
+  }
+
+  const targetId = String(parsedTargetId);
+  targetInput.value = targetId;
+  const targetLabel = getPeerTargetLabel(targetId, evalType);
+
+  try {
+    const { data, error } = await db.from('peer_artifacts')
+      .select('id,class_code,eval_date,eval_type,target_id,source_url,status,rejection_reason,submitted_at,reviewed_at,updated_at')
+      .eq('class_code', currentClassCode)
+      .eq('eval_date', dateStr)
+      .eq('eval_type', evalType)
+      .eq('target_id', targetId)
+      .maybeSingle();
+    if (error) throw error;
+    urlInput.value = String(data?.source_url || '');
+    statusArea.innerHTML = buildTeacherPeerArtifactStatusHtml(data || null, targetLabel);
+  } catch (error) {
+    if (isPeerArtifactTableMissingError(error)) {
+      showMsg(msgEl, 'peer_artifacts 테이블이 아직 준비되지 않았습니다. 마이그레이션을 적용해 주세요.', 'error');
+      statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">자료 등록 기능을 준비하는 중입니다.</div></div>';
+      return;
+    }
+    showMsg(msgEl, '교사 자료 상태 조회 중 오류가 발생했습니다: ' + (error.message || error), 'error');
+    statusArea.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">자료 상태를 불러올 수 없습니다.</div></div>';
+  }
+}
+
+async function saveTeacherPeerArtifact(btn) {
+  if (isDemoMode) { showDemoBlockModal(); return; }
+  if (!currentClassCode) return;
+
+  const msgEl = document.getElementById('teacherArtifactEditorMsg');
+  const urlInput = document.getElementById('teacherArtifactUrlInput');
+  const targetInput = document.getElementById('teacherArtifactTargetId');
+  if (!msgEl || !urlInput || !targetInput) return;
+
+  const typeEl = document.querySelector('input[name="teacherArtifactEvalType"]:checked');
+  const evalType = normalizePeerEvalType(typeEl ? typeEl.value : 'individual');
+  const dateStr = String(document.getElementById('approveDate')?.value || document.getElementById('teacherDate')?.value || '').trim();
+  if (!dateStr) {
+    showMsg(msgEl, '조회 날짜를 먼저 선택해 주세요.', 'error');
+    return;
+  }
+
+  const parsedTargetId = parseOptionalPositiveInt(String(targetInput.value || '').trim());
+  if (!parsedTargetId) {
+    showMsg(msgEl, '대상 번호/모둠은 1 이상의 숫자만 입력할 수 있습니다.', 'error');
+    return;
+  }
+
+  const settings = await getClassSettings();
+  const maxTarget = evalType === 'group'
+    ? parseOptionalPositiveInt(settings.groupCount)
+    : parseOptionalPositiveInt(settings.studentCount);
+  if (maxTarget && parsedTargetId > maxTarget) {
+    const unit = evalType === 'group' ? '모둠' : '학생';
+    showMsg(msgEl, '대상 ' + unit + ' 번호는 최대 ' + maxTarget + '까지 입력할 수 있습니다.', 'error');
+    return;
+  }
+
+  const targetId = String(parsedTargetId);
+  targetInput.value = targetId;
+
+  const rawUrl = String(urlInput.value || '').trim();
+  if (rawUrl && !normalizePeerArtifactUrl(rawUrl)) {
+    showMsg(msgEl, 'URL은 http:// 또는 https:// 형식만 등록할 수 있습니다.', 'error');
+    return;
+  }
+
+  setLoading(true, btn, '저장 중...');
+  try {
+    const { data: authData, error: authError } = await db.auth.getUser();
+    if (authError) throw authError;
+    const userId = String(authData?.user?.id || '').trim();
+    if (!userId) throw new Error('로그인 정보를 확인할 수 없습니다.');
+
+    if (!rawUrl) {
+      const { error } = await db.from('peer_artifacts')
+        .delete()
+        .eq('class_code', currentClassCode)
+        .eq('eval_date', dateStr)
+        .eq('eval_type', evalType)
+        .eq('target_id', targetId);
+      if (error) throw error;
+      showMsg(msgEl, '교사 등록 자료를 삭제했습니다.', 'success');
+      await Promise.all([loadTeacherPeerArtifactEditor(), loadTeacherArtifactApprovalList()]);
+      return;
+    }
+
+    const nowIso = new Date().toISOString();
+    const payload = {
+      class_code: currentClassCode,
+      eval_date: dateStr,
+      eval_type: evalType,
+      target_id: targetId,
+      source_url: normalizePeerArtifactUrl(rawUrl),
+      status: PEER_ARTIFACT_STATUS_APPROVED,
+      rejection_reason: null,
+      submitted_by_uid: userId,
+      submitted_at: nowIso,
+      reviewed_by_uid: userId,
+      reviewed_at: nowIso
+    };
+    const { error } = await db.from('peer_artifacts')
+      .upsert(payload, { onConflict: 'class_code,eval_date,eval_type,target_id' });
+    if (error) throw error;
+
+    showMsg(msgEl, '교사 자료 URL이 저장되었습니다. 학생 평가 화면에 즉시 노출됩니다.', 'success');
+    await Promise.all([loadTeacherPeerArtifactEditor(), loadTeacherArtifactApprovalList()]);
+  } catch (error) {
+    if (isPeerArtifactTableMissingError(error)) {
+      showMsg(msgEl, 'peer_artifacts 테이블이 아직 준비되지 않았습니다. 마이그레이션을 적용해 주세요.', 'error');
+    } else {
+      showMsg(msgEl, '교사 자료 URL 저장에 실패했습니다: ' + (error.message || error), 'error');
+    }
+  } finally {
+    setLoading(false, btn, '교사 자료 저장하기');
+  }
+}
+
+async function loadTeacherArtifactApprovalList() {
+  const container = document.getElementById('teacherArtifactApprovalList');
+  const msgEl = document.getElementById('teacherArtifactApprovalMsg');
+  if (!container || !msgEl) return;
+  msgEl.style.display = 'none';
+  msgEl.textContent = '';
+
+  if (!currentClassCode) {
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">📎</span><div class="empty-desc">학급 정보를 확인할 수 없습니다.</div></div>';
+    return;
+  }
+  if (isDemoMode) {
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">🧪</span><div class="empty-desc">체험 모드에서는 자료 승인 기능이 비활성화됩니다.</div></div>';
+    return;
+  }
+
+  const dateStr = String(document.getElementById('approveDate')?.value || document.getElementById('teacherDate')?.value || '').trim();
+  const typeEl = document.querySelector('input[name="teacherArtifactEvalType"]:checked');
+  const evalType = normalizePeerEvalType(typeEl ? typeEl.value : 'individual');
+  const statusFilter = String(document.getElementById('teacherArtifactStatusFilter')?.value || 'pending').trim();
+  container.innerHTML = '<p style="text-align:center;">불러오는 중...</p>';
+
+  try {
+    let query = db.from('peer_artifacts')
+      .select('id,class_code,eval_date,eval_type,target_id,source_url,status,rejection_reason,submitted_at,reviewed_at,updated_at')
+      .eq('class_code', currentClassCode)
+      .eq('eval_date', dateStr)
+      .eq('eval_type', evalType)
+      .order('submitted_at', { ascending: false });
+    if (statusFilter !== 'all') query = query.eq('status', normalizePeerArtifactStatus(statusFilter));
+    const { data, error } = await query;
+    if (error) throw error;
+
+    const rows = Array.isArray(data) ? data : [];
+    if (rows.length === 0) {
+      container.innerHTML = '<div class="empty-state"><span class="empty-icon">📭</span><div class="empty-desc">조건에 맞는 자료 제출 내역이 없습니다.</div></div>';
+      return;
+    }
+
+    const html = rows.map((row) => {
+      const statusMeta = getPeerArtifactStatusMeta(row.status);
+      const targetLabel = getPeerTargetLabel(row.target_id, row.eval_type);
+      const submittedAt = row.submitted_at ? new Date(row.submitted_at).toLocaleString('ko-KR') : '-';
+      const reviewedAt = row.reviewed_at ? new Date(row.reviewed_at).toLocaleString('ko-KR') : '';
+      const safeUrl = normalizePeerArtifactUrl(row.source_url);
+      const idText = escapeHtml(String(row.id || ''));
+      const rejectionReason = String(row.rejection_reason || '').trim();
+      let item =
+        '<article class="peer-artifact-approval-item">' +
+        '<div class="peer-artifact-approval-head">' +
+        '<strong>' + escapeHtml(targetLabel) + '</strong>' +
+        '<span class="peer-artifact-status-badge ' + statusMeta.className + '">' + statusMeta.label + '</span>' +
+        '</div>' +
+        '<div class="peer-artifact-approval-meta">제출: ' + escapeHtml(submittedAt) + '</div>';
+      if (reviewedAt) {
+        item += '<div class="peer-artifact-approval-meta">처리: ' + escapeHtml(reviewedAt) + '</div>';
+      }
+      if (safeUrl) {
+        item += '<a class="peer-target-artifact-link" href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">자료 열기</a>';
+      } else {
+        item += '<div class="peer-artifact-approval-meta">URL 형식 오류</div>';
+      }
+      if (statusMeta.className === 'is-rejected' && rejectionReason) {
+        item += '<div class="peer-artifact-status-note">반려 사유: ' + escapeHtml(rejectionReason) + '</div>';
+      }
+      if (statusMeta.className === 'is-pending') {
+        item +=
+          '<div class="peer-artifact-approval-actions">' +
+          '<button type="button" class="teacher-review-more-btn" data-artifact-action="approve" data-artifact-id="' + idText + '">승인</button>' +
+          '<button type="button" class="teacher-review-more-btn" data-artifact-action="reject" data-artifact-id="' + idText + '">반려</button>' +
+          '</div>';
+      }
+      item += '</article>';
+      return item;
+    }).join('');
+
+    container.innerHTML = html;
+    container.querySelectorAll('[data-artifact-action="approve"]').forEach((btn) => {
+      btn.addEventListener('click', () => approvePeerArtifact(btn.dataset.artifactId));
+    });
+    container.querySelectorAll('[data-artifact-action="reject"]').forEach((btn) => {
+      btn.addEventListener('click', () => rejectPeerArtifact(btn.dataset.artifactId));
+    });
+  } catch (error) {
+    if (isPeerArtifactTableMissingError(error)) {
+      showMsg(msgEl, 'peer_artifacts 테이블이 아직 준비되지 않았습니다. 마이그레이션을 적용해 주세요.', 'error');
+      container.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">자료 승인 기능을 준비하는 중입니다.</div></div>';
+      return;
+    }
+    showMsg(msgEl, '자료 제출 목록 조회 중 오류: ' + (error.message || error), 'error');
+    container.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">자료 제출 목록을 불러올 수 없습니다.</div></div>';
+  }
+}
+
+async function updatePeerArtifactStatus(artifactId, nextStatus, rejectionReason = '') {
+  const status = normalizePeerArtifactStatus(nextStatus);
+  const { data: authData, error: authError } = await db.auth.getUser();
+  if (authError) throw authError;
+  const reviewerUid = String(authData?.user?.id || '').trim();
+  if (!reviewerUid) throw new Error('로그인 정보를 확인할 수 없습니다.');
+
+  const payload = {
+    status,
+    rejection_reason: status === PEER_ARTIFACT_STATUS_REJECTED ? String(rejectionReason || '').trim() : null,
+    reviewed_by_uid: reviewerUid,
+    reviewed_at: new Date().toISOString()
+  };
+  const { error } = await db.from('peer_artifacts')
+    .update(payload)
+    .eq('id', artifactId)
+    .eq('class_code', currentClassCode);
+  if (error) throw error;
+}
+
+async function approvePeerArtifact(artifactId) {
+  const msgEl = document.getElementById('teacherArtifactApprovalMsg');
+  if (!artifactId) return;
+  try {
+    await updatePeerArtifactStatus(artifactId, PEER_ARTIFACT_STATUS_APPROVED);
+    showMsg(msgEl, '자료를 승인했습니다.', 'success');
+    await loadTeacherArtifactApprovalList();
+  } catch (error) {
+    showMsg(msgEl, '승인 처리 중 오류가 발생했습니다: ' + (error.message || error), 'error');
+  }
+}
+
+function rejectPeerArtifact(artifactId) {
+  const msgEl = document.getElementById('teacherArtifactApprovalMsg');
+  if (!artifactId) return;
+  showModal({
+    type: 'prompt',
+    icon: '⚠️',
+    title: '자료 반려',
+    message: '반려 사유를 입력해 주세요. (선택)',
+    inputPlaceholder: '예: 공유 권한을 전체 공개로 변경해 주세요.',
+    onConfirm: async (reason) => {
+      try {
+        await updatePeerArtifactStatus(artifactId, PEER_ARTIFACT_STATUS_REJECTED, reason || '');
+        showMsg(msgEl, '자료를 반려했습니다.', 'success');
+        await loadTeacherArtifactApprovalList();
+      } catch (error) {
+        showMsg(msgEl, '반려 처리 중 오류가 발생했습니다: ' + (error.message || error), 'error');
+      }
+    }
+  });
 }
 
 // ============================================
@@ -1125,10 +1966,12 @@ async function switchTypeAndLogout(newType) {
   renderRatingItems(criteria);
   const max = nextType === 'group' ? settings.groupCount : settings.studentCount;
   renderTargetGrid(max, reviewerId, completed, nextType);
+  loadSelectedTargetArtifactAreaForCurrentSelection();
+  loadMyPeerArtifactSection();
 }
 
 function syncAllDates(dateStr) {
-  const dateInputs = ['reviewDate', 'viewDate', 'teacherDate', 'settingDate', 'selfDate', 'diaryViewDate', 'diaryStudentViewDate', 'messageViewDate'];
+  const dateInputs = ['reviewDate', 'artifactDate', 'viewDate', 'teacherDate', 'approveDate', 'settingDate', 'selfDate', 'diaryViewDate', 'diaryStudentViewDate', 'messageViewDate'];
   dateInputs.forEach(id => { const el = document.getElementById(id); if (el) el.value = dateStr; });
 }
 
@@ -1179,7 +2022,7 @@ function switchStudentMainTab(mode) {
   } else if (mode === 'peer') {
     btns[1].classList.add('active-nav');
     document.getElementById('peerEvaluationSection').classList.remove('hidden');
-    switchPeerTab('submit');
+    switchPeerTab('artifact');
   } else if (mode === 'praise') {
     btns[2].classList.add('active-nav');
     document.getElementById('praiseSection').classList.remove('hidden');
@@ -1420,56 +2263,81 @@ async function resetPersonalityFromSettings() {
 }
 
 
-// 동료평가 세부 탭 (평가하기 vs 결과보기)
-async function switchPeerTab(mode) {
-  const btns = document.querySelectorAll('#peerEvaluationSection .sub-tab-btn');
-  document.getElementById('studentSubmitTab').classList.add('hidden');
-  document.getElementById('studentResultTab').classList.add('hidden');
+function getActivePeerTabMode() {
+  const mapping = {
+    artifact: 'studentArtifactTab',
+    submit: 'studentSubmitTab',
+    result: 'studentResultTab'
+  };
+  for (const [mode, id] of Object.entries(mapping)) {
+    const el = document.getElementById(id);
+    if (el && !el.classList.contains('hidden')) return mode;
+  }
+  return 'artifact';
+}
 
-  btns.forEach(b => b.classList.remove('active'));
-
-  if (mode === 'submit') {
-    btns[0].classList.add('active');
-    document.getElementById('studentSubmitTab').classList.remove('hidden');
-    // 평가하기 탭 전환 시 데이터 로드
-    if (currentStudent && currentClassCode) {
-      try {
-        if (currentStudent.type === 'group') {
-          await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
-        }
-        const activeType = currentStudent.type || 'individual';
-        const reviewerId = getActivePeerId(activeType);
-        const date = document.getElementById('reviewDate').value;
-        const [objTask, criteria, completed, settings] = await Promise.all([
-          getObjectiveAndTask(date),
-          getRatingCriteriaFromDB(date, activeType),
-          getCompletedTargets(date, reviewerId, activeType),
-          getClassSettings()
-        ]);
-        document.getElementById('objectiveText').textContent = objTask.objective || '등록된 학습목표가 없습니다.';
-        document.getElementById('taskText').textContent = objTask.task || '등록된 평가과제가 없습니다.';
-        ratingCriteria = criteria;
-        renderRatingItems(criteria);
-        const maxCount = activeType === 'group' ? settings.groupCount : settings.studentCount;
-        renderTargetGrid(maxCount, reviewerId, completed, activeType);
-      } catch (err) {
-        console.warn('동료평가 데이터 로드 오류:', err);
-        // 에러 시에도 기본 그리드는 표시
-        try {
-          const activeType = currentStudent.type || 'individual';
-          const reviewerId = getActivePeerId(activeType);
-          const settings = await getClassSettings();
-          const maxCount = activeType === 'group' ? settings.groupCount : settings.studentCount;
-          renderTargetGrid(maxCount, reviewerId, [], activeType);
-        } catch (e) {
-          // classes 테이블 자체가 없을 경우 기본값으로 그리드 표시
-          renderTargetGrid(isDemoMode ? 24 : 30, getActivePeerId(currentStudent.type || 'individual'), [], currentStudent.type || 'individual');
-        }
-      }
+async function loadPeerSubmitTabData() {
+  if (!currentStudent || !currentClassCode) return;
+  try {
+    if (currentStudent.type === 'group') {
+      const canUseGroup = await ensureGroupAssignedOrBlock({ showAlert: true, persistFallback: true });
+      if (!canUseGroup) return;
     }
-  } else {
-    btns[1].classList.add('active');
-    document.getElementById('studentResultTab').classList.remove('hidden');
+    const activeType = currentStudent.type || 'individual';
+    const reviewerId = getActivePeerId(activeType);
+    const date = document.getElementById('reviewDate').value;
+    const [objTask, criteria, completed, settings, standards] = await Promise.all([
+      getObjectiveAndTask(date),
+      getRatingCriteriaFromDB(date, activeType),
+      getCompletedTargets(date, reviewerId, activeType),
+      getClassSettings(),
+      getAchievementStandardsFromDB(date)
+    ]);
+    document.getElementById('objectiveText').textContent = objTask.objective || '등록된 학습목표가 없습니다.';
+    document.getElementById('taskText').textContent = objTask.task || '등록된 평가과제가 없습니다.';
+    renderStudentAchievementStandards(standards);
+    ratingCriteria = criteria;
+    renderRatingItems(criteria);
+    const maxCount = activeType === 'group' ? settings.groupCount : settings.studentCount;
+    renderTargetGrid(maxCount, reviewerId, completed, activeType);
+  } catch (err) {
+    console.warn('동료평가 데이터 로드 오류:', err);
+    try {
+      const activeType = currentStudent.type || 'individual';
+      const reviewerId = getActivePeerId(activeType);
+      const settings = await getClassSettings();
+      const maxCount = activeType === 'group' ? settings.groupCount : settings.studentCount;
+      renderTargetGrid(maxCount, reviewerId, [], activeType);
+    } catch (fallbackError) {
+      renderTargetGrid(isDemoMode ? 24 : 30, getActivePeerId(currentStudent.type || 'individual'), [], currentStudent.type || 'individual');
+    }
+  } finally {
+    loadSelectedTargetArtifactAreaForCurrentSelection();
+  }
+}
+
+// 동료평가 세부 탭 (자료등록 vs 평가하기 vs 결과보기)
+async function switchPeerTab(mode) {
+  const nextMode = (mode === 'submit' || mode === 'result') ? mode : 'artifact';
+  const tabMap = {
+    artifact: 'studentArtifactTab',
+    submit: 'studentSubmitTab',
+    result: 'studentResultTab'
+  };
+
+  Object.values(tabMap).forEach((id) => document.getElementById(id)?.classList.add('hidden'));
+  document.getElementById(tabMap[nextMode])?.classList.remove('hidden');
+
+  document.querySelectorAll('#peerEvaluationSection .sub-tab-container .sub-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.peerTab === nextMode);
+  });
+
+  if (nextMode === 'artifact') {
+    await loadMyPeerArtifactSection();
+    return;
+  }
+  if (nextMode === 'submit') {
+    await loadPeerSubmitTabData();
   }
 }
 
@@ -2660,7 +3528,7 @@ async function loadTeacherPartnerIndividualData() {
 
 async function switchMiniTab(mode) {
   // 모든 컨텐츠 탭 숨기기
-  ['ranking', 'student', 'criteria', 'diary', 'praise', 'settings'].forEach(t => document.getElementById(t + 'MiniTab').classList.add('hidden'));
+  ['approve', 'ranking', 'student', 'criteria', 'diary', 'praise', 'settings'].forEach(t => document.getElementById(t + 'MiniTab').classList.add('hidden'));
   // 하위 탭 영역 숨기기
   document.getElementById('reviewSubTabArea').classList.add('hidden');
 
@@ -2672,12 +3540,11 @@ async function switchMiniTab(mode) {
   });
 
   if (mode === 'review') {
-    // 전체 현황 - 하위 탭 표시 후 기본으로 전체 현황
+    // 친구로 배움 - 하위 탭 표시 후 기본으로 자료 승인
     document.getElementById('reviewSubTabArea').classList.remove('hidden');
     mainTabBtns[1].classList.add('active-nav');
-    document.getElementById('rankStudentArea').style.display = 'block';
-    const el = document.getElementById('rankingMiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
-    await switchReviewSubTab('ranking');
+    document.getElementById('rankStudentArea').style.display = 'none';
+    await switchReviewSubTab('approve');
   } else if (mode === 'diary') {
     mainTabBtns[0].classList.add('active-nav');
     document.getElementById('rankStudentArea').style.display = 'none';
@@ -3413,7 +4280,7 @@ async function generateTeacherSubjectCommentTextFromNotes({ filteredNotes, schoo
     return { ok: false, type: 'unknown', noteCount, selectedCount };
   }
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 3000 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.4, maxOutputTokens: 1200 } });
   if (!result.ok) return { ok: false, type: 'api', noteCount, selectedCount, error: result.error || 'AI 생성 실패' };
 
   let out = String(result.text || '').trim();
@@ -3957,24 +4824,40 @@ async function downloadTeacherSubjectCommentXlsx() {
 }
 
 async function switchReviewSubTab(mode) {
-  ['ranking', 'student', 'criteria'].forEach(t => document.getElementById(t + 'MiniTab').classList.add('hidden'));
-  const subBtns = document.querySelectorAll('#reviewSubTabArea .sub-tab-btn');
-  subBtns.forEach(b => b.classList.remove('active'));
+  const validMode = (mode === 'approve' || mode === 'criteria' || mode === 'ranking' || mode === 'student') ? mode : 'approve';
+  ['approve', 'ranking', 'student', 'criteria'].forEach((t) => {
+    document.getElementById(t + 'MiniTab')?.classList.add('hidden');
+  });
 
-  const el = document.getElementById(mode + 'MiniTab'); el.classList.remove('hidden', 'tab-content'); void el.offsetWidth; el.classList.add('tab-content');
+  document.querySelectorAll('#reviewSubTabArea .sub-tab-btn').forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.reviewTab === validMode);
+  });
 
-  if (mode === 'ranking') {
-    subBtns[0].classList.add('active');
-    document.getElementById('rankStudentArea').style.display = 'block';
-    await loadTeacherData();
-  } else if (mode === 'student') {
-    subBtns[1].classList.add('active');
-    document.getElementById('rankStudentArea').style.display = 'block';
-  } else if (mode === 'criteria') {
-    subBtns[2].classList.add('active');
-    document.getElementById('rankStudentArea').style.display = 'none';
-    loadCriteriaForEdit(); switchCriteriaMode('auto');
+  const el = document.getElementById(validMode + 'MiniTab');
+  if (el) {
+    el.classList.remove('hidden', 'tab-content');
+    void el.offsetWidth;
+    el.classList.add('tab-content');
   }
+
+  const showRankFilter = (validMode === 'ranking' || validMode === 'student');
+  document.getElementById('rankStudentArea').style.display = showRankFilter ? 'block' : 'none';
+
+  if (validMode === 'approve') {
+    await Promise.all([loadTeacherArtifactApprovalList(), loadTeacherPeerArtifactEditor()]);
+    return;
+  }
+  if (validMode === 'criteria') {
+    loadCriteriaForEdit();
+    switchCriteriaMode('auto');
+    return;
+  }
+  if (validMode === 'ranking') {
+    await loadTeacherData();
+    return;
+  }
+  // student tab
+  await loadTeacherData();
 }
 
 // ============================================
@@ -3986,9 +4869,13 @@ async function switchReviewSubTab(mode) {
 // 학습목표/평가기준 로드
 // ============================================
 async function fetchCriteria(dateStr) {
-  const data = await getObjectiveAndTask(dateStr);
+  const [data, standards] = await Promise.all([
+    getObjectiveAndTask(dateStr),
+    getAchievementStandardsFromDB(dateStr)
+  ]);
   document.getElementById('objectiveText').textContent = data.objective || '등록된 학습목표가 없습니다.';
   document.getElementById('taskText').textContent = data.task || '등록된 평가과제가 없습니다.';
+  renderStudentAchievementStandards(standards);
 }
 async function fetchRatingCriteria(dateStr) {
   const criteria = await getRatingCriteriaFromDB(dateStr);
@@ -4042,6 +4929,15 @@ function insertTemplate(text, targetId = 'reviewContent') {
   ta.focus();
   ta.scrollTop = ta.scrollHeight;
   if (targetId === 'reviewContent') updateCharCount();
+  if (targetId === 'learningText') updateLearningCharCount();
+}
+function updateLearningCharCount() {
+  const ta = document.getElementById('learningText');
+  const counter = document.getElementById('learningCharCount');
+  if (!ta || !counter) return;
+  const len = ta.value.length;
+  counter.textContent = len + '자 / 150자';
+  counter.style.color = len >= 150 ? 'var(--color-eval)' : 'var(--text-sub)';
 }
 function updateCharCount() {
   const len = document.getElementById('reviewContent').value.length;
@@ -4076,6 +4972,7 @@ async function loadEvalTargetGrid() {
   const [completed, settings] = await Promise.all([getCompletedTargets(date, reviewerId, reviewType), getClassSettings()]);
   const max = reviewType === 'group' ? settings.groupCount : settings.studentCount;
   renderTargetGrid(max, reviewerId, completed, reviewType);
+  loadSelectedTargetArtifactAreaForCurrentSelection();
 }
 let targetSelectionRequestSeq = 0;
 function renderTargetGrid(maxCount, myId, completedList, type) {
@@ -4086,6 +4983,7 @@ function renderTargetGrid(maxCount, myId, completedList, type) {
   document.getElementById('progressBar').style.width = pct + '%';
   document.getElementById('targetId').value = '';
   clearRatingSelectionUI();
+  renderSelectedTargetArtifactEmpty('평가 대상을 먼저 선택해 주세요.');
   targetSelectionRequestSeq++;
   for (let i = 1; i <= maxCount; i++) {
     const btn = document.createElement('button'); btn.type = 'button';
@@ -4115,6 +5013,7 @@ async function selectTarget(id, button) {
   button.classList.add('selected');
   document.getElementById('targetId').value = id;
   clearRatingSelectionUI();
+  loadSelectedTargetArtifactAreaForCurrentSelection();
   const requestSeq = ++targetSelectionRequestSeq;
   if (!currentStudent) return;
   const reviewType = currentStudent.type || 'individual';
@@ -4390,7 +5289,100 @@ function switchTeacherPraiseSubTab(mode) {
   praisePanel.classList.remove('hidden');
 }
 
+function mapGeminiApiError(code, rawError) {
+  const apiError = repairMojibakeText(rawError || '');
+  if (code === 'auth_error') return { ok: false, code, error: apiError || 'AI authentication error.' };
+  if (code === 'quota_exceeded') return { ok: false, code, error: 'AI 사용량 초과: 잠시 후 다시 시도해 주세요.' };
+  if (code === 'provider_timeout' || code === 'timeout') return { ok: false, code, error: 'AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' };
+  if (code === 'network_error') return { ok: false, code, error: '네트워크 오류: 인터넷 연결 상태를 확인하거나 잠시 후 다시 시도해 주세요.' };
+  if (code === 'provider_unavailable') return { ok: false, code, error: 'AI 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.' };
+  return { ok: false, code: code || 'provider_error', error: apiError || 'AI 요청 처리 중 오류가 발생했습니다.' };
+}
+
+function parseSseMessageFrame(frame) {
+  if (!frame) return null;
+  const lines = String(frame).split('\n');
+  let event = 'message';
+  const dataLines = [];
+
+  for (const rawLine of lines) {
+    const line = String(rawLine || '').trimEnd();
+    if (!line || line.startsWith(':')) continue;
+    if (line.startsWith('event:')) {
+      event = line.slice(6).trim();
+      continue;
+    }
+    if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+  }
+
+  if (!dataLines.length) return null;
+  const rawData = dataLines.join('\n');
+  try {
+    return { event, data: JSON.parse(rawData) };
+  } catch {
+    return { event, data: { raw: rawData } };
+  }
+}
+
+async function readGeminiSseResponse(res, onToken) {
+  const reader = res.body && typeof res.body.getReader === 'function' ? res.body.getReader() : null;
+  if (!reader) return { ok: false, code: 'parse_error', error: 'AI 스트림 응답을 읽을 수 없습니다.' };
+
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let streamedText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      buffer += decoder.decode();
+    } else {
+      buffer += decoder.decode(value, { stream: true });
+    }
+
+    buffer = buffer.replace(/\r\n/g, '\n');
+    let splitAt = buffer.indexOf('\n\n');
+    while (splitAt !== -1) {
+      const frame = buffer.slice(0, splitAt);
+      buffer = buffer.slice(splitAt + 2);
+
+      const parsed = parseSseMessageFrame(frame);
+      if (parsed) {
+        const event = parsed.event;
+        const data = parsed.data || {};
+
+        if (event === 'token') {
+          const token = repairMojibakeText(data?.text || '');
+          if (token) {
+            streamedText += token;
+            if (typeof onToken === 'function') onToken(streamedText);
+          }
+        } else if (event === 'done') {
+          const doneText = repairMojibakeText(data?.text || streamedText || '').trim();
+          if (doneText && typeof onToken === 'function') onToken(doneText);
+          return doneText
+            ? { ok: true, text: doneText }
+            : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
+        } else if (event === 'error') {
+          return mapGeminiApiError(data?.code || 'provider_error', data?.error || data?.raw || '');
+        }
+      }
+
+      splitAt = buffer.indexOf('\n\n');
+    }
+
+    if (done) break;
+  }
+
+  const fallbackText = repairMojibakeText(streamedText || '').trim();
+  if (fallbackText && typeof onToken === 'function') onToken(fallbackText);
+  return fallbackText
+    ? { ok: true, text: fallbackText }
+    : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
+}
+
 async function callGemini(promptText, config = {}) {
+  const onToken = typeof config.onToken === 'function' ? config.onToken : null;
   // When opened directly as a local file (file://), serverless API routes (/api/*) do not exist.
   if (typeof window !== 'undefined' && window.location && window.location.protocol === 'file:') {
     return {
@@ -4406,9 +5398,13 @@ async function callGemini(promptText, config = {}) {
     try {
       res = await fetch('/api/gemini', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        },
         body: JSON.stringify({
           promptText,
+          stream: true,
           ...(config.generationConfig ? { generationConfig: config.generationConfig } : {})
         }),
         signal: controller.signal
@@ -4422,50 +5418,27 @@ async function callGemini(promptText, config = {}) {
     // 에러 응답은 JSON으로 옴
     if (!res.ok) {
       const data = await res.json().catch(() => null);
-      const apiError = repairMojibakeText(data?.error || '');
-      const code = data?.code || 'provider_error';
-      if (code === 'auth_error') return { ok: false, code, error: apiError || 'AI authentication error.' };
-      if (code === 'quota_exceeded') return { ok: false, code, error: 'AI 사용량 초과: 잠시 후 다시 시도해 주세요.' };
-      if (code === 'network_error') return { ok: false, code, error: '네트워크 오류: 인터넷 연결 상태를 확인하거나 잠시 후 다시 시도해 주세요.' };
-      if (code === 'provider_unavailable') return { ok: false, code, error: 'AI 서비스가 일시적으로 응답하지 않습니다. 잠시 후 다시 시도해 주세요.' };
-      return { ok: false, code, error: apiError || ('HTTP ' + res.status) };
+      return mapGeminiApiError(data?.code || 'provider_error', data?.error || ('HTTP ' + res.status));
     }
 
-    // 스트림 응답 파싱 (SSE 형태: "data: {...}\n" 반복)
-    // content-type이 text/event-stream이 아닐 수도 있으므로 body를 텍스트로 읽어서 판별
-    const rawBody = await res.text();
-
-    // SSE 형태인지 확인: "data: " 로 시작하는 줄이 있으면 SSE
-    if (rawBody.includes('data: {')) {
-      let fullText = '';
-      const lines = rawBody.split('\n');
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const jsonStr = line.slice(6).trim();
-        if (!jsonStr || jsonStr === '[DONE]') continue;
-        try {
-          const chunk = JSON.parse(jsonStr);
-          if (chunk.error) continue;
-          const parts = chunk?.candidates?.[0]?.content?.parts;
-          if (Array.isArray(parts)) {
-            for (const p of parts) {
-              if (p && typeof p.text === 'string') fullText += p.text;
-            }
-          }
-        } catch { /* 파싱 불가 청크 무시 */ }
-      }
-      const text = repairMojibakeText(fullText.trim());
-      return text ? { ok: true, text } : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
+    if (contentType.includes('text/event-stream')) {
+      return await readGeminiSseResponse(res, onToken);
     }
 
-    // 폴백: 일반 JSON 응답
+    let data;
     try {
-      const data = JSON.parse(rawBody);
-      const apiText = repairMojibakeText(data?.text || '');
-      return apiText ? { ok: true, text: apiText } : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
+      data = await res.json();
     } catch {
       return { ok: false, code: 'parse_error', error: 'AI 응답을 파싱할 수 없습니다.' };
     }
+
+    if (!data || data.ok !== true) {
+      return mapGeminiApiError(data?.code || 'provider_error', data?.error || 'AI 응답이 비어 있습니다.');
+    }
+
+    const apiText = repairMojibakeText(data?.text || '');
+    if (apiText && onToken) onToken(apiText);
+    return apiText ? { ok: true, text: apiText } : { ok: false, code: 'empty_response', error: 'AI 응답이 비어 있습니다.' };
   } catch (e) {
     if (isAbortLikeError(e)) {
       return { ok: false, code: 'timeout', error: 'AI 응답 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.' };
@@ -4542,10 +5515,10 @@ async function generateSummary(reviews, opts = {}) {
     '   [보조태그 — 활동 종류]',
     '   - #함께 성장형: 협력 활동 포함',
     '   - #혼자 집중형: 개인 활동 포함',
-    '3) 실천(헤더3)은 1~2개. 전체 12~18문장.'
+    '3) 실천(헤더3)은 1~2개. 전체 15문장 이상.'
   ].join('\n');
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.45, maxOutputTokens: 4000 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.45, maxOutputTokens: 1200 } });
   if (!result.ok) return 'AI summary failed [' + (result.code || 'unknown') + ']: ' + (result.error || 'No details');
 
   return sanitizeAiSummaryText(result.text);
@@ -4670,6 +5643,88 @@ function renderStudentSelector(students) {
   const container = document.getElementById('studentSelector'); container.innerHTML = '';
   students.forEach(sid => { const btn = document.createElement('button'); btn.className = 'student-btn'; btn.textContent = sid; btn.onclick = () => loadStudentReviews(sid, btn); container.appendChild(btn); });
 }
+function normalizeTeacherReviewScoresPayload(raw) {
+  if (!raw) return null;
+  let parsed = raw;
+  if (typeof parsed === 'string') {
+    try {
+      parsed = JSON.parse(parsed);
+    } catch (_) {
+      return null;
+    }
+  }
+  if (!parsed || typeof parsed !== 'object') return null;
+  if (!Array.isArray(parsed.criteria) || !parsed.scores || typeof parsed.scores !== 'object') return null;
+  return parsed;
+}
+function buildTeacherReviewCardHtml(review) {
+  const reviewerId = escapeHtml(String(review?.reviewer_id || '-'));
+  const reviewDate = escapeHtml(String(review?.review_date || ''));
+  const reviewContent = escapeHtml(String(review?.review_content || '')).replace(/\n/g, '<br>');
+  const scorePayload = normalizeTeacherReviewScoresPayload(review?.scores_json);
+
+  let html =
+    '<div class="review-card">' +
+    '<div class="review-header"><span><strong>평가자:</strong> ' + reviewerId + '</span><span>' + reviewDate + '</span></div>' +
+    '<div class="review-content">' + reviewContent + '</div>';
+
+  if (scorePayload) {
+    html += '<div class="review-scores">';
+    scorePayload.criteria.forEach((criterion, idx) => {
+      const scoreRaw = scorePayload.scores[String(idx)] ?? scorePayload.scores[idx];
+      const scoreText = escapeHtml(String(scoreRaw ?? '-'));
+      html +=
+        '<div class="review-score-item">' +
+        '<div style="font-weight:bold;margin-bottom:3px;font-size:0.75rem;">' + escapeHtml(String(criterion || '')) + '</div>' +
+        '<div style="color:var(--primary);font-weight:bold;">' + scoreText + '점</div>' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+function buildTeacherStudentReviewsHtml(studentId, reviews) {
+  const previewLimit = 6;
+  const preview = reviews.slice(0, previewLimit);
+  const hiddenRows = reviews.slice(previewLimit);
+  const hiddenCount = hiddenRows.length;
+
+  let html =
+    '<div class="teacher-review-header-row">' +
+    '<h3>' + escapeHtml(String(studentId)) + '번에 대한 평가</h3>' +
+    '<span class="teacher-review-preview-note">총 ' + reviews.length + '개</span>' +
+    '</div>';
+
+  preview.forEach((review) => {
+    html += buildTeacherReviewCardHtml(review);
+  });
+
+  if (hiddenCount > 0) {
+    html +=
+      '<button type="button" class="teacher-review-more-btn" data-open="0" data-rest-count="' + hiddenCount + '" onclick="toggleTeacherReviewList(this)">' +
+      '나머지 ' + hiddenCount + '개 펼치기' +
+      '</button>' +
+      '<div class="teacher-review-more hidden">';
+    hiddenRows.forEach((review) => {
+      html += buildTeacherReviewCardHtml(review);
+    });
+    html += '</div>';
+  }
+  return html;
+}
+function toggleTeacherReviewList(button) {
+  const panel = button?.nextElementSibling;
+  if (!panel) return;
+  const isOpen = button.dataset.open === '1';
+  const count = Number(button.dataset.restCount || 0);
+  panel.classList.toggle('hidden', isOpen);
+  button.dataset.open = isOpen ? '0' : '1';
+  button.textContent = isOpen
+    ? ('나머지 ' + count + '개 펼치기')
+    : ('나머지 ' + count + '개 접기');
+}
 async function loadStudentReviews(studentId, button) {
   const date = document.getElementById('teacherDate').value;
   const type = document.querySelector('input[name="teacherEvalType"]:checked').value;
@@ -4677,16 +5732,7 @@ async function loadStudentReviews(studentId, button) {
   const container = document.getElementById('studentReviews'); container.innerHTML = '<p style="text-align:center;">불러오는 중...</p>';
   const { data: reviews } = await db.from('reviews').select('*').eq('class_code', currentClassCode).eq('review_date', date).eq('target_id', String(studentId)).eq('review_type', type);
   if (!reviews || reviews.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-sub);">평가 데이터가 없습니다.</p>'; return; }
-  let html = '<h3>' + studentId + '번에 대한 평가 (총 ' + reviews.length + '개)</h3>';
-  reviews.forEach(r => {
-    html += '<div class="review-card"><div class="review-header"><span><strong>평가자:</strong> ' + r.reviewer_id + '</span><span>' + r.review_date + '</span></div><div class="review-content">' + r.review_content + '</div>';
-    if (r.scores_json && r.scores_json.criteria) {
-      html += '<div class="review-scores">';
-      r.scores_json.criteria.forEach((c, idx) => { html += '<div class="review-score-item"><div style="font-weight:bold;margin-bottom:3px;font-size:0.75rem;">' + c + '</div><div style="color:var(--primary);font-weight:bold;">' + (r.scores_json.scores[String(idx)] || '-') + '점</div></div>'; });
-      html += '</div>';
-    }
-    html += '</div>';
-  }); container.innerHTML = html;
+  container.innerHTML = buildTeacherStudentReviewsHtml(studentId, reviews);
 }
 
 // ============================================
@@ -5208,7 +6254,13 @@ function removeStudentMapping(profileId, num) {
 async function loadCriteriaForEdit() {
   const date = document.getElementById('settingDate').value;
   const evalType = document.getElementById('autoTargetSelect').value || 'individual';
-  const [objTask, ratings] = await Promise.all([getObjectiveAndTask(date), getRatingCriteriaFull(date, evalType)]);
+  const [objTask, ratings, standards] = await Promise.all([
+    getObjectiveAndTask(date),
+    getRatingCriteriaFull(date, evalType),
+    getAchievementStandardsFromDB(date)
+  ]);
+  initAchievementStandardInput();
+  setAchievementStandardsForEdit(standards);
   document.getElementById('settingObjective').value = objTask.objective || '';
   document.getElementById('settingTask').value = objTask.task || '';
   for (let i = 0; i < 6; i++) { document.getElementById('settingRate' + (i + 1)).value = ratings[i] || ''; document.getElementById('autoRate' + (i + 1)).value = ratings[i] || ''; }
@@ -5222,6 +6274,7 @@ async function saveBasicInfo(btn) {
   setLoading(true, btn, '저장 중...');
   await db.from('objectives').upsert({ class_code: currentClassCode, eval_date: date, objective: obj }, { onConflict: 'class_code,eval_date' });
   await db.from('tasks').upsert({ class_code: currentClassCode, eval_date: date, task: task }, { onConflict: 'class_code,eval_date' });
+  await saveAchievementStandardsToDB(date, settingAchievementStandards);
   setLoading(false, btn, '💾 1단계: 학습목표 및 평가과제 저장하기');
   showModal({ type: 'alert', icon: '✅', title: '저장 완료', message: '기본 정보가 저장되었습니다.' });
 }
@@ -5236,6 +6289,7 @@ async function saveDailyCriteria(btn) {
   setLoading(true, btn, '저장 중...');
   await db.from('objectives').upsert({ class_code: currentClassCode, eval_date: date, objective: obj }, { onConflict: 'class_code,eval_date' });
   await db.from('tasks').upsert({ class_code: currentClassCode, eval_date: date, task: task }, { onConflict: 'class_code,eval_date' });
+  await saveAchievementStandardsToDB(date, settingAchievementStandards);
   const evalType = document.getElementById('autoTargetSelect').value || 'individual';
   await db.from('rating_criteria').upsert({ class_code: currentClassCode, eval_date: date, eval_type: evalType, criteria_1: r[0], criteria_2: r[1], criteria_3: r[2], criteria_4: r[3], criteria_5: r[4], criteria_6: r[5] }, { onConflict: 'class_code,eval_date,eval_type' });
   setLoading(false, btn, '💾 3단계: 평가기준 저장하기');
@@ -5364,7 +6418,7 @@ async function generateCriteriaAI(btn) {
 
   const generationConfig = {
     temperature: 0.1,
-    maxOutputTokens: 1500,
+    maxOutputTokens: 1200,
     responseMimeType: 'application/json'
   };
 
@@ -5430,6 +6484,7 @@ function resetAllReviewData(btn) {
         // 삭제할 테이블 리스트
         const tables = [
           'reviews',
+          'peer_artifacts',
           'daily_reflections',
           'praise_messages',
           'student_personality',
@@ -5581,6 +6636,7 @@ async function loadDailyReflection() {
     if (tagBtn) tagBtn.classList.add('selected');
   });
   syncCustomSubjectInputVisibility();
+  updateLearningCharCount();
 }
 
 // 데일리 자기평가 제출
@@ -5686,7 +6742,7 @@ async function generateAiFeedback(learning, subjects) {
     '8) 한국어로만 작성.'
   ].join('\n');
 
-  const result = await callGemini(prompt, { generationConfig: { temperature: 0.55, maxOutputTokens: 3000 } });
+  const result = await callGemini(prompt, { generationConfig: { temperature: 0.55, maxOutputTokens: 1200 } });
 
   if (result.ok && result.text) {
     feedbackText.innerHTML = formatMarkdown(result.text);
@@ -8085,9 +9141,9 @@ function selectSignalEvidence(candidates) {
     }));
 }
 
-function computeSignalScore(matchCount, totalNotes) {
+function computeSignalScore(matchCount, totalNotes, multiplier = 1.0) {
   if (!Number.isFinite(totalNotes) || totalNotes < 1) return null;
-  const raw = Math.round((Number(matchCount || 0) / totalNotes) * 100);
+  const raw = Math.round((Number(matchCount || 0) / totalNotes) * 100 * multiplier);
   return Math.max(0, Math.min(100, raw));
 }
 
@@ -8189,36 +9245,47 @@ function computePeriodSignals(records, partner, periodStart, periodEnd) {
     let fitHitCount = 0;
 
     const infoHitCount = infoKeywords.length > 0 ? countSignalKeywordMatches(note.combined, infoKeywords) : 0;
-    if (infoKeywords.length > 0 && infoHitCount > 0) infoMatchCount++;
-    fitHitCount += infoHitCount;
+    if (infoKeywords.length > 0 && infoHitCount > 0) {
+      // 성향 키워드는 2개 이상일 때 보너스 가중치를 더 강하게 부여 (2.0배)
+      infoMatchCount += (infoHitCount >= 2 ? 2.0 : 1);
+      fitHitCount += infoHitCount;
+    }
 
     const execHitCount = execKeywords.length > 0 ? countSignalKeywordMatches(note.combined, execKeywords) : 0;
-    if (execKeywords.length > 0 && execHitCount > 0) execMatchCount++;
-    fitHitCount += execHitCount;
+    if (execKeywords.length > 0 && execHitCount > 0) {
+      execMatchCount += (execHitCount >= 2 ? 2.0 : 1);
+      fitHitCount += execHitCount;
+    }
 
     let supportHitCount = 0;
     if (supportAxis === '#함께 성장형') {
-      supportHitCount += countSignalTagMatches(note.tags, DASHBOARD_SUPPORT_COLLAB_TAGS);
-      supportHitCount += countSignalKeywordMatches(note.combined, DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS);
+      const tagMatches = countSignalTagMatches(note.tags, DASHBOARD_SUPPORT_COLLAB_TAGS);
+      const textMatches = countSignalKeywordMatches(note.combined, DASHBOARD_SUPPORT_TOGETHER_TEXT_KEYWORDS);
+      supportHitCount = tagMatches + textMatches;
     } else if (supportAxis === '#혼자 집중형') {
-      supportHitCount += countSignalTagMatches(note.tags, DASHBOARD_SUPPORT_SOLO_TAGS);
-      supportHitCount += countSignalKeywordMatches(note.combined, DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS);
+      const tagMatches = countSignalTagMatches(note.tags, DASHBOARD_SUPPORT_SOLO_TAGS);
+      const textMatches = countSignalKeywordMatches(note.combined, DASHBOARD_SUPPORT_SOLO_TEXT_KEYWORDS);
+      supportHitCount = tagMatches + textMatches;
     }
-    if (supportAxis && supportHitCount > 0) supportMatchCount++;
-    fitHitCount += supportHitCount;
+
+    if (supportAxis && supportHitCount > 0) {
+      supportMatchCount += (supportHitCount >= 2 ? 2.0 : 1);
+      fitHitCount += supportHitCount;
+    }
 
     if (fitHitCount > 0) fitCandidates.push({ ...note, matchCount: fitHitCount });
   });
 
-  const thinkingScore = computeSignalScore(thinkingMatchCount, totalNotes);
-  const actionScore = computeSignalScore(actionMatchCount, totalNotes);
+  const thinkingScore = computeSignalScore(thinkingMatchCount, totalNotes, 1.0);
+  const actionScore = computeSignalScore(actionMatchCount, totalNotes, 1.0);
 
   let fitScore = null;
   if (partner) {
     const axisScores = [];
-    const infoScore = infoKeywords.length > 0 ? computeSignalScore(infoMatchCount, totalNotes) : null;
-    const execScore = execKeywords.length > 0 ? computeSignalScore(execMatchCount, totalNotes) : null;
-    const supportScore = supportAxis ? computeSignalScore(supportMatchCount, totalNotes) : null;
+    // 성향 관련 점수는 보정 계수 2.5를 적용하여 매우 후하게 산출
+    const infoScore = infoKeywords.length > 0 ? computeSignalScore(infoMatchCount, totalNotes, 2.5) : null;
+    const execScore = execKeywords.length > 0 ? computeSignalScore(execMatchCount, totalNotes, 2.5) : null;
+    const supportScore = supportAxis ? computeSignalScore(supportMatchCount, totalNotes, 2.5) : null;
     if (Number.isFinite(infoScore)) axisScores.push(infoScore);
     if (Number.isFinite(execScore)) axisScores.push(execScore);
     // support axis is treated as a bonus axis to avoid over-penalizing otherwise strong fit periods.
@@ -8284,7 +9351,7 @@ function computeGrowthSignals(records, partner, options = {}) {
     cards: [
       {
         key: 'thinking',
-        title: '사고 활성도',
+        title: '배움 성찰도',
         toneClass: 'tone-thinking',
         score: current.thinkingScore,
         delta: thinkingDelta,
@@ -8341,7 +9408,7 @@ function renderLearningSignals(records, partner, options = {}) {
 
   const safeRecords = Array.isArray(records) ? records : [];
   if (safeRecords.length === 0) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-desc">신호를 보려면 기록이 필요해요.</div></div>';
+    container.innerHTML = '<div class="empty-state"><div class="empty-desc">분석 결과를 보려면 기록이 필요해요.</div></div>';
     return;
   }
 
@@ -9006,7 +10073,15 @@ async function generateDailyPartnerMessage() {
     const partnerTypeText = buildPartnerTypeText(partner);
     const prevSummary = buildPrevSummaryFromRecentNotes(records, todayKey, 2);
     const prompt = buildDailyPartnerPromptExact({ partnerTypeText, prevSummary, todayNote });
-    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 3000 } });
+
+    // 실시간 업데이트를 위한 콜백
+    const result = await callGemini(prompt, {
+      generationConfig: { temperature: 0.5, maxOutputTokens: 1200 },
+      onToken: (textSoFar) => {
+        const output = sanitizeAiSummaryText(textSoFar);
+        renderPartnerMessagePlainText(output);
+      }
+    });
 
     if (!(result.ok && result.text)) {
       area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">성장 파트너의 메세지를 받지 못했어요. 다시 눌러주세요.</div></div>';
@@ -9223,7 +10298,15 @@ async function generateComparePartnerMessage() {
     const partner = studentPartner || await ensureStudentPartnerLoaded({ backfill: true });
     const partnerTypeText = buildPartnerTypeText(partner);
     const prompt = buildComparePartnerPromptExact({ partnerTypeText, dateA, noteA, dateB, noteB });
-    const result = await callGemini(prompt, { generationConfig: { temperature: 0.5, maxOutputTokens: 3000 } });
+
+    // 실시간 업데이트를 위한 콜백
+    const result = await callGemini(prompt, {
+      generationConfig: { temperature: 0.5, maxOutputTokens: 1200 },
+      onToken: (textSoFar) => {
+        const output = sanitizeAiSummaryText(textSoFar);
+        area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
+      }
+    });
 
     if (!(result.ok && result.text)) {
       area.innerHTML = '<div class="empty-state"><span class="empty-icon">⚠️</span><div class="empty-desc">성장 파트너의 메세지를 받지 못했어요. 다시 눌러주세요.</div></div>';
