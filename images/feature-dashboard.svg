@@ -1,0 +1,16 @@
+<svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="db-panel" x1="14" y1="14" x2="106" y2="76" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FEF3C7"/>
+      <stop offset="1" stop-color="#FDE68A"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="14" y="14" width="92" height="62" rx="12" fill="url(#db-panel)" stroke="#D97706" stroke-width="2.2"/>
+  <rect x="24" y="24" width="72" height="42" rx="8" fill="#FFFBEB" stroke="#F59E0B" stroke-width="2.2"/>
+  <path d="M32 56H86" stroke="#FCD34D" stroke-width="2.2" stroke-linecap="round"/>
+  <rect x="34" y="46" width="8" height="10" rx="3" fill="#22C55E"/>
+  <rect x="47" y="40" width="8" height="16" rx="3" fill="#06B6D4"/>
+  <rect x="60" y="34" width="8" height="22" rx="3" fill="#3B82F6"/>
+  <path d="M34 48L46 42L56 45L66 36L78 32" stroke="#0F172A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

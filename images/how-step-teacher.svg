@@ -1,0 +1,44 @@
+<svg width="160" height="120" viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="panelBg" x1="20" y1="18" x2="112" y2="94" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#38BDF8"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+    <linearGradient id="magnifierRing" x1="106" y1="36" x2="136" y2="66" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/>
+      <stop offset="1" stop-color="#0284C7"/>
+    </linearGradient>
+    <filter id="panelShadow" x="10" y="10" width="148" height="108" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="6"/>
+      <feGaussianBlur stdDeviation="6"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.0588235 0 0 0 0 0.2 0 0 0 0 0.258824 0 0 0 0.2 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+  <g filter="url(#panelShadow)">
+    <rect x="18" y="18" width="96" height="74" rx="14" fill="url(#panelBg)" stroke="#0F172A" stroke-width="2.5"/>
+    <rect x="28" y="32" width="8" height="24" rx="4" fill="#99F6E4"/>
+    <rect x="42" y="40" width="8" height="16" rx="4" fill="#A7F3D0"/>
+    <rect x="56" y="28" width="8" height="28" rx="4" fill="#CCFBF1"/>
+    <path d="M28 68H102" stroke="#99F6E4" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M34 64L49 52L62 58L79 42L95 48" stroke="#E0F2FE" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="34" cy="64" r="2.8" fill="#F8FAFC"/>
+    <circle cx="49" cy="52" r="2.8" fill="#F8FAFC"/>
+    <circle cx="62" cy="58" r="2.8" fill="#F8FAFC"/>
+    <circle cx="79" cy="42" r="2.8" fill="#F8FAFC"/>
+    <circle cx="95" cy="48" r="2.8" fill="#F8FAFC"/>
+  </g>
+  <g>
+    <circle cx="114" cy="50" r="17" fill="url(#magnifierRing)" stroke="#0369A1" stroke-width="2.5"/>
+    <circle cx="114" cy="50" r="8" fill="#E0F2FE"/>
+    <path d="M125 61L136 72" stroke="#0369A1" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g>
+    <circle cx="36" cy="84" r="9" fill="#FDBA74" stroke="#EA580C" stroke-width="2.5"/>
+    <path d="M24 96C24 89.3726 29.3726 84 36 84C42.6274 84 48 89.3726 48 96V100H24V96Z" fill="#F97316" stroke="#C2410C" stroke-width="2.5"/>
+  </g>
+</svg>

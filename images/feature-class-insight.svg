@@ -1,0 +1,23 @@
+<svg width="120" height="90" viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ci-board" x1="12" y1="14" x2="100" y2="74" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#BAE6FD"/>
+      <stop offset="1" stop-color="#38BDF8"/>
+    </linearGradient>
+    <linearGradient id="ci-lens" x1="78" y1="54" x2="106" y2="82" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FDE68A"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="12" y="14" width="88" height="58" rx="12" fill="url(#ci-board)" stroke="#0284C7" stroke-width="2.2"/>
+  <rect x="22" y="24" width="20" height="8" rx="4" fill="#0EA5E9"/>
+  <rect x="46" y="24" width="16" height="8" rx="4" fill="#0284C7"/>
+  <rect x="66" y="24" width="16" height="8" rx="4" fill="#0369A1"/>
+  <path d="M22 58L34 48L46 52L58 42L74 46" stroke="#0C4A6E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="58" cy="42" r="3" fill="#F97316"/>
+
+  <circle cx="86" cy="62" r="12" fill="url(#ci-lens)" stroke="#B45309" stroke-width="2.2"/>
+  <circle cx="86" cy="62" r="6.5" fill="#FEF3C7" stroke="#D97706" stroke-width="2.2"/>
+  <path d="M94.5 70.5L101.5 77.5" stroke="#B45309" stroke-width="3.2" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,39 @@
+<svg width="160" height="120" viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="boardFill" x1="40" y1="28" x2="120" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/>
+      <stop offset="1" stop-color="#2D63D7"/>
+    </linearGradient>
+    <linearGradient id="loopTop" x1="32" y1="28" x2="140" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C3AED"/>
+      <stop offset="1" stop-color="#6D28D9"/>
+    </linearGradient>
+    <linearGradient id="loopBottom" x1="20" y1="74" x2="128" y2="88" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0D9488"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+    <filter id="boardShadow" x="24" y="16" width="112" height="88" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="5"/>
+      <feGaussianBlur stdDeviation="4"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.117647 0 0 0 0 0.172549 0 0 0 0 0.341176 0 0 0 0.2 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <path d="M32 30C51 13 91 13 115 25C123 29 128 34 132 42" stroke="url(#loopTop)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M132 42L116 38L121 53L136 43Z" fill="#6D28D9" stroke="#2E1065" stroke-width="1.5"/>
+
+  <path d="M128 88C107 103 69 103 45 91C37 87 32 82 28 74" stroke="url(#loopBottom)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 74L44 70L39 85L24 75Z" fill="#0F766E" stroke="#064E3B" stroke-width="1.5"/>
+
+  <g filter="url(#boardShadow)">
+    <rect x="40" y="26" width="80" height="58" rx="13" fill="url(#boardFill)" stroke="#1E3A8A" stroke-width="2.5"/>
+  </g>
+
+  <path d="M52 66H108" stroke="#93C5FD" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M56 60L70 50L82 54L96 44L108 47" stroke="#F8FAFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

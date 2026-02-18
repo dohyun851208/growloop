@@ -1,0 +1,38 @@
+<svg width="160" height="120" viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bookCover" x1="28" y1="22" x2="102" y2="92" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4F8CFF"/>
+      <stop offset="1" stop-color="#2D63D7"/>
+    </linearGradient>
+    <linearGradient id="bubbleFill" x1="92" y1="20" x2="134" y2="62" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34D399"/>
+      <stop offset="1" stop-color="#16A34A"/>
+    </linearGradient>
+    <filter id="softShadow" x="12" y="10" width="136" height="106" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="6"/>
+      <feGaussianBlur stdDeviation="6"/>
+      <feComposite in2="hardAlpha" operator="out"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.172549 0 0 0 0 0.25098 0 0 0 0 0.411765 0 0 0 0.18 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_1" result="shape"/>
+    </filter>
+  </defs>
+  <g filter="url(#softShadow)">
+    <rect x="24" y="18" width="80" height="74" rx="14" fill="url(#bookCover)" stroke="#1E3A8A" stroke-width="2.5"/>
+    <path d="M64 26V92" stroke="#DCE8FF" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="34" y="36" width="22" height="5" rx="2.5" fill="#DBEAFE"/>
+    <rect x="34" y="46" width="22" height="5" rx="2.5" fill="#BFDBFE"/>
+    <rect x="70" y="36" width="24" height="5" rx="2.5" fill="#DBEAFE"/>
+    <rect x="70" y="46" width="24" height="5" rx="2.5" fill="#BFDBFE"/>
+    <rect x="34" y="58" width="22" height="5" rx="2.5" fill="#93C5FD"/>
+    <rect x="70" y="58" width="24" height="5" rx="2.5" fill="#93C5FD"/>
+    <path d="M34 74C40 70 50 70 56 74" stroke="#BFDBFE" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M70 74C76 70 86 70 94 74" stroke="#BFDBFE" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+  <g>
+    <path d="M95 24H125C130.523 24 135 28.4772 135 34V48C135 53.5228 130.523 58 125 58H111L102 66V58H95C89.4772 58 85 53.5228 85 48V34C85 28.4772 89.4772 24 95 24Z" fill="url(#bubbleFill)" stroke="#15803D" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M97 40L104 47L123 30" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
