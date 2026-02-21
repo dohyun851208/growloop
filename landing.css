@@ -3521,17 +3521,20 @@ body.palette-berry {
     }
 
     .alt4-logo-row {
-        flex-direction: column;
-        gap: 10px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: nowrap;
     }
 
     .alt4-logo-image {
-        height: 68px;
+        height: 54px;
     }
 
     .alt4-logo-word {
-        font-size: clamp(2.7rem, 16vw, 4.2rem);
-        letter-spacing: 1px;
+        font-size: clamp(2rem, 11.4vw, 2.9rem);
+        letter-spacing: 0.4px;
     }
 }
 
@@ -3553,5 +3556,14 @@ body.palette-berry {
 
     .alt4-intro-subline {
         font-size: clamp(1rem, 6.2vw, 1.4rem);
+    }
+
+    .alt4-logo-image {
+        height: 48px;
+    }
+
+    .alt4-logo-word {
+        font-size: clamp(1.78rem, 10.8vw, 2.5rem);
+        letter-spacing: 0.2px;
     }
 }
