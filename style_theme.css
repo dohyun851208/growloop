@@ -1,4 +1,4 @@
-/* =============================================
+﻿/* =============================================
    GrowLoop Theme Override
    - 랜딩 페이지(index.html)의 톤/색상/폰트를
      학생·선생님 앱 페이지(app.html)에 통일 적용
@@ -731,8 +731,9 @@ input[type="date"].class-tone-input {
 
 .ai-feedback-text {
     color: var(--text-main);
-    line-height: 1.7;
-    font-size: 0.95rem;
+    line-height: 1.78;
+    font-size: 1.01rem;
+    letter-spacing: 0.015em;
 }
 
 .streak-badge-area {
@@ -1048,6 +1049,30 @@ input[type="date"].class-tone-input {
     margin-bottom: 15px;
 }
 
+.achievement-area {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.achievement-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.achievement-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: var(--text-main);
+    font-size: 0.82rem;
+    line-height: 1.2;
+}
+
 .objective-label {
     font-weight: 700;
     color: var(--color-blue);
@@ -1202,6 +1227,32 @@ input[type="date"].class-tone-input {
 .student-class-change-card {
     border: 1.5px solid #d1d5db !important;
     background: #ffffff !important;
+}
+
+.student-class-change-fold {
+    margin: 0;
+}
+
+.student-class-change-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    list-style: none;
+}
+
+.student-class-change-summary::-webkit-details-marker {
+    display: none;
+}
+
+.student-class-change-summary::after {
+    content: '+';
+    color: #64748b;
+    font-weight: 700;
+}
+
+.student-class-change-fold[open] .student-class-change-summary::after {
+    content: '-';
 }
 
 .student-class-change-warning {
@@ -1667,6 +1718,57 @@ input[type="date"].class-tone-input {
     overflow-x: auto;
 }
 
+#teacherMain #rankingMiniTab .teacher-density-fold {
+    margin-top: 10px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 14px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold-summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    font-weight: 700;
+    color: #374151;
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold-summary::-webkit-details-marker {
+    display: none;
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold-summary::after {
+    content: '+';
+    color: #6b7280;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold[open] .teacher-density-fold-summary::after {
+    content: '-';
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold-help {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold .ranking-table-wrapper {
+    margin-top: 0;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 0;
+}
+
+#teacherMain #rankingMiniTab .teacher-density-fold .ranking-table {
+    margin-top: 0;
+}
+
 @media (max-width: 640px) {
     #studentTab #peerEvaluationSection .type-selector {
         display: grid;
@@ -1726,6 +1828,65 @@ input[type="date"].class-tone-input {
 #criteriaMiniTab [style*="background:var(--bg-soft)"] {
     background: #ffffff !important;
     border: 1.5px solid #d1d5db !important;
+}
+
+#criteriaMiniTab .achievement-standard-input-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+#criteriaMiniTab .achievement-standard-input-row input {
+    margin-bottom: 0;
+}
+
+#criteriaMiniTab #settingAchievementStandardInput,
+#criteriaMiniTab #settingAchievementStandardInput::placeholder {
+    font-family: 'Jua', sans-serif !important;
+}
+
+#criteriaMiniTab .achievement-standard-add-btn {
+    height: 42px;
+    border: 1.5px solid #d1d5db !important;
+    border-radius: 10px;
+    background: #ffffff !important;
+    color: #334155 !important;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0;
+}
+
+#criteriaMiniTab .achievement-standard-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+#criteriaMiniTab .achievement-standard-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    color: #1f2937;
+    font-size: 0.8rem;
+}
+
+#criteriaMiniTab .achievement-standard-remove-btn {
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 50%;
+    background: #e5e7eb;
+    color: #334155;
+    font-size: 0.8rem;
+    line-height: 1;
+    padding: 0;
 }
 
 /* Diary participation status card: white tone */
@@ -2674,6 +2835,40 @@ input:checked+.switch-slider:before {
     border-left-color: #6faf8c !important;
 }
 
+#teacherMain #studentReviews .teacher-review-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin: 4px 0 10px;
+}
+
+#teacherMain #studentReviews .teacher-review-preview-note {
+    font-size: 0.82rem;
+    color: #6b7280;
+    font-weight: 700;
+}
+
+#teacherMain #studentReviews .teacher-review-more-btn {
+    width: 100%;
+    margin: 4px 0 10px;
+    background: #ffffff !important;
+    color: #475569 !important;
+    border: 1.5px dashed #cbd5e1 !important;
+    box-shadow: none !important;
+}
+
+#teacherMain #studentReviews .teacher-review-more-btn:hover {
+    background: #f8fafc !important;
+    border-color: #94a3b8 !important;
+}
+
+#teacherMain #studentReviews .teacher-review-more {
+    display: grid;
+    gap: 10px;
+    margin-top: 4px;
+}
+
 /* Teacher letter management: apply striped card layout */
 #teacherMain #messageList .message-card {
     border: 1.5px solid #d1d5db !important;
@@ -3375,39 +3570,13 @@ input:checked+.switch-slider:before {
     padding: 12px 13px;
     border-radius: 10px;
     border: 1.5px solid #d1d5db;
-    border-left: 4px solid #9ca3af;
+    border-left: 1.5px solid #d1d5db;
     background: #ffffff;
     margin-bottom: 10px;
 }
 
-#teacherMain #praiseMiniTab .teacher-praise-item-received {
-    border-left-color: #7e7acf;
-}
-
 #teacherMain #praiseMiniTab .teacher-praise-item-pending {
-    border-left-color: #5f97c4;
     background: #f8fafc;
-}
-
-/* Pending praise list: rotate left accent colors for better visual separation */
-#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+1) {
-    border-left-color: #5f97c4;
-}
-
-#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+2) {
-    border-left-color: #7e7acf;
-}
-
-#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+3) {
-    border-left-color: #6faf8c;
-}
-
-#teacherMain #praiseMiniTab #pendingPraiseList .teacher-praise-item-pending:nth-child(4n+4) {
-    border-left-color: #8ea2b6;
-}
-
-#teacherMain #praiseMiniTab .teacher-praise-item-approved {
-    border-left-color: #9ca3af;
 }
 
 #teacherMain #praiseMiniTab .teacher-praise-item-head {
@@ -3688,6 +3857,56 @@ input:checked+.switch-slider:before {
 
 #teacherMain #settingsMiniTab .teacher-manage-sub-tab-container .sub-tab-btn {
     font-size: 0.9rem;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion {
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion-summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 14px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #334155;
+    background: #f8fafc;
+    border-bottom: 1px solid transparent;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion-summary::-webkit-details-marker {
+    display: none;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion-summary::after {
+    content: '+';
+    font-size: 1rem;
+    color: #64748b;
+    font-weight: 700;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion[open] .teacher-manage-accordion-summary {
+    border-bottom-color: #e2e8f0;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion[open] .teacher-manage-accordion-summary::after {
+    content: '-';
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion-body {
+    padding: 10px;
+}
+
+#teacherMain #settingsMiniTab .teacher-manage-accordion-body .accent-box {
+    margin: 0 !important;
 }
 
 #teacherMain #settingsMiniTab .teacher-partner-reference-card {
@@ -4334,8 +4553,8 @@ input:checked+.switch-slider:before {
 #teacherMain #settingsMiniTab .teacher-partner-list {
     display: grid;
     gap: 8px;
-    max-height: min(68vh, 640px);
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
     overflow-x: hidden;
     padding: 3px;
 }
@@ -4743,8 +4962,20 @@ input:checked+.switch-slider:before {
     font-family: 'Jua', sans-serif;
 }
 
-/* Student page: keep template/tag buttons horizontal and recover readable text size */
-body.student-layout,
+/* Role-based root font scaling */
+html.student-layout {
+    font-size: 100%;
+}
+
+html.teacher-layout {
+    font-size: 110%;
+}
+
+/* Layout width */
+body.student-layout {
+    max-width: 1000px !important;
+}
+
 body.teacher-layout {
     max-width: 1020px !important;
 }
@@ -4777,6 +5008,37 @@ body.teacher-layout {
 
 #studentTab #studentMainSection .nav-label {
     font-size: 0.84rem !important;
+}
+
+/* Teacher page: match the student readability scale baseline */
+#teacherTab #teacherMain {
+    font-size: 1.04rem;
+}
+
+#teacherTab #teacherMain .box-label {
+    font-size: 1.02rem !important;
+}
+
+#teacherTab #teacherMain label {
+    font-size: 0.95rem !important;
+}
+
+#teacherTab #teacherMain input,
+#teacherTab #teacherMain select,
+#teacherTab #teacherMain textarea {
+    font-size: 1rem !important;
+}
+
+#teacherTab #teacherMain button {
+    font-size: 0.96rem !important;
+}
+
+#teacherTab #teacherMain .sub-tab-btn {
+    font-size: 0.92rem !important;
+}
+
+#teacherTab #teacherMain .nav-label {
+    font-size: 0.9rem !important;
 }
 
 #studentTab #dailyReflectionTab .guide-buttons,
@@ -5129,6 +5391,112 @@ body.teacher-layout {
 
 #studentSettingsSection #newClassNameInput::placeholder,
 #studentSettingsSection #newClassCodeInput::placeholder {
+    opacity: 1 !important;
+}
+
+/* Warm tone override: student AI message areas (avoid cold blue/neon) */
+#studentTab #peerEvaluationSection #studentResultTab #resultArea .accent-box.box-violet {
+    border-color: #eadfd2 !important;
+    border-left-color: #d7a27d !important;
+    background: linear-gradient(180deg, #fffaf4 0%, #fffdf9 100%) !important;
+}
+
+#studentTab #peerEvaluationSection #studentResultTab #resultArea .accent-box.box-violet .box-label {
+    color: #99603f !important;
+}
+
+#studentTab #peerEvaluationSection #studentResultTab #mySummary h1,
+#studentTab #peerEvaluationSection #studentResultTab #mySummary h2,
+#studentTab #peerEvaluationSection #studentResultTab #mySummary h3,
+#studentTab #peerEvaluationSection #studentResultTab #mySummary h4 {
+    color: #7a4a30 !important;
+    background: #f8e8d8 !important;
+    border-left: 4px solid #cf8c62 !important;
+    border-radius: 10px;
+}
+
+#studentTab #peerEvaluationSection #studentResultTab #mySummary p,
+#studentTab #peerEvaluationSection #studentResultTab #mySummary li,
+#studentTab #peerEvaluationSection #studentResultTab #mySummary strong {
+    color: #332a24 !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .summary-report-card.dashboard-ai-card {
+    border-color: #eadfd2 !important;
+    background: linear-gradient(180deg, #fffaf4 0%, #fffdf9 100%) !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .summary-report-card .box-label {
+    color: #99603f !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .partner-message-mode-btn.active {
+    background: #f8e8d8 !important;
+    border-color: #d5a07b !important;
+    color: #7a4b31 !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .partner-daily-generate-btn,
+#studentTab #selfEvaluationMenu #dashboardTab .partner-compare-generate-btn {
+    border-color: #d8a481 !important;
+    background: #faecdf !important;
+    color: #7b4c32 !important;
+    box-shadow: none !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .partner-compare-panel {
+    border-color: #e6d0bc !important;
+    background: linear-gradient(180deg, #fff5ea 0%, #fffdf9 100%) !important;
+}
+
+#studentTab #selfEvaluationMenu #dashboardTab .partner-compare-target-btn.is-active {
+    border-color: #d6a07c !important;
+    background: #f8e9da !important;
+    color: #7a4b31 !important;
+}
+
+/* Peer submit tab: enforce Jua + black text for template chips and feedback input */
+#studentTab #peerEvaluationSection #studentArtifactTab,
+#studentTab #peerEvaluationSection #studentArtifactTab * {
+    font-family: 'Jua', sans-serif !important;
+}
+
+#studentTab #peerEvaluationSection #studentArtifactTab .box-label,
+#studentTab #peerEvaluationSection #studentArtifactTab label,
+#studentTab #peerEvaluationSection #studentArtifactTab p,
+#studentTab #peerEvaluationSection #studentArtifactTab .peer-artifact-status-note {
+    color: #000 !important;
+}
+
+#studentTab #peerEvaluationSection #studentSubmitTab,
+#studentTab #peerEvaluationSection #studentSubmitTab * {
+    font-family: 'Jua', sans-serif !important;
+}
+
+#studentTab #peerEvaluationSection #studentSubmitTab .box-label,
+#studentTab #peerEvaluationSection #studentSubmitTab label,
+#studentTab #peerEvaluationSection #studentSubmitTab .objective-label,
+#studentTab #peerEvaluationSection #studentSubmitTab .objective-text,
+#studentTab #peerEvaluationSection #studentSubmitTab .progress-text,
+#studentTab #peerEvaluationSection #studentSubmitTab #charCount {
+    color: #000 !important;
+}
+
+#studentTab #peerEvaluationSection #studentSubmitTab .feedback-templates .template-btn,
+#studentTab #peerEvaluationSection #studentSubmitTab .feedback-templates .template-btn:hover,
+#studentTab #peerEvaluationSection #studentSubmitTab .feedback-templates .template-btn:active {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+}
+
+#studentTab #peerEvaluationSection #studentSubmitTab #reviewContent,
+#studentTab #peerEvaluationSection #studentSubmitTab #reviewContent::placeholder,
+#studentTab #peerEvaluationSection #studentSubmitTab #charCount {
+    font-family: 'Jua', sans-serif !important;
+    color: #000 !important;
+}
+
+#studentTab #peerEvaluationSection #studentSubmitTab #reviewContent::placeholder {
     opacity: 1 !important;
 }
 

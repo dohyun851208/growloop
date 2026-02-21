@@ -1,0 +1,264 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 세특 초안 생성</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.06);
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.06);
+        }
+
+        .process-arrow {
+            position: absolute;
+            left: 23px;
+            top: 40px;
+            bottom: -10px;
+            width: 2px;
+            background: #E2E8F0;
+            z-index: 0;
+        }
+
+        .process-item:last-child .process-arrow {
+            display: none;
+        }
+
+        .highlight-text {
+            color: #8864ee;
+        }
+
+        .highlight-teal {
+            color: #14b8a6;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <div class="shape-circle bg-purple-soft w-[600px] h-[600px] -top-20 -left-20"></div>
+        <div class="shape-circle bg-teal-soft w-[500px] h-[500px] bottom-0 right-0"></div>
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-6 z-10">
+            <div class="mb-5">
+                <span
+                    class="bg-white border border-gray-100 px-4 py-1.5 rounded-full text-lg font-medium tracking-wide shadow-sm flex items-center gap-2 w-fit">
+                    <span class="text-[#8864ee]"><i class="fa-solid fa-hands-holding-circle mr-1"></i>함께(교사보조)</span>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-[#14b8a6]"><i class="fa-solid fa-robot mr-1"></i>AI로</span>
+                </span>
+            </div>
+            <div class="mb-4">
+                <h1 class="text-4xl text-gray-800 leading-snug">
+                    <span class="text-2xl block text-gray-500 mb-1 font-normal">쌓인 기록이</span>
+                    교사의 <span class="highlight-text">업무</span>가 됩니다
+                </h1>
+            </div>
+            <div class="mb-8">
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    학생의 누적된 배움노트가 세특 초안을 위한 기반이 됩니다.<br />
+                    선생님은 AI가 제안한 초안을 검토하고 수정하기만 하면 됩니다.
+                </p>
+            </div>
+            <div class="space-y-8 relative pl-2">
+                <div class="process-item relative flex gap-5">
+                    <div class="process-arrow"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#8864ee] flex items-center justify-center text-[#8864ee] shadow-sm z-10">
+                        <i class="fa-solid fa-book-open text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl text-gray-800 mb-1">학생의 누적 배움노트</h3>
+                        <p class="text-gray-500 text-sm">한 학기 동안 쌓인 생생한 기록 데이터</p>
+                    </div>
+                </div>
+                <div class="process-item relative flex gap-5">
+                    <div class="process-arrow"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#14b8a6] flex items-center justify-center text-[#14b8a6] shadow-sm z-10">
+                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl text-gray-800 mb-1">AI 세특 초안 생성</h3>
+                        <p class="text-gray-500 text-sm">"○○학생은 분수 개념 적용에서<br />꾸준한 성장을 보였으며..."</p>
+                    </div>
+                </div>
+                <div class="process-item relative flex gap-5">
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-gray-400 flex items-center justify-center text-gray-500 shadow-sm z-10">
+                        <i class="fa-solid fa-check-double text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl text-gray-800 mb-1">교사는 검토·수정만</h3>
+                        <p class="text-gray-500 text-sm">기초 자료 작성 시간을 획기적으로 단축</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-6 pl-4 z-10 py-6">
+            <div class="w-full h-full flex flex-col gap-5">
+                <div
+                    class="flex-1 bg-white border border-[#8864ee] border-opacity-20 rounded-2xl overflow-hidden relative shadow-sm">
+                    <div class="absolute top-3 left-3 bg-[#8864ee] text-white text-xs px-2 py-1 rounded shadow-sm">
+                        Step 1 : 데이터 누적 &amp; 설정
+                    </div>
+                    <div class="w-full h-full pt-8 px-4 pb-3 overflow-y-auto bg-white"
+                        style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                        <p class="text-[10px] text-gray-500 mb-1 font-bold">현재 선택 학생</p>
+                        <div
+                            class="bg-white border border-gray-200 rounded-lg px-3 py-2 mb-2.5 flex justify-between items-center cursor-pointer hover:border-purple-300 transition-colors">
+                            <span class="text-[13px]">1번</span><i
+                                class="fa-solid fa-chevron-down text-gray-400 text-[8px]"></i>
+                        </div>
+                        <div class="flex gap-2 mb-2.5">
+                            <div class="flex-1">
+                                <p class="text-[10px] text-gray-500 mb-1 font-bold">학교급</p>
+                                <div
+                                    class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-400 cursor-pointer hover:border-purple-300 transition-colors">
+                                    선택하세요 <i class="fa-solid fa-chevron-down text-[8px] ml-1"></i></div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] text-gray-500 mb-1 font-bold">학기</p>
+                                <div class="flex bg-gray-100 rounded-lg overflow-hidden"><button
+                                        class="flex-1 bg-[#4a6fa5] text-white py-2 text-[10px] cursor-pointer">1학기</button><button
+                                        class="flex-1 bg-white text-gray-500 py-2 text-[10px] cursor-pointer hover:bg-gray-50 transition-colors">2학기</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 mb-2.5">
+                            <div class="flex-1">
+                                <p class="text-[10px] text-gray-500 mb-1 font-bold">기간 시작일</p>
+                                <div
+                                    class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-400 cursor-pointer hover:border-purple-300 transition-colors">
+                                    yyyy-mm-dd 📅</div>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-[10px] text-gray-500 mb-1 font-bold">기간 종료일</p>
+                                <div
+                                    class="bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-400 cursor-pointer hover:border-purple-300 transition-colors">
+                                    yyyy-mm-dd 📅</div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-500 mb-1 font-bold">과목 태그 (1개 선택)</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">국어</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">수학</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">사회</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">과학</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">영어</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">음악</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">미술</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">체육</span>
+                            <span
+                                class="border border-gray-200 bg-white text-[10px] text-gray-600 px-2.5 py-1 rounded-full cursor-pointer hover:bg-gray-100 transition-colors">도덕</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="h-8 flex items-center justify-center relative">
+                    <div class="absolute w-0.5 h-full bg-gradient-to-b from-[#8864ee] to-[#14b8a6] opacity-30"></div>
+                    <div
+                        class="bg-white border border-gray-200 rounded-full w-8 h-8 flex items-center justify-center z-10 shadow-sm">
+                        <i class="fa-solid fa-arrow-down text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+                <div
+                    class="flex-1 bg-white border border-[#14b8a6] border-opacity-30 rounded-2xl overflow-hidden relative shadow-sm">
+                    <div class="absolute top-3 left-3 bg-[#14b8a6] text-white text-xs px-2 py-1 rounded shadow-sm">
+                        Step 2 : 세특 초안 결과
+                    </div>
+                    <div class="w-full h-full pt-8 px-4 pb-3 overflow-y-auto bg-white"
+                        style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                        <p class="text-[13px] font-bold text-gray-700 mb-2">배움노트 2건</p>
+                        <!-- Source Card -->
+                        <div class="bg-purple-50 border border-purple-100 rounded-xl p-3 mb-3">
+                            <p class="text-[10px] text-purple-600 font-bold mb-1">📚 선택 과목 원문 조회</p>
+                            <div class="bg-white border border-gray-100 rounded-lg p-2.5 mb-1.5">
+                                <div class="flex justify-between items-center mb-1"><span
+                                        class="text-[13px] font-bold text-gray-800">17번</span><span
+                                        class="text-[9px] text-gray-400">2026-03-01</span></div>
+                                <span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">수학</span>
+                                <p class="text-[10px] text-gray-600 mt-1 leading-relaxed">삼각비의 특수각을 외우긴 했는데, 높이와 밑변이 달라질
+                                    때 사인과 코사인 값이 어떻게 변하는지 그래프로 연결해서 이해하는 게 아직 어렵다.</p>
+                            </div>
+                            <div class="bg-white border border-gray-100 rounded-lg p-2.5">
+                                <div class="flex justify-between items-center mb-1"><span
+                                        class="text-[13px] font-bold text-gray-800">2번</span><span
+                                        class="text-[9px] text-gray-400">2026-03-01</span></div>
+                                <span class="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">수학</span>
+                                <p class="text-[10px] text-gray-600 mt-1 leading-relaxed">이차방정식 근의 공식을 배울 때 식을 제곱 형태로
+                                    바꾸는 과정이 너무 복잡해서 자꾸 틀린다.</p>
+                            </div>
+                        </div>
+                        <!-- CTA -->
+                        <div class="text-center py-4">
+                            <div class="text-3xl mb-2">📚</div>
+                            <p class="text-[13px] font-bold text-gray-700">설정을 선택해 생성해보세요</p>
+                            <p class="text-[10px] text-gray-400 mt-1">학생/학기/기간/과목/학교급을 선택한 후 생성하기를 눌러주세요.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

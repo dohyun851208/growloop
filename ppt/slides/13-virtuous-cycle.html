@@ -1,0 +1,222 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>배움로그 - 선순환 구조</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Jua', sans-serif;
+    }
+
+    .slide-container {
+      width: 100vw;
+      height: 100vh;
+      background-color: #FFF9F0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+
+    /* Abstract shapes */
+    .shape-circle {
+      border-radius: 50%;
+      position: absolute;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    .bg-rose-soft {
+      background-color: rgba(244, 63, 94, 0.08);
+    }
+
+    .bg-purple-soft {
+      background-color: rgba(136, 100, 238, 0.08);
+    }
+
+    .bg-teal-soft {
+      background-color: rgba(20, 184, 166, 0.08);
+    }
+
+    /* Loop Animation Concept for Placeholder */
+    .loop-node {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background-color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      z-index: 20;
+      border: 4px solid white;
+    }
+
+    .loop-arrow {
+      position: absolute;
+      z-index: 10;
+      color: #CBD5E1;
+      font-size: 2rem;
+    }
+
+    .dashed-circle {
+      position: absolute;
+      width: 450px;
+      height: 450px;
+      border: 3px dashed #E2E8F0;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+    .cycle-collage {
+      background-color: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(2px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .cycle-shot {
+      position: absolute;
+      overflow: hidden;
+      border-radius: 18px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+      border: 4px solid rgba(255, 255, 255, 0.95);
+    }
+
+    .cycle-shot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="slide-container">
+    <!-- Background Elements -->
+    <div class="shape-circle bg-rose-soft w-[500px] h-[500px] -top-20 -left-20"></div>
+    <div class="shape-circle bg-teal-soft w-[400px] h-[400px] top-10 right-10"></div>
+    <div class="shape-circle bg-purple-soft w-[600px] h-[600px] -bottom-40 left-1/2 transform -translate-x-1/2"></div>
+    <!-- Header Section -->
+    <div class="z-10 w-full flex flex-col items-center mb-6">
+      <div class="mb-4">
+        <div class="flex gap-2">
+          <span
+            class="bg-white border border-rose-100 px-3 py-1 rounded-full text-base font-medium tracking-wide shadow-sm text-[#f43f5e]">
+            <i class="fa-regular fa-user mr-1"></i>나답게
+          </span>
+          <span class="text-gray-300 flex items-center"><i class="fa-solid fa-arrow-right text-xs"></i></span>
+          <span
+            class="bg-white border border-teal-100 px-3 py-1 rounded-full text-base font-medium tracking-wide shadow-sm text-[#14b8a6]">
+            <i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI로
+          </span>
+          <span class="text-gray-300 flex items-center"><i class="fa-solid fa-arrow-right text-xs"></i></span>
+          <span
+            class="bg-white border border-purple-100 px-3 py-1 rounded-full text-base font-medium tracking-wide shadow-sm text-[#8864ee]">
+            <i class="fa-solid fa-users mr-1"></i>함께
+          </span>
+        </div>
+      </div>
+      <h1 class="text-5xl text-gray-800 mb-2 text-center">
+        배움로그가 만드는 <span class="text-[#8864ee]">선순환</span>
+      </h1>
+      <p class="text-xl text-gray-500 text-center">
+        기록하고, 분석하고, 함께 성장하며 다시 기록하는 배움의 루프
+      </p>
+    </div>
+    <!-- Main Diagram Placeholder -->
+    <div class="z-10 relative flex-1 w-full flex items-center justify-center">
+      <!-- Conceptual Visual Behind Placeholder (To show what it should look like) -->
+      <div class="relative w-[500px] h-[500px] opacity-40">
+        <div class="dashed-circle"></div>
+        <!-- Node 1: Top (Na-dap-ge) -->
+        <div class="loop-node top-0 left-1/2 transform -translate-x-1/2 -translate-y-4 border-[#f43f5e]">
+          <i class="fa-solid fa-pen-nib text-4xl text-[#f43f5e] mb-2"></i>
+          <p class="text-gray-600 font-bold text-lg">나답게</p>
+          <p class="text-xs text-gray-400">학생 기록</p>
+        </div>
+        <!-- Node 2: Bottom Right (AI-ro) -->
+        <div class="loop-node bottom-16 right-0 border-[#14b8a6]">
+          <i class="fa-solid fa-microchip text-4xl text-[#14b8a6] mb-2"></i>
+          <p class="text-gray-600 font-bold text-lg">AI로</p>
+          <p class="text-xs text-gray-400">분석/개인화</p>
+        </div>
+        <!-- Node 3: Bottom Left (Ham-kke) -->
+        <div class="loop-node bottom-16 left-0 border-[#8864ee]">
+          <i class="fa-solid fa-hands-holding-circle text-4xl text-[#8864ee] mb-2"></i>
+          <p class="text-gray-600 font-bold text-lg">함께</p>
+          <p class="text-xs text-gray-400">동반 성장</p>
+        </div>
+        <!-- Arrows -->
+        <i class="fa-solid fa-arrow-right-long loop-arrow top-1/3 right-10 rotate-[60deg]"></i>
+        <i class="fa-solid fa-arrow-right-long loop-arrow bottom-10 left-1/2 transform -translate-x-1/2"></i>
+        <i class="fa-solid fa-arrow-right-long loop-arrow top-1/3 left-10 rotate-[-60deg]"></i>
+      </div>
+      <!-- Actual Placeholder Overlay -->
+      <div class="absolute w-[66%] h-[92%] cycle-collage rounded-3xl p-5 shadow-lg flex items-center justify-center">
+        <div class="relative w-full h-full">
+          <!-- Card 1: Na-dap-ge -->
+          <div
+            class="absolute top-[8%] left-[26%] w-[48%] h-[38%] bg-white rounded-2xl shadow-xl border border-rose-100 flex flex-col items-center justify-center rotate-[-2deg] p-4 transition-transform hover:scale-105 hover:z-30">
+            <div class="w-12 h-12 rounded-full bg-rose-50 flex items-center justify-center mb-2">
+              <i class="fa-solid fa-list-check text-[#f43f5e] text-xl"></i>
+            </div>
+            <h3 class="text-gray-800 font-bold mb-1">성향 진단 퀴즈</h3>
+            <p class="text-xs text-gray-500 text-center">나에게 편안한<br />학습 방식 찾기</p>
+          </div>
+          <!-- Card 2: AI-ro -->
+          <div
+            class="absolute bottom-[10%] left-[8%] w-[48%] h-[38%] bg-white rounded-2xl shadow-xl border border-teal-100 flex flex-col items-center justify-center rotate-[3deg] p-4 transition-transform hover:scale-105 hover:z-30">
+            <div class="w-12 h-12 rounded-full bg-teal-50 flex items-center justify-center mb-2">
+              <i class="fa-solid fa-chart-pie text-[#14b8a6] text-xl"></i>
+            </div>
+            <h3 class="text-gray-800 font-bold mb-1">학생 결과 분석</h3>
+            <p class="text-xs text-gray-500 text-center">동료평가 데이터<br />시각화 및 요약</p>
+          </div>
+          <!-- Card 3: Ham-kke -->
+          <div
+            class="absolute bottom-[10%] right-[8%] w-[48%] h-[38%] bg-white rounded-2xl shadow-xl border border-purple-100 flex flex-col items-center justify-center rotate-[-3deg] p-4 transition-transform hover:scale-105 hover:z-30">
+            <div class="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mb-2">
+              <i class="fa-regular fa-lightbulb text-[#8864ee] text-xl"></i>
+            </div>
+            <h3 class="text-gray-800 font-bold mb-1">수업 개선 단서</h3>
+            <p class="text-xs text-gray-500 text-center">어려움/헷갈림 등<br />학생 신호 감지</p>
+          </div>
+          <div
+            class="absolute bottom-[2%] left-1/2 -translate-x-1/2 px-4 py-2 bg-white/90 rounded-full text-sm font-medium text-gray-600 shadow border border-gray-100 z-40">
+            <span class="text-[#f43f5e]">나답게</span> → <span class="text-[#14b8a6]">AI로</span> → <span
+              class="text-[#8864ee]">함께</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="nav-bridge.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,8 @@
+{
+  "fluid": true,
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 300
+    }
+  }
+}

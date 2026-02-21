@@ -32,6 +32,7 @@
 
         body {
             font-family: 'Jua', sans-serif;
+            letter-spacing: 0.4px;
             background: linear-gradient(135deg, #FFF9F0 0%, #FFE8F0 100%);
             min-height: 100vh;
             overflow-y: auto;
@@ -515,6 +516,7 @@
             overflow-y: auto;
             line-height: 1.8;
             font-size: 0.93rem;
+            font-family: 'Jua', sans-serif;
             padding-right: 8px;
             color: #3D3632;
         }
@@ -656,12 +658,14 @@
         .terms-appendix .terms-article::before {
             background: #8A7F76;
         }
-
     </style>
-    <link rel="stylesheet" href="landing.css?v=20260217-2">
+    <link rel="stylesheet" href="landing.css?v=20260218-4">
     <!-- Noto Sans KR for Modals (lazy loaded) -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    </noscript>
 </head>
 
 <body>
@@ -677,29 +681,32 @@
         <!-- Top Navigation Bar -->
         <nav class="top-nav" id="topNav">
             <div class="nav-brand" onclick="document.getElementById('heroSection').scrollIntoView({behavior:'smooth'})">
-                <span class="nav-slogan" aria-hidden="true">
-                    <span class="hl-rose">나답게,</span>
-                    <span class="hl-violet">함께,</span>
-                    <span class="hl-teal">AI로</span>
-                </span>
                 <span class="nav-brand-name">BaeumLog</span>
             </div>
             <div class="nav-actions" id="mainSection">
                 <button class="nav-login-btn student-login" onclick="signInWithGoogle('student')">
                     <svg class="google-icon-sm" viewBox="0 0 24 24">
-                        <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        <path fill="#fff"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#fff"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#fff"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#fff"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
                     학생 로그인
                 </button>
                 <button class="nav-login-btn teacher-login" onclick="signInWithGoogle('teacher')">
                     <svg class="google-icon-sm" viewBox="0 0 24 24">
-                        <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#fff" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#fff" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                        <path fill="#fff" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        <path fill="#fff"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                        <path fill="#fff"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                        <path fill="#fff"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                        <path fill="#fff"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
                     </svg>
                     교사 로그인
                 </button>
@@ -713,53 +720,84 @@
 
         <!-- Hero Section -->
         <section class="hero-section" id="heroSection">
-            <div class="hero-center">
-                <p class="hero-sub">
-                    <span class="hero-sub-word hl-rose">나답게,</span>
-                    <span class="hero-sub-word hl-violet">함께,</span>
-                    <span class="hero-sub-word hl-teal">AI로</span>
-                </p>
-                <h1 class="hero-brand">
-                    <img src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 아이콘" class="brand-emoji">
-                    <span class="brand-text">배움로그</span>
-                </h1>
-                <div class="hero-typing-area">
-                    <p class="hero-typing-text">
-                        지금 우리 반은&nbsp;<span class="typed-word" id="typedWord"></span><span class="cursor"></span>
-                    </p>
-                </div>
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <span class="stat-emoji">✍️</span>
-                        <span class="stat-number" data-target="1247">0</span>
-                        <span class="stat-label">배움노트쓰기</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-emoji">💌</span>
-                        <span class="stat-number" data-target="892">0</span>
-                        <span class="stat-label">동료 피드백 나누기</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-emoji">🧠</span>
-                        <span class="stat-number" data-target="356">0</span>
-                        <span class="stat-label">AI 성장파트너 찾기</span>
+            <div class="hero-center alt4-hero">
+                <!-- Step 1: Sequential Intro Animation Overlay (0.3s Start + 0.8s Intervals + 0.1s Transition + Instant Cut) -->
+                <div class="alt4-intro-overlay"
+                    style="position: absolute; top: 30%; left: 0; right: 0; z-index: 20; pointer-events: none; text-align: center;">
+
+                    <!-- Stacking wrapper: both phrases occupy the same position -->
+                    <div style="position: relative; height: 6.5rem;">
+
+                        <!-- Line 1: Colored Slogans (0.3s start, 0.8s Intervals, Finish 0.1s after 'AI로' at 2.6s) -->
+                        <p class="hero-sub"
+                            style="position: absolute; top: 0; left: 0; right: 0; margin: 0; font-size: 7.2rem; font-weight: 700; line-height: 1.45; letter-spacing: -0.3px; display: flex; align-items: center; justify-content: center; gap: 0.2em; white-space: nowrap; transform-origin: center center; animation: disappear 0s 2.6s forwards;">
+                            <span class="hero-sub-word hl-rose" style="color: #f43f5e;">나답게,</span>
+                            <span class="hero-sub-word hl-violet" style="color: #8b5cf6;">함께,</span>
+                            <span class="hero-sub-word hl-teal" style="color: #14b8a6;">AI로</span>
+                        </p>
+
+                        <!-- Line 2: The Subheading Phrase (2.6s to 3.8s - Instant Cut at the end) -->
+                        <p
+                            style="position: absolute; top: 3.0rem; left: 0; right: 0; margin: 0; opacity: 0; font-size: 4.2rem; color: #44403c; font-weight: 700; letter-spacing: -0.8px; display: flex; align-items: center; justify-content: center; white-space: nowrap; animation: fadeInOnly 0.8s 2.6s forwards, disappear 0s 3.8s forwards;">
+                            우리 반이 쌓아가는 배움기록
+                        </p>
+
                     </div>
                 </div>
-                <div class="hero-cta-group">
+
+                <!-- Step 2: Main Content Panel (Final Appearance starting at 3.9s) -->
+                <div class="alt4-content-wrapper glassmorphism-panel"
+                    style="opacity: 0; animation: lowerFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 3.9s forwards; padding: 64px 48px;">
+                    <div class="alt4-content"
+                        style="display: flex; flex-direction: column; align-items: center; gap: 0;">
+                        <!-- Small colored slogan at the top -->
+                        <p
+                            style="font-size: 1.8rem; font-weight: 800; margin: 0; display: flex; gap: 8px; letter-spacing: -0.5px;">
+                            <span class="hl-rose" style="color: #f43f5e;">나답게,</span>
+                            <span class="hl-violet" style="color: #8b5cf6;">함께,</span>
+                            <span class="hl-teal" style="color: #14b8a6;">AI로</span>
+                        </p>
+
+                        <!-- Tightly attached eyebrow text -->
+                        <p
+                            style="font-size: 2.2rem; color: #44403c; font-weight: 700; margin-top: 8px; margin-bottom: 48px; letter-spacing: -1.2px;">
+                            우리 반이 쌓아가는 배움 기록
+                        </p>
+
+                        <!-- Giant Brand Logo -->
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 24px;">
+                            <img src="images/Gemini_Generated_Image_d19ctrd19ctrd19c-removebg-preview.png" alt="배움로그 로고"
+                                style="height: 120px; object-fit: contain; filter: drop-shadow(0 4px 12px rgba(45, 36, 36, 0.1)); animation: float 4s ease-in-out infinite;">
+                            <span
+                                style="font-family: 'Jua', sans-serif; font-size: 8.5rem; font-weight: 700; letter-spacing: 4px; background: linear-gradient(135deg, var(--tone-self-main), var(--tone-together-main)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                                배움로그
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-cta-group fade-in-up-delay-5">
                     <a href="#demoSection" class="hero-cta-btn hero-cta-primary"
-                       onclick="scrollToDemo(); return false;">
-                        🖱️ 체험해보기
+                        onclick="scrollToDemo(); return false;">
+                        <span class="cta-icon" aria-hidden="true">
+                            <img src="images/free-icon-pointer.png" alt="" class="cta-illust" decoding="async">
+                        </span>
+                        체험해보기
                     </a>
                     <a href="#featuresSection" class="hero-cta-btn hero-cta-secondary"
-                       onclick="scrollToFeatures(); return false;">
-                        📋 기능 살펴보기
+                        onclick="scrollToFeatures(); return false;">
+                        <span class="cta-icon" aria-hidden="true">
+                            <img src="images/hero-cta-explore.svg?v=20260218a" alt="" class="cta-illust"
+                                decoding="async">
+                        </span>
+                        기능 살펴보기
                     </a>
                 </div>
             </div>
             <button type="button" class="scroll-indicator" onclick="scrollToFeatures()" aria-label="아래로 스크롤">
                 <span>아래로 스크롤</span>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path d="M10 4v12M4 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 4v12M4 10l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
                 </svg>
             </button>
         </section>
@@ -825,8 +863,8 @@
         <!-- How It Works Section -->
         <section class="how-it-works-section" id="howItWorksSection">
             <div class="how-it-works-inner">
-                <h2 class="section-title">학생과 교사가 함께 성장하는 수업 루프</h2>
-                <p class="section-subtitle">학생의 기록이 스스로의 성장과 교사의 통찰이 되고, 그 통찰이 다음 수업의 변화로 이어져요</p>
+                <h2 class="section-title">학생과 교사가 함께 성장하는 배움 루프</h2>
+                <p class="section-subtitle">학생의 기록이 스스로의 성장과 교사의 배움이 되고, 그 배움이 다음 수업의 변화로 이어져요</p>
                 <div class="steps-grid">
                     <article class="step-card step-card-student fade-in-up">
                         <div class="step-number">1</div>
@@ -835,7 +873,7 @@
                             <img src="images/how-step-student.svg" alt="학생 기록 아이콘" loading="lazy">
                         </div>
                         <h3 class="step-title">학생이 배우고 기록해요</h3>
-                        <p class="step-desc">배움노트와 동료평가 피드백으로 스스로의 강점과 어려움을 발견하며 성장해요.</p>
+                        <p class="step-desc step-desc-center">배움노트와 동료평가 피드백으로 스스로의 강점과 어려움을 발견하며 성장해요.</p>
                         <div class="step-outcomes">
                             <span class="step-chip">배움노트</span>
                             <span class="step-chip">동료평가 피드백</span>
@@ -849,7 +887,7 @@
                             <img src="images/how-step-teacher.svg" alt="교사 통찰 아이콘" loading="lazy">
                         </div>
                         <h3 class="step-title">교사도 배우고 읽어가요</h3>
-                        <p class="step-desc">학생 기록을 통해 개별 성향과 학습 신호를 이해하고, 어떤 접근 방식이 좋은지 배워가요.</p>
+                        <p class="step-desc step-desc-center">학생 기록을 통해 개별 성향을 이해하고,<br>어떤 접근 방식이 좋은지 배워가요.</p>
                         <div class="step-outcomes">
                             <span class="step-chip">개별 성향 파악</span>
                             <span class="step-chip">지원 전략 탐색</span>
@@ -860,13 +898,14 @@
                         <div class="step-number">3</div>
                         <div class="step-role">함께</div>
                         <div class="step-icon">
-                            <img src="images/how-step-improve.svg" alt="수업 개선 아이콘" loading="lazy">
+                            <img src="images/how-step-improve.svg?v=20260218l" alt="수업 개선 아이콘" loading="lazy">
                         </div>
                         <h3 class="step-title">데이터로 수업을 개선해요</h3>
-                        <p class="step-desc">학생 기록으로 쌓인 데이터를 통해 수업 개선 단서를 보고, 수업 설계와 운영을 보완해 교실의 몰입도와 성취를 높여요.</p>
+                        <p class="step-desc step-desc-center">학생 기록으로 쌓인 데이터를 통해<br>수업 개선 단서를 보고, 수업 설계와<br>운영을 보완해 배움의
+                            몰입도를 높여요.</p>
                         <div class="step-outcomes">
                             <span class="step-chip">수업 개선 단서</span>
-                            <span class="step-chip">몰입도·성취 향상</span>
+                            <span class="step-chip">배움의 몰입도 향상</span>
                         </div>
                     </article>
                 </div>
@@ -912,9 +951,11 @@
         <footer class="site-footer">
             <div class="footer-inner">
                 <div class="footer-links">
-                    <a href="javascript:void(0)" role="button" onclick="openTermsModal()" onkeydown="if(event.key==='Enter')openTermsModal()">이용약관</a>
+                    <a href="javascript:void(0)" role="button" onclick="openTermsModal()"
+                        onkeydown="if(event.key==='Enter')openTermsModal()">이용약관</a>
                     <span class="footer-divider">|</span>
-                    <a href="javascript:void(0)" role="button" onclick="openPrivacyModal()" onkeydown="if(event.key==='Enter')openPrivacyModal()">개인정보처리방침</a>
+                    <a href="javascript:void(0)" role="button" onclick="openPrivacyModal()"
+                        onkeydown="if(event.key==='Enter')openPrivacyModal()">개인정보처리방침</a>
                 </div>
                 <p>&copy; 2026 BaeumLog. All rights reserved.</p>
                 <p>개인정보책임자 김도현 | 문의: dohyun851208@gmail.com</p>
@@ -1191,46 +1232,30 @@
         // CTA 버튼 → 스크롤 후 로그인 버튼 하이라이트
         function scrollToTopAndHighlight() {
             const btns = document.querySelectorAll('.nav-login-btn');
-            btns.forEach(function(btn) {
+            btns.forEach(function (btn) {
                 btn.classList.add('highlight-pulse');
             });
-            setTimeout(function() {
-                btns.forEach(function(btn) {
+            setTimeout(function () {
+                btns.forEach(function (btn) {
                     btn.classList.remove('highlight-pulse');
                 });
             }, 3000);
         }
 
-        // ===== DB에서 실제 통계 수치 로드 =====
-        async function loadRealStats() {
-            try {
-                const [diaryRes, praiseRes, personalityRes] = await Promise.all([
-                    db.from('daily_reflections').select('*', { count: 'exact', head: true }),
-                    db.from('praise_messages').select('*', { count: 'exact', head: true }),
-                    db.from('student_personality').select('*', { count: 'exact', head: true })
-                ]);
-
-                const stats = [
-                    { count: diaryRes.count || 0 },
-                    { count: praiseRes.count || 0 },
-                    { count: personalityRes.count || 0 }
-                ];
-
-                const statEls = document.querySelectorAll('.stat-number[data-target]');
-                statEls.forEach(function(el, i) {
-                    if (stats[i]) {
-                        el.setAttribute('data-target', stats[i].count);
-                    }
-                });
-            } catch (e) {
-                console.warn('통계 로드 실패, 기본값 사용:', e);
-            }
+        function applyLandingToneFromQuery() {
+            const supportedTones = ['vivid', 'soft-a', 'soft-b', 'soft-c', 'sunset', 'forest', 'ocean', 'berry'];
+            const tone = (new URLSearchParams(window.location.search).get('tone') || 'vivid').toLowerCase();
+            const resolvedTone = supportedTones.includes(tone) ? tone : 'vivid';
+            const body = document.body;
+            supportedTones.forEach(function (name) {
+                body.classList.remove('palette-' + name);
+            });
+            body.classList.add('palette-' + resolvedTone);
         }
 
         // Scroll animation for feature cards
         document.addEventListener('DOMContentLoaded', function () {
-            // 실제 통계 로드
-            loadRealStats();
+            applyLandingToneFromQuery();
 
             const observer = new IntersectionObserver(function (entries) {
                 entries.forEach(function (entry) {
@@ -1250,7 +1275,7 @@
 
             // ===== Typing Animation =====
             const words = [
-                { text: '배움 노트를 쓰고 있어요 🧠', tone: 'self' },
+                { text: '배움 노트를 쓰고 있어요 📘', tone: 'self' },
                 { text: '동료 피드백을 나누고 있어요 💌', tone: 'together' },
                 { text: 'AI 성장 파트너를 찾고 있어요 🤖', tone: 'ai' },
                 { text: '오늘의 배움을 기록하고 있어요 ✍️', tone: 'self' },
@@ -1284,35 +1309,10 @@
                     setTimeout(typeLoop, 40);
                 }
             }
-            // Start about 1s after hero brand reveal is fully visible.
-            setTimeout(typeLoop, 3600);
-
-            // ===== Counter Animation =====
-            const counters = document.querySelectorAll('.stat-number[data-target]');
-            const counterObserver = new IntersectionObserver(function(entries) {
-                entries.forEach(function(entry) {
-                    if (!entry.isIntersecting) return;
-                    const el = entry.target;
-                    const target = parseInt(el.getAttribute('data-target'));
-                    const duration = 1500;
-                    const start = performance.now();
-                    function updateCount(now) {
-                        const elapsed = now - start;
-                        const progress = Math.min(elapsed / duration, 1);
-                        const eased = 1 - Math.pow(1 - progress, 3);
-                        el.textContent = Math.floor(eased * target).toLocaleString();
-                        if (progress < 1) requestAnimationFrame(updateCount);
-                        else el.textContent = target.toLocaleString();
-                    }
-                    requestAnimationFrame(updateCount);
-                    counterObserver.unobserve(el);
-                });
-            }, { threshold: 0.5 });
-            counters.forEach(function(el) { counterObserver.observe(el); });
+            // Start after the hero brand reveal has fully settled.
+            setTimeout(typeLoop, 3900);
         });
     </script>
 </body>
 
 </html>
-
-

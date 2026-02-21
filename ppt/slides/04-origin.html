@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 탄생 배경</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 60px;
+        }
+
+        /* Abstract shapes for background decoration */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.08);
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.08);
+        }
+
+        /* Card Styles */
+        .concept-card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .plus-sign {
+            font-size: 2rem;
+            color: #9CA3AF;
+            margin: 0 20px;
+        }
+
+        .arrow-down {
+            font-size: 2rem;
+            color: #9CA3AF;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-teal-soft w-[500px] h-[500px] -top-20 -right-20"></div>
+        <div class="shape-circle bg-purple-soft w-[400px] h-[400px] bottom-0 left-0"></div>
+        <!-- Header Section -->
+        <div class="z-10 w-full flex flex-col items-center mb-6">
+            <div class="mb-4">
+                <span
+                    class="bg-[#14b8a6] bg-opacity-10 text-[#14b8a6] px-5 py-2 rounded-full text-xl font-medium tracking-wide">
+                    <i class="fa-solid fa-lightbulb mr-2"></i>해결
+                </span>
+            </div>
+            <h1 class="text-5xl text-gray-800 mb-4 text-center">
+                그래서 <span class="text-[#14b8a6]">배움로그</span>가 탄생했습니다
+            </h1>
+            <p class="text-2xl text-gray-500 text-center max-w-4xl leading-relaxed">
+                교사를 대체하는 것이 아니라, 선생님의 진심 위에 기술의 손을 더해<br />
+                혼자서는 닿기 힘들었던 영역까지 가능하게 합니다.
+            </p>
+        </div>
+        <!-- Diagram Section -->
+        <div class="z-10 w-full flex flex-col items-center justify-center flex-1 mb-6">
+            <!-- Upper Row: Teacher + Tech -->
+            <div class="flex items-center justify-center w-full mb-4">
+                <!-- Teacher Card -->
+                <div
+                    class="concept-card w-80 h-48 flex flex-col items-center justify-center p-6 border-b-4 border-[#f43f5e]">
+                    <div
+                        class="w-16 h-16 rounded-full bg-[#f43f5e] bg-opacity-10 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-heart text-3xl text-[#f43f5e]"></i>
+                    </div>
+                    <h3 class="text-2xl text-gray-700 mb-2">교사의 노력</h3>
+                    <p class="text-lg text-gray-500 text-center">학생을 향한<br />진심과 관심</p>
+                </div>
+                <!-- Plus Sign -->
+                <div class="plus-sign">
+                    <i class="fa-solid fa-plus"></i>
+                </div>
+                <!-- BaeumLog Card -->
+                <div
+                    class="concept-card w-80 h-48 flex flex-col items-center justify-center p-6 border-b-4 border-[#14b8a6]">
+                    <div
+                        class="w-16 h-16 rounded-full bg-[#14b8a6] bg-opacity-10 flex items-center justify-center mb-4">
+                        <i class="fa-solid fa-robot text-3xl text-[#14b8a6]"></i>
+                    </div>
+                    <h3 class="text-2xl text-gray-700 mb-2">배움로그</h3>
+                    <p class="text-lg text-gray-500 text-center">시간 절약 +<br />불가능의 가능화</p>
+                </div>
+            </div>
+            <!-- Down Arrow -->
+            <div class="arrow-down">
+                <i class="fa-solid fa-arrow-down"></i>
+            </div>
+            <!-- Result Card (Wide) -->
+            <div class="concept-card w-[700px] h-24 flex items-center justify-center px-8 border-l-8 border-[#8864ee]">
+                <div class="mr-6">
+                    <i class="fa-solid fa-users-viewfinder text-4xl text-[#8864ee]"></i>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-2xl text-gray-800">
+                        학생과 교사가 <span class="text-[#8864ee]">함께 성장</span>하는 교실
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

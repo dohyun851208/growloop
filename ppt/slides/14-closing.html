@@ -1,0 +1,133 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 클로징</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-rose-soft {
+            background-color: rgba(244, 63, 94, 0.08);
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.08);
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.08);
+        }
+
+        .gradient-text {
+            background-image: linear-gradient(90deg, #f43f5e, #8864ee, #14b8a6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            /* Fallback for PDF export if gradient fails */
+            color: #8864ee;
+        }
+
+        .qr-placeholder {
+            background-color: white;
+            border: 3px dashed #CBD5E1;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .qr-placeholder:hover {
+            border-color: #8864ee;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(136, 100, 238, 0.15);
+        }
+
+        .highlight-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            height: 16px;
+            background-color: rgba(255, 230, 230, 0.8);
+            z-index: -1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-rose-soft w-[600px] h-[600px] -top-20 -left-20"></div>
+        <div class="shape-circle bg-teal-soft w-[500px] h-[500px] bottom-0 left-20"></div>
+        <div class="shape-circle bg-purple-soft w-[800px] h-[800px] -top-40 -right-40"></div>
+        <!-- Main Content -->
+        <div class="z-10 flex flex-col items-center justify-center flex-1 w-full text-center px-20">
+            <!-- Brand Logo/Icon Area -->
+            <div
+                class="mb-8 w-24 h-24 bg-white rounded-3xl shadow-md flex items-center justify-center rotate-3 transform hover:rotate-6 transition-transform duration-500">
+                <i class="fa-solid fa-graduation-cap text-5xl text-[#8864ee]"></i>
+            </div>
+            <!-- Main Title -->
+            <div class="mb-6 relative">
+                <h1 class="text-7xl font-bold text-gray-800 tracking-tight leading-tight">
+                    교실의 변화,<br />
+                    이제 시작됩니다
+                </h1>
+            </div>
+            <!-- Subtitle/Message -->
+            <div class="mb-16">
+                <p class="text-3xl text-gray-600 font-medium">
+                    <span class="text-[#f43f5e]">나답게</span>,
+                    <span class="text-[#8864ee]">함께</span>,
+                    <span class="text-[#14b8a6]">AI로</span>
+                </p>
+            </div>
+
+            <!-- Decorative Elements -->
+            <div class="absolute top-12 right-12 text-[#f43f5e] opacity-20 text-4xl transform rotate-12">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+            <div class="absolute bottom-12 left-12 text-[#14b8a6] opacity-20 text-4xl transform -rotate-12">
+                <i class="fa-solid fa-star"></i>
+            </div>
+        </div>
+        <script src="nav-bridge.js"></script>
+</body>
+
+</html>

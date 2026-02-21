@@ -1,0 +1,77 @@
+﻿:root {
+  --bg: #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+}
+
+body {
+  overflow: hidden;
+}
+
+.deck {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: #000;
+  overflow: hidden;
+}
+
+.slide.is-active {
+  display: block;
+  animation: slide-in 220ms ease;
+}
+
+.slide-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: #000;
+  pointer-events: auto;
+}
+
+.slide-indicator {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 9999;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font: 600 13px/1 "Pretendard", "Noto Sans KR", sans-serif;
+  color: #ffffff;
+  background: rgba(17, 24, 39, 0.7);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+body.hide-slide-indicator .slide-indicator {
+  display: none;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

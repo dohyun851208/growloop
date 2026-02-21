@@ -1,0 +1,260 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 8개의 질문</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-rose-soft {
+            background-color: rgba(244, 63, 94, 0.06);
+        }
+
+        .bg-rose-medium {
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+
+        /* Scrollbar hiding for cleaner look if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .category-box {
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #f43f5e;
+            transition: transform 0.2s ease;
+        }
+
+        .category-box:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .q-badge {
+            font-size: 0.75rem;
+            background-color: #f43f5e;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-rose-soft w-[700px] h-[700px] -top-32 -left-32"></div>
+        <div class="shape-circle bg-rose-medium w-[400px] h-[400px] bottom-0 right-0"></div>
+        <!-- Left Content (45%) -->
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-4 z-10 relative">
+            <!-- Section Tag -->
+            <div class="mb-4">
+                <span
+                    class="bg-rose-50 text-[#f43f5e] px-4 py-1.5 rounded-full text-lg font-medium tracking-wide border border-rose-100">
+                    <i class="fa-regular fa-user mr-2"></i>나답게
+                </span>
+            </div>
+            <!-- Title -->
+            <div class="mb-3">
+                <h1 class="text-4xl text-gray-800 leading-tight">
+                    공부 상황을 재구성한<br />
+                    <span class="text-[#f43f5e]">8가지 질문</span>
+                </h1>
+            </div>
+            <!-- Description -->
+            <div class="mb-6">
+                <p class="text-lg text-gray-500 leading-snug">
+                    추상적인 성격 검사가 아닙니다.<br />학생이 학교에서 매일 마주하는 구체적인 상황 속 선택지를 통해,<br />자신에게 가장 편안한 학습 방식을 찾습니다.
+                </p>
+            </div>
+            <!-- Questions List (Structured & Compact) -->
+            <div class="overflow-y-auto no-scrollbar pr-2 space-y-3 pb-4">
+                <!-- Category 1: Feedback -->
+                <div class="category-box">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-regular fa-comments text-[#f43f5e] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">피드백 방식</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q1</span>시험 결과가 기대보다 낮았을 때
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 구체적 분석 vs B. 함께 방법 찾기</div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q2</span>모둠 활동 완성도가 떨어질 때
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 수정 지시 vs B. 격려와 당부</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Category 2: Info Processing -->
+                <div class="category-box">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-list-check text-[#f43f5e] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">정보 처리</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q3</span>새로운 단원을 배울 때
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 개념 읽고 따라가기 vs B. 전체 흐름 파악</div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q4</span>결과물 조언 형식
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 점수와 근거 vs B. 요약과 방향</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Category 3: Execution Strategy -->
+                <div class="category-box">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-person-running text-[#f43f5e] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">실행 전략</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q5</span>시험 2주 전 공부 방식
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 계획표와 체크 vs B. 일단 시작 후 조절</div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q6</span>방학 동안 배움 시작
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 목표와 일정 먼저 vs B. 관심사 먼저</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Category 4: Learning Environment -->
+                <div class="category-box border-l-[#f43f5e]">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-school text-[#f43f5e] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">학습 환경</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q7</span>어려운 내용 이해 방법
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 질문하며 정리 vs B. 자료 찾아 정리</div>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            <span class="q-badge">Q8</span>시험공부 환경
+                            <div class="text-xs text-gray-400 mt-1 pl-1">A. 친구와 같이 vs B. 혼자 집중</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Visual (55%) -->
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-8 pl-4 z-10">
+            <!-- Vertical Phone Visual -->
+            <div
+                class="w-[600px] h-[865px] bg-white rounded-[3rem] overflow-hidden relative shadow-xl border border-rose-100">
+                <div class="w-full h-full p-4 relative overflow-y-auto bg-white rounded-[2.5rem]"
+                    style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                    <div class="px-3 py-4">
+                        <!-- Header -->
+                        <div class="flex items-center gap-2 mb-2"><span
+                                class="w-3 h-3 rounded-full bg-green-400 inline-block"></span><span
+                                class="text-[14px] font-bold text-gray-800">🌱 나의 성장 파트너 찾기</span></div>
+                        <p class="text-[11px] text-gray-500 mb-4 leading-snug">8개의 질문으로, 나를 더 잘 성장시키는 조언 스타일을 찾아요!</p>
+                        <!-- Questions -->
+                        <div class="space-y-4">
+                            <div class="border-b border-gray-100 pb-3">
+                                <p class="text-[11px] text-gray-400 mb-1">Q1. 코칭 스타일</p>
+                                <p class="text-[12px] text-gray-800 font-bold mb-2 leading-snug">시험 결과가 기대보다 낮았을 때, 선생님이
+                                    어떻게 말해주면 좋겠어?</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button
+                                        class="border-2 border-green-400 bg-green-50 rounded-xl px-3 py-2 text-[11px] text-left text-gray-700 cursor-pointer hover:bg-green-100 transition-colors"><b>A</b><br />구체적으로
+                                        분석하고 방법을 알려줘</button>
+                                    <button
+                                        class="border border-gray-200 bg-white rounded-xl px-3 py-2 text-[11px] text-left text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"><b>B</b><br />같이
+                                        방법을 찾아보자고 말해 줘</button>
+                                </div>
+                            </div>
+                            <div class="border-b border-gray-100 pb-3">
+                                <p class="text-[11px] text-gray-400 mb-1">Q2. 코칭 스타일</p>
+                                <p class="text-[12px] text-gray-800 font-bold mb-2 leading-snug">모둠 활동에서 내가 맡기로 한 부분의
+                                    완성도가 떨어질 때, 어떤 반응이 도움이 되는 것 같아?</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button
+                                        class="border border-gray-200 bg-white rounded-xl px-3 py-2 text-[11px] text-left text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"><b>A</b><br />이
+                                        부분은 이렇게 고치면 될 것 같아.</button>
+                                    <button
+                                        class="border border-gray-200 bg-white rounded-xl px-3 py-2 text-[11px] text-left text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"><b>B</b><br />고생했잖아,
+                                        다른건 이 부분을 신경 쓰자.</button>
+                                </div>
+                            </div>
+                            <div class="border-b border-gray-100 pb-3">
+                                <p class="text-[11px] text-gray-400 mb-1">Q3. 정보 처리</p>
+                                <p class="text-[12px] text-gray-800 font-bold mb-2 leading-snug">새로운 단원을 배울 때, 어떤 게 더
+                                    도움이 돼?</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button
+                                        class="border border-gray-200 bg-white rounded-xl px-3 py-2 text-[11px] text-left text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"><b>A</b><br />'개념을
+                                        읽고 문제 풀이 과정을 쫓아가기'</button>
+                                    <button
+                                        class="border border-gray-200 bg-white rounded-xl px-3 py-2 text-[11px] text-left text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors"><b>B</b><br />나가
+                                        왜 이 단원을 배우는지 먼저 파악</button>
+                                </div>
+                            </div>
+                            <div class="pb-2">
+                                <p class="text-[11px] text-gray-400 mb-1">Q4~Q8 ...</p>
+                                <p class="text-[11px] text-gray-400">아래로 스크롤하여 나머지 질문을 확인하세요</p>
+                            </div>
+                        </div>
+                        <!-- Submit Button -->
+                        <button
+                            class="w-full mt-3 bg-green-500 text-white py-3 rounded-xl text-[14px] font-bold cursor-pointer hover:bg-green-600 active:scale-[0.98] transition-all shadow-lg">나의
+                            성장 파트너 찾기 🚀</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 인트로</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Abstract shapes for background decoration */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-rose-soft {
+            background-color: rgba(244, 63, 94, 0.08);
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.08);
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.08);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Decorative Background Elements -->
+        <div class="shape-circle bg-rose-soft w-96 h-96 -top-20 -left-20"></div>
+        <div class="shape-circle bg-purple-soft w-[500px] h-[500px] -bottom-40 -right-20"></div>
+        <div class="shape-circle bg-teal-soft w-48 h-48 top-20 right-40"></div>
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col items-center justify-center z-10 w-full px-20">
+            <!-- Subtitle -->
+            <div class="mb-6">
+                <p class="text-3xl text-gray-500 tracking-wide font-medium">배움로그 서비스 소개</p>
+            </div>
+            <!-- Main Title -->
+            <!-- Using separate colors for each word group as per brand identity -->
+            <div class="mb-16 text-center">
+                <h1 class="text-9xl leading-tight drop-shadow-sm">
+                    <span class="text-[#f43f5e]">나답게</span>,
+                    <span class="text-[#8864ee]">함께</span>,
+                    <span class="text-[#14b8a6]">AI로</span>
+                </h1>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

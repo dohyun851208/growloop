@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 8가지 성장 파트너</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-rose-soft {
+            background-color: rgba(244, 63, 94, 0.06);
+        }
+
+        .bg-rose-medium {
+            background-color: rgba(244, 63, 94, 0.1);
+        }
+
+        /* Scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .type-card {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            padding: 10px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .type-card:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.1);
+            border-color: #f43f5e;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background-color: #fff0f3;
+            color: #f43f5e;
+            border: 1px solid #fda4af;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-rose-soft w-[700px] h-[700px] -top-32 -left-32"></div>
+        <div class="shape-circle bg-rose-medium w-[400px] h-[400px] bottom-0 right-0"></div>
+        <!-- Left Content (45%) -->
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-4 z-10 relative">
+            <!-- Section Tag -->
+            <div class="mb-4">
+                <span
+                    class="bg-rose-50 text-[#f43f5e] px-4 py-1.5 rounded-full text-lg font-medium tracking-wide border border-rose-100">
+                    <i class="fa-regular fa-user mr-2"></i>나답게
+                </span>
+            </div>
+            <!-- Title -->
+            <div class="mb-2">
+                <h1 class="text-4xl text-gray-800 leading-tight">
+                    8가지 질문이 만들어내는<br />
+                    <span class="text-[#f43f5e]">나만의 성장 파트너</span>
+                </h1>
+            </div>
+            <!-- Description -->
+            <div class="mb-5">
+                <p class="text-lg text-gray-500 leading-snug">
+                    피드백 방식 × 정보 처리 × 실행 전략의 조합으로<br />
+                    학생에게 꼭 맞는 8가지 유형을 도출합니다
+                </p>
+            </div>
+            <!-- Types Grid -->
+            <div class="overflow-y-auto no-scrollbar pr-2 pb-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- 1. 구체적인 계획가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🎯</span>
+                            <h3 class="text-gray-800 font-bold text-base">구체적인 계획가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">단정/직설, 체크리스트<br />일정 및 우선순위</p>
+                    </div>
+                    <!-- 2. 구체적인 도전가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🛠</span>
+                            <h3 class="text-gray-800 font-bold text-base">구체적인 도전가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">직설 + 실험 제안<br />가장 작은 실험 1개</p>
+                    </div>
+                    <!-- 3. 큰 그림형 계획가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🗺</span>
+                            <h3 class="text-gray-800 font-bold text-base">큰 그림형 계획가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">방향 제시/우선순위<br />방향 1문장 + 우선순위</p>
+                    </div>
+                    <!-- 4. 큰 그림형 도전가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🚀</span>
+                            <h3 class="text-gray-800 font-bold text-base">큰 그림형 도전가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">자신감, 옵션 제시<br />선택지 2개 + 작은 실험</p>
+                    </div>
+                    <!-- 5. 함께하는 계획가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">📋</span>
+                            <h3 class="text-gray-800 font-bold text-base">함께하는 계획가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">따뜻하지만 정돈<br />잘한 점 + 단계별 계획</p>
+                    </div>
+                    <!-- 6. 함께하는 도전가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🤝</span>
+                            <h3 class="text-gray-800 font-bold text-base">함께하는 도전가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">공감 + 같이 방법 찾기<br />잘한 점 + 작은 실험</p>
+                    </div>
+                    <!-- 7. 공감하는 계획가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🫶</span>
+                            <h3 class="text-gray-800 font-bold text-base">공감하는 계획가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">든든 + 방향 제시<br />공감 1문장 + 우선순위</p>
+                    </div>
+                    <!-- 8. 공감하는 도전가 -->
+                    <div class="type-card">
+                        <div class="flex items-center mb-1">
+                            <span class="text-xl mr-2">🌈</span>
+                            <h3 class="text-gray-800 font-bold text-base">공감하는 도전가</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 leading-tight">영감 + 실천 연결<br />탐색 질문 + 작은 실험</p>
+                    </div>
+                </div>
+                <!-- Bottom Tags -->
+                <div class="mt-4 pt-3 border-t border-rose-100">
+                    <p class="text-sm text-gray-400 mb-2 font-medium">학습 환경 보조 태그</p>
+                    <div class="flex">
+                        <span class="tag-badge">#함께 성장형</span>
+                        <span class="tag-badge">#혼자 집중형</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Visual (55%) -->
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-8 pl-4 z-10">
+            <!-- Vertical Phone Visual -->
+            <div
+                class="w-[600px] h-[865px] bg-white rounded-[3rem] overflow-hidden relative shadow-xl border border-rose-100">
+                <div class="w-full h-full p-4 relative overflow-y-auto bg-white rounded-[2.5rem]"
+                    style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                    <div class="px-4 py-5 text-center">
+                        <!-- Title -->
+                        <h3 class="text-[16px] font-bold text-gray-800 mb-4">나의 성장 파트너를 찾았어요!</h3>
+                        <!-- Partner Card -->
+                        <div
+                            class="bg-gradient-to-b from-green-50 to-white rounded-2xl border border-green-200 p-5 mb-4 shadow-sm">
+                            <div class="text-3xl mb-2">📋</div>
+                            <h4 class="text-[18px] font-bold text-green-700 mb-1">함께하는 계획가</h4>
+                            <span
+                                class="inline-block bg-green-100 text-green-600 text-[12px] px-3 py-0.5 rounded-full mb-3">#함께
+                                성장형</span>
+                            <p class="text-[12px] text-gray-600 leading-relaxed">함께하는 계획가는 함께 이야기하고 협력할 때 이해가 더 깊어지는
+                                유형이에요.</p>
+                        </div>
+                        <!-- Sections -->
+                        <div class="space-y-3 text-left">
+                            <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+                                <p class="text-[11px] font-bold text-gray-700 mb-1">🎯 피드백 스타일</p>
+                                <p class="text-[11px] text-gray-500 leading-relaxed">잘한 부분을 먼저 알아봐주고, 부족한 점은 같이 고민해줘요.
+                                    안심이 되니까 더 솔직하게 받아들일 수 있어요.</p>
+                            </div>
+                            <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+                                <p class="text-[11px] font-bold text-gray-700 mb-1">🚀 실천 방식</p>
+                                <p class="text-[11px] text-gray-500 leading-relaxed">차근차근 할 수 있도록 단계를 나눠서 정리해줘요. 한 걸음씩
+                                    같이 가는 느낌이에요.</p>
+                            </div>
+                            <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+                                <p class="text-[11px] font-bold text-gray-700 mb-1">📚 학습 환경</p>
+                                <p class="text-[11px] text-gray-500 leading-relaxed">친구와 설명 연습, 모둠 토론처럼 함께 배우는 활동에서 강점이
+                                    잘 살아나요.</p>
+                            </div>
+                            <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
+                                <p class="text-[11px] font-bold text-gray-700 mb-1">💡 이런 말이 힘이 돼요</p>
+                                <p class="text-[11px] text-gray-500 leading-relaxed">이건 진짜 잘했어, 여기는 같이 해보자, 먼저 이것부터.</p>
+                            </div>
+                        </div>
+                        <!-- Buttons -->
+                        <button
+                            class="w-full mt-4 bg-green-500 text-white py-3 rounded-xl text-[13px] font-bold cursor-pointer hover:bg-green-600 active:scale-[0.98] transition-all shadow-lg">확인하고
+                            시작하기</button>
+                        <button
+                            class="w-full mt-2 bg-gray-100 text-gray-600 py-2.5 rounded-xl text-[12px] cursor-pointer hover:bg-gray-200 transition-colors">다시
+                            진단하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

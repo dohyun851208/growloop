@@ -1,0 +1,331 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 수업개선단서</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        /* Theme Colors: Purple (#8864ee) & Teal (#14b8a6) */
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.06);
+        }
+
+        .bg-teal-medium {
+            background-color: rgba(20, 184, 166, 0.1);
+        }
+
+        .text-purple-brand {
+            color: #8864ee;
+        }
+
+        .text-teal-brand {
+            color: #14b8a6;
+        }
+
+        .bg-purple-brand {
+            background-color: #8864ee;
+        }
+
+        .border-purple-brand {
+            border-color: #8864ee;
+        }
+
+        /* Scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Process Flow Styling */
+        .process-step {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-left: 4px solid #8864ee;
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .process-step:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(136, 100, 238, 0.1);
+        }
+
+        .process-step::after {
+            content: '';
+            position: absolute;
+            left: 24px;
+            bottom: -16px;
+            width: 2px;
+            height: 16px;
+            background-color: #d1d5db;
+            z-index: 0;
+        }
+
+        .process-step:last-child::after {
+            display: none;
+        }
+
+        .process-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #f3f0ff;
+            /* Light Purple */
+            color: #8864ee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            z-index: 1;
+        }
+
+        .step-tag {
+            font-size: 0.75rem;
+            background-color: #14b8a6;
+            /* Teal */
+            color: white;
+            padding: 2px 8px;
+            border-radius: 99px;
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-purple-soft w-[800px] h-[800px] -top-40 -left-40"></div>
+        <div class="shape-circle bg-teal-medium w-[500px] h-[500px] bottom-0 right-0"></div>
+        <!-- Left Content (45%) -->
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-4 z-10 relative">
+            <!-- Section Tag -->
+            <div class="mb-4">
+                <span
+                    class="bg-purple-50 text-purple-brand px-4 py-1.5 rounded-full text-lg font-medium tracking-wide border border-purple-100 shadow-sm">
+                    <i class="fa-solid fa-chalkboard-user mr-2"></i>함께(교사성장) + AI로
+                </span>
+            </div>
+            <!-- Title -->
+            <div class="mb-3">
+                <h1 class="text-4xl text-gray-800 leading-tight">
+                    학생의 기록이,<br />
+                    <span class="text-purple-brand">수업을 바꿉니다</span>
+                </h1>
+            </div>
+            <!-- Description -->
+            <div class="mb-8">
+                <p class="text-lg text-gray-500 leading-snug">
+                    배움노트의 어려움·헷갈림·미해결 신호를<br />
+                    자동 감지해 교사에게 전달합니다
+                </p>
+            </div>
+            <!-- Process Flow -->
+            <div class="pr-2 pb-4">
+                <!-- Step 1 -->
+                <div class="process-step">
+                    <div class="process-icon">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="step-tag bg-gray-400">Step 1</div>
+                        <h3 class="text-gray-700 font-bold text-lg">학생이 배움노트를 작성</h3>
+                        <p class="text-sm text-gray-500">매일의 배움 기록 축적</p>
+                    </div>
+                </div>
+                <!-- Step 2 -->
+                <div class="process-step border-l-[#14b8a6]">
+                    <div class="process-icon" style="background-color: #e0f2f1; color: #14b8a6;">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="step-tag">AI 핵심</div>
+                        <h3 class="text-gray-700 font-bold text-lg">키워드 기반 자동 필터링</h3>
+                        <p class="text-sm text-gray-500">
+                            <span class="bg-red-50 text-red-500 px-1 rounded text-xs mr-1">#어려움</span>
+                            <span class="bg-orange-50 text-orange-500 px-1 rounded text-xs mr-1">#헷갈림</span>
+                            <span class="bg-blue-50 text-blue-500 px-1 rounded text-xs">#미해결</span>
+                        </p>
+                    </div>
+                </div>
+                <!-- Step 3 -->
+                <div class="process-step">
+                    <div class="process-icon">
+                        <i class="fa-regular fa-lightbulb"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="step-tag bg-purple-400">Step 3</div>
+                        <h3 class="text-gray-700 font-bold text-lg">수업 개선 단서 제공</h3>
+                        <p class="text-sm text-gray-500">과목별·유형별로 교사에게 전달</p>
+                    </div>
+                </div>
+                <!-- Step 4 -->
+                <div class="process-step">
+                    <div class="process-icon">
+                        <i class="fa-solid fa-arrow-up-right-dots"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="step-tag bg-purple-400">Step 4</div>
+                        <h3 class="text-gray-700 font-bold text-lg">수업 개선 및 선순환</h3>
+                        <p class="text-sm text-gray-500">학생의 배움 질 향상</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Visual (55%) -->
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-8 pl-4 z-10">
+            <!-- Vertical Visual -->
+            <div
+                class="w-[600px] h-[865px] bg-white rounded-[3rem] overflow-hidden relative shadow-xl border border-purple-100">
+                <div class="w-full h-full p-4 relative overflow-y-auto bg-[#FFF9F5] rounded-[2.5rem]"
+                    style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                    <div class="px-3 py-4">
+                        <!-- Header -->
+                        <h3 class="text-[14px] text-gray-800 mb-2"><i
+                                class="fa-solid fa-lightbulb text-yellow-400 mr-1"></i> 수업 개선 단서</h3>
+                        <p class="text-[12px] text-gray-500 mb-1">📅 조회 날짜</p>
+                        <div
+                            class="bg-white border border-gray-200 rounded-lg px-3 py-1.5 mb-3 flex justify-between items-center cursor-pointer hover:border-purple-300 transition-colors">
+                            <span class="text-[11px]">2026-03-01</span><i
+                                class="fa-regular fa-calendar text-gray-400 text-[12px]"></i>
+                        </div>
+                        <p class="text-[9px] text-gray-400 mb-3">1단계 날짜 → 2단계 과목 → 3단계 단서 유형 순서로 확인합니다.</p>
+                        <!-- 2-Column Filter -->
+                        <div class="flex gap-2 mb-3">
+                            <!-- Left: Subject -->
+                            <div class="flex-1 bg-white border border-gray-100 rounded-xl p-2.5 shadow-sm">
+                                <p class="text-[12px] font-bold text-gray-700 mb-1.5">2단계 과목</p>
+                                <div class="space-y-1">
+                                    <div
+                                        class="bg-gray-100 rounded-lg px-2 py-1 text-[12px] text-gray-600 cursor-pointer hover:bg-gray-200 transition-colors">
+                                        <b>과목 전체</b> <span class="text-gray-400">12명 · 미해결 15</span>
+                                    </div>
+                                    <div
+                                        class="bg-blue-100 rounded-lg px-2 py-1 text-[12px] text-blue-700 font-bold cursor-pointer hover:bg-blue-200 transition-colors">
+                                        수학 <span class="text-blue-400">2명 · 미해결 3</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        국어 <span class="text-gray-400">2명 · 미해결 2</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        도덕 <span class="text-gray-400">1명 · 미해결 2</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        영어 <span class="text-gray-400">1명 · 미해결 2</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-500 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        과학 <span class="text-gray-400">1명 · 미해결 1</span></div>
+                                </div>
+                            </div>
+                            <!-- Right: Type -->
+                            <div class="w-[40%] bg-white border border-gray-100 rounded-xl p-2.5 shadow-sm">
+                                <p class="text-[12px] font-bold text-gray-700 mb-1.5">3단계 단서 유형</p>
+                                <div class="space-y-1">
+                                    <div
+                                        class="bg-green-100 rounded-lg px-2 py-1 text-[12px] text-green-700 font-bold cursor-pointer hover:bg-green-200 transition-colors">
+                                        전체 <span class="text-green-500">2명</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        어려운 점 <span class="text-rose-400">2명</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        헷갈리는 점 <span class="text-amber-400">1명</span></div>
+                                    <div
+                                        class="rounded-lg px-2 py-1 text-[12px] text-gray-600 cursor-pointer hover:bg-gray-50 transition-colors">
+                                        아직 미해결 <span class="text-gray-400">2명</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Student Cards -->
+                        <div class="space-y-2">
+                            <div
+                                class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h4 class="text-[12px] font-bold text-gray-800">2번 학생</h4><span
+                                        class="text-[9px] text-gray-400">2026-03-01 기준</span>
+                                </div>
+                                <span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded mr-1">수학</span>
+                                <div class="flex gap-1 mt-1.5 mb-1.5"><span
+                                        class="text-[9px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded">어려운 점
+                                        1</span><span
+                                        class="text-[9px] bg-amber-100 text-amber-600 px-2 py-0.5 rounded">헷갈리는 점
+                                        1</span><span
+                                        class="text-[9px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded">아직 미해결 2</span>
+                                </div>
+                                <p class="text-[12px] font-bold text-gray-700 mt-1.5">아직 해결 안 된 점</p>
+                                <ul class="text-[12px] text-gray-500 list-disc pl-4 space-y-0.5">
+                                    <li>×제곱 앞에 숫자가 붙으면 더 헷갈리는데, 왜 b를 반으로 나누고 제곱해야 하는지 설명을 다시 들어야겠다</li>
+                                </ul>
+                            </div>
+                            <div
+                                class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+                                <div class="flex justify-between items-center mb-1">
+                                    <h4 class="text-[12px] font-bold text-gray-800">17번 학생</h4><span
+                                        class="text-[9px] text-gray-400">2026-03-01 기준</span>
+                                </div>
+                                <span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded mr-1">수학</span>
+                                <div class="flex gap-1 mt-1.5"><span
+                                        class="text-[9px] bg-rose-100 text-rose-600 px-2 py-0.5 rounded">어려운 점
+                                        1</span><span
+                                        class="text-[9px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded">아직 미해결 1</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

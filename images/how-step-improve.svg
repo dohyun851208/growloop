@@ -24,16 +24,22 @@
     </filter>
   </defs>
 
-  <path d="M32 30C51 13 91 13 115 25C123 29 128 34 132 42" stroke="url(#loopTop)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M132 42L116 38L121 53L136 43Z" fill="#6D28D9" stroke="#2E1065" stroke-width="1.5"/>
-
-  <path d="M128 88C107 103 69 103 45 91C37 87 32 82 28 74" stroke="url(#loopBottom)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M28 74L44 70L39 85L24 75Z" fill="#0F766E" stroke="#064E3B" stroke-width="1.5"/>
-
-  <g filter="url(#boardShadow)">
-    <rect x="40" y="26" width="80" height="58" rx="13" fill="url(#boardFill)" stroke="#1E3A8A" stroke-width="2.5"/>
+  <g transform="translate(8 6) scale(0.9)">
+    <path d="M30 32C51 17 90 16 118 28C127 32 135 39 139 47" stroke="url(#loopTop)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M151 55L127 48L139 26Z" fill="#6D28D9"/>
   </g>
 
-  <path d="M52 66H108" stroke="#93C5FD" stroke-width="2.8" stroke-linecap="round"/>
-  <path d="M56 60L70 50L82 54L96 44L108 47" stroke="#F8FAFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(8 6) scale(0.9)">
+    <path d="M130 88C109 103 70 104 42 92C33 88 25 81 21 73" stroke="url(#loopBottom)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M9 65L33 72L21 94Z" fill="#0F766E"/>
+  </g>
+
+  <g transform="translate(8 6) scale(0.9)">
+    <g filter="url(#boardShadow)">
+      <rect x="45" y="30" width="70" height="50" rx="12" fill="url(#boardFill)" stroke="#1E3A8A" stroke-width="2.5"/>
+    </g>
+
+    <path d="M56 68H104" stroke="#93C5FD" stroke-width="2.8" stroke-linecap="round"/>
+    <path d="M59 62L71 53L82 57L93 48L103 51" stroke="#F8FAFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
 </svg>

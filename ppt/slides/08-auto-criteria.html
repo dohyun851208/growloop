@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 평가기준 자동 생성</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.06);
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.06);
+        }
+
+        .process-arrow {
+            position: absolute;
+            left: 23px;
+            top: 40px;
+            bottom: -10px;
+            width: 2px;
+            background: #E2E8F0;
+            z-index: 0;
+        }
+
+        .process-item:last-child .process-arrow {
+            display: none;
+        }
+
+        .input-badge {
+            background-color: #F3E8FF;
+            color: #8864ee;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        .ai-badge {
+            background-color: #CCFBF1;
+            color: #14b8a6;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        /* Custom scrollbar for visual consistency */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-purple-soft w-[600px] h-[600px] -top-20 -left-20"></div>
+        <div class="shape-circle bg-teal-soft w-[500px] h-[500px] bottom-0 right-0"></div>
+        <!-- Left Content (45%) -->
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-6 z-10">
+            <!-- Section Tag -->
+            <div class="mb-5">
+                <span
+                    class="bg-white border border-gray-100 px-4 py-1.5 rounded-full text-lg font-medium tracking-wide shadow-sm flex items-center gap-2 w-fit">
+                    <span class="text-[#8864ee]"><i class="fa-solid fa-users mr-1"></i>함께</span>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-[#14b8a6]"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI로</span>
+                </span>
+            </div>
+            <!-- Title -->
+            <div class="mb-4">
+                <h1 class="text-4xl text-gray-800 leading-snug">
+                    <span class="text-2xl block text-gray-500 mb-1 font-normal">2022 교육과정 3차원 내용체계 반영</span>
+                    평가기준, <span class="text-[#14b8a6]">AI가 생성</span>합니다
+                </h1>
+            </div>
+            <!-- Description -->
+            <div class="mb-8">
+                <p class="text-lg text-gray-600 leading-relaxed">
+                    매 수업 직접 작성하기 어려운 평가기준,<br />
+                    선생님은 핵심만 입력하세요. 나머지는 배움로그가 합니다.
+                </p>
+            </div>
+            <!-- Process Flow -->
+            <div class="space-y-6 relative pl-2">
+                <!-- Step 1: Input -->
+                <div class="process-item relative flex gap-4">
+                    <div class="process-arrow"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#8864ee] flex items-center justify-center text-[#8864ee] shadow-sm z-10">
+                        <i class="fa-regular fa-keyboard text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl text-gray-800 mb-2">교사가 입력하는 것</h3>
+                        <div class="flex flex-wrap max-w-xs">
+                            <span class="input-badge">학습목표</span>
+                            <span class="input-badge">평가과제</span>
+                            <span class="input-badge">학년/학교급</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 2: AI Generation -->
+                <div class="process-item relative flex gap-4">
+                    <div class="process-arrow"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#14b8a6] flex items-center justify-center text-[#14b8a6] shadow-sm z-10">
+                        <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl text-gray-800 mb-2">AI가 생성하는 것</h3>
+                        <div class="flex flex-wrap max-w-xs">
+                            <span class="ai-badge">3개 영역 × 2문항</span>
+                            <span class="ai-badge">총 6개 평가기준</span>
+                            <span class="ai-badge">개인/모둠 별도</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Step 3: Teacher's Touch -->
+                <div class="process-item relative flex gap-4">
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-gray-400 flex items-center justify-center text-gray-500 shadow-sm z-10">
+                        <i class="fa-solid fa-pen-to-square text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl text-gray-800 mb-1">최종 판단과 수정</h3>
+                        <p class="text-gray-500 text-sm">AI 생성 후 교사의 전문적 판단으로 수정 가능<br />(수동 작성 모드도 제공)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Content (55%) -->
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-6 pl-4 z-10 py-6">
+            <!-- Visual Stack Container -->
+            <div class="w-full h-full flex flex-col gap-4">
+                <!-- Top Visual (Input) -->
+                <div
+                    class="flex-1 bg-white border border-[#8864ee] border-opacity-20 rounded-2xl overflow-hidden relative shadow-sm">
+                    <div class="absolute top-3 left-3 bg-[#8864ee] text-white text-xs px-2 py-1 rounded">
+                        Before : 입력 화면
+                    </div>
+                    <div class="w-full h-full pt-8 px-4 pb-3 overflow-y-auto bg-white"
+                        style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                        <p class="text-[13px] text-gray-500 mb-1">️📅 설정할 날짜</p>
+                        <div
+                            class="bg-white border border-gray-200 rounded-lg px-3 py-2 mb-3 flex justify-between items-center cursor-pointer hover:border-purple-300 transition-colors">
+                            <span class="text-[12px]">2026-03-01</span><i
+                                class="fa-regular fa-calendar text-gray-400 text-[10px]"></i>
+                        </div>
+                        <p class="text-[13px] text-gray-500 mb-1">✏️ 성취 기준</p>
+                        <div
+                            class="bg-white border border-gray-200 rounded-lg px-3 py-2 mb-3 flex justify-between items-center text-gray-400 text-[13px] cursor-pointer hover:border-purple-300 transition-colors">
+                            성취 기준을 입력하세요 <span class="text-lg">+</span></div>
+                        <p class="text-[13px] text-gray-500 mb-1">🎯 학습 목표</p>
+                        <div
+                            class="bg-white border border-gray-200 rounded-lg px-3 py-2 mb-3 text-[13px] text-gray-700 cursor-pointer hover:border-purple-300 transition-colors">
+                            세계의 다양한 기후와 지형에 따른 사람들의 생활 모습을 조사할 수 있다.</div>
+                        <p class="text-[13px] text-gray-500 mb-1">📝 평가 과제</p>
+                        <div
+                            class="bg-white border border-gray-200 rounded-lg px-3 py-2 mb-3 text-[13px] text-gray-700 cursor-pointer hover:border-purple-300 transition-colors">
+                            선택한 나라의 문화를 소개하는 안내 자료를 만들고 발표하기</div>
+                        <button
+                            class="w-full bg-[#4a6fa5] text-white py-2.5 rounded-lg text-[12px] font-bold cursor-pointer hover:bg-[#3d5d8a] active:scale-[0.98] transition-all">📝
+                            1단계: 학습목표 및 평가과제 저장하기</button>
+                        <p class="text-[9px] text-gray-400 mt-1 text-center">⚠️ 평가기준을 AI로 생성하려면 이 버튼을 먼저 눌러 저장해야 합니다.
+                        </p>
+                    </div>
+                </div>
+                <!-- Transition Arrow -->
+                <div class="h-8 flex items-center justify-center relative">
+                    <div class="absolute w-0.5 h-full bg-gradient-to-b from-[#8864ee] to-[#14b8a6] opacity-30"></div>
+                    <div
+                        class="bg-white border border-gray-200 rounded-full w-8 h-8 flex items-center justify-center z-10 shadow-sm">
+                        <i class="fa-solid fa-arrow-down text-gray-400 text-sm"></i>
+                    </div>
+                </div>
+                <!-- Bottom Visual (Output) -->
+                <div
+                    class="flex-1 bg-white border border-[#14b8a6] border-opacity-30 rounded-2xl overflow-hidden relative shadow-sm">
+                    <div class="absolute top-3 left-3 bg-[#14b8a6] text-white text-xs px-2 py-1 rounded">
+                        After : AI 생성 결과
+                    </div>
+                    <div class="w-full h-full pt-8 px-4 pb-3 overflow-y-auto bg-white"
+                        style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-[13px] font-bold text-teal-600 mb-1.5">① 지식 · 이해</p>
+                                <div
+                                    class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-[10.5px] text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    조사한 나라의 자연환경에 따른 생활모습이 자연스럽게 연결되나요?</div>
+                                <div
+                                    class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mt-1.5 text-[10.5px] text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    그 나라 사람들의 의식주 특징을 구체적인 예를 들어 다양하게 소개했나요?</div>
+                            </div>
+                            <div>
+                                <p class="text-[13px] font-bold text-teal-600 mb-1.5">② 과정 · 기능</p>
+                                <div
+                                    class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-[10.5px] text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    안내 자료의 내용을 보기 쉽게 구성하고 정리했나요?</div>
+                                <div
+                                    class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mt-1.5 text-[10.5px] text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    발표할 때 알맞은 목소리와 빠르기로 또박또박 말했나요?</div>
+                            </div>
+                            <div>
+                                <p class="text-[13px] font-bold text-teal-600 mb-1.5">③ 가치 · 태도</p>
+                                <div
+                                    class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-[10.5px] text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    다른 나라의 문화를 이상하게 여기지 않고 존중하는 마음으로 소개했나요?</div>
+                                <div
+                                    class="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 mt-1.5 text-[10.5px] text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors">
+                                    친구가 발표할 때 바른 자세로 경청했나요?</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

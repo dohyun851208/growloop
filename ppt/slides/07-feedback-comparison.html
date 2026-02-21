@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <title>배움로그 - 유형별 피드백 비교</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #e0e0e0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Jua', sans-serif;
+    }
+
+    .slide-container {
+      width: 100vw;
+      height: 100vh;
+      background-color: #FFF9F0;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .shape-circle {
+      border-radius: 50%;
+      position: absolute;
+      z-index: 0;
+    }
+
+    .bg-rose-soft {
+      background-color: rgba(244, 63, 94, 0.06);
+    }
+
+    .bg-teal-soft {
+      background-color: rgba(20, 184, 166, 0.06);
+    }
+
+    .card-shadow {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .type-card {
+      background-color: white;
+      border-radius: 16px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .type-card:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="slide-container">
+    <div class="shape-circle bg-rose-soft w-[600px] h-[600px] -top-32 -left-20"></div>
+    <div class="shape-circle bg-teal-soft w-[500px] h-[500px] -bottom-20 -right-20"></div>
+    <div class="z-10 w-full flex flex-col items-center mb-6">
+      <div class="mb-4">
+        <span
+          class="bg-white border border-gray-100 px-5 py-2 rounded-full text-lg font-medium tracking-wide shadow-sm flex items-center gap-2">
+          <span class="text-[#f43f5e]"><i class="fa-regular fa-user mr-1"></i>나답게</span>
+          <span class="text-gray-300">|</span>
+          <span class="text-[#14b8a6]"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>AI로</span>
+        </span>
+      </div>
+      <h1 class="text-4xl text-gray-800 mb-3 text-center">
+        같은 조언도, <span class="text-[#14b8a6]">나에게 맞는 표현</span>으로
+      </h1>
+      <p class="text-xl text-gray-500 text-center">
+        AI가 나를 알기 때문에, 학생의 성향에 맞춰 톤·구조·실천 제안이 달라집니다.
+      </p>
+    </div>
+    <div class="z-10 w-full flex justify-center mb-8">
+      <div class="bg-white px-8 py-3 rounded-2xl shadow-sm border-l-8 border-gray-400 flex items-center">
+        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-4">
+          <i class="fa-regular fa-pen-to-square text-gray-500"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Common Situation</span>
+          <span class="text-xl text-gray-700 font-medium">"수학 문제 풀다가 막혔어요"</span>
+        </div>
+      </div>
+    </div>
+    <div class="z-10 w-full flex-1 flex gap-5 justify-center h-[70%] px-4">
+      <div class="type-card w-1/3 card-shadow border-t-4 border-[#f43f5e]">
+        <div class="p-4 border-b border-gray-100 bg-rose-50 bg-opacity-30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-2 py-1 bg-[#f43f5e] text-white text-xs rounded font-bold">Type A</span>
+            <i class="fa-solid fa-bullseye text-[#f43f5e] opacity-50 text-xl"></i>
+          </div>
+          <h3 class="text-xl text-gray-800 mb-1">🎯 구체적인 계획가</h3>
+          <p class="text-sm text-gray-500">"정확히 짚고, 계획표로 정리해줘"</p>
+        </div>
+        <div class="flex-1 p-4 flex flex-col">
+          <div
+            class="flex-1 rounded-xl overflow-hidden border border-rose-100 bg-white p-4 flex flex-col gap-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+            <!-- User Message -->
+            <div class="self-end bg-gray-100 px-4 py-2 rounded-2xl rounded-tr-sm max-w-[85%] text-[15px] text-gray-700">
+              "수학 문제 풀다가 막혔어요..."
+            </div>
+            <!-- AI Response A -->
+            <div class="self-start bg-rose-50 border border-rose-100 px-4 py-3 rounded-2xl rounded-tl-sm max-w-[95%]">
+              <p class="text-[16px] text-gray-800 leading-relaxed">
+                어느 단원의 문제인지 명확히 파악하는 것이 우선이야.
+              </p>
+              <ul class="text-[15px] text-gray-600 mt-2 space-y-1.5 list-disc pl-4">
+                <li>교과서 유사 예제 3개 다시 풀기</li>
+                <li>막히는 개념 오답노트에 정리하기</li>
+                <li>내일 1교시 쉬는시간에 질문하기</li>
+              </ul>
+              <p class="text-[15px] text-[#f43f5e] mt-2 font-medium"><i class="fa-regular fa-square-check mr-1"></i> 이
+                순서대로 바로 시작해볼까?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="type-card w-1/3 card-shadow border-t-4 border-[#8864ee]">
+        <div class="p-4 border-b border-gray-100 bg-purple-50 bg-opacity-30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-2 py-1 bg-[#8864ee] text-white text-xs rounded font-bold">Type B</span>
+            <i class="fa-solid fa-hand-holding-heart text-[#8864ee] opacity-50 text-xl"></i>
+          </div>
+          <h3 class="text-xl text-gray-800 mb-1">🌈 공감하는 도전가</h3>
+          <p class="text-sm text-gray-500">"기분 먼저 알아주고, 새로운 시도 제안"</p>
+        </div>
+        <div class="flex-1 p-4 flex flex-col">
+          <div
+            class="flex-1 rounded-xl overflow-hidden border border-purple-100 bg-white p-4 flex flex-col gap-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+            <!-- User Message -->
+            <div class="self-end bg-gray-100 px-4 py-2 rounded-2xl rounded-tr-sm max-w-[85%] text-[15px] text-gray-700">
+              "수학 문제 풀다가 막혔어요..."
+            </div>
+            <!-- AI Response B -->
+            <div
+              class="self-start bg-purple-50 border border-purple-100 px-4 py-3 rounded-2xl rounded-tl-sm max-w-[95%]">
+              <p class="text-[16px] text-gray-800 leading-relaxed font-medium">
+                풀다가 막히면 정말 답답하지! 나도 그 마음 이해해. 😢
+              </p>
+              <p class="text-[15px] text-gray-600 mt-2 leading-relaxed">
+                이번엔 조금 색다른 방법을 써보는 건 어때? 10분만 딱 고민해보고, 그래도 안 풀리면 바로 해설지를 열어봐.
+              </p>
+              <div
+                class="bg-white border border-purple-200 mt-2 p-2 rounded-lg text-[15px] text-[#8864ee] flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>'왜 이 공식이 쓰였는지' 분석하는 탐정 놀이!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="type-card w-1/3 card-shadow border-t-4 border-[#14b8a6]">
+        <div class="p-4 border-b border-gray-100 bg-teal-50 bg-opacity-30">
+          <div class="flex items-center justify-between mb-2">
+            <span class="px-2 py-1 bg-[#14b8a6] text-white text-xs rounded font-bold">Type C</span>
+            <i class="fa-solid fa-clipboard-list text-[#14b8a6] opacity-50 text-xl"></i>
+          </div>
+          <h3 class="text-xl text-gray-800 mb-1">📋 함께하는 계획가</h3>
+          <p class="text-sm text-gray-500">"잘한 부분 먼저, 단계를 나눠서 정리"</p>
+        </div>
+        <div class="flex-1 p-4 flex flex-col">
+          <div
+            class="flex-1 rounded-xl overflow-hidden border border-teal-100 bg-white p-4 flex flex-col gap-3 shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">
+            <!-- User Message -->
+            <div class="self-end bg-gray-100 px-4 py-2 rounded-2xl rounded-tr-sm max-w-[85%] text-[15px] text-gray-700">
+              "수학 문제 풀다가 막혔어요..."
+            </div>
+            <!-- AI Response C -->
+            <div class="self-start bg-teal-50 border border-teal-100 px-4 py-3 rounded-2xl rounded-tl-sm max-w-[95%]">
+              <div class="flex items-center gap-1.5 mb-1.5">
+                <span class="bg-teal-100 text-[#14b8a6] text-[11px] px-2 py-0.5 rounded font-bold">칭찬</span>
+                <span class="text-[15px] text-gray-800 font-medium">질문하러 온 것 자체로 훌륭해! 👍</span>
+              </div>
+              <p class="text-[15px] text-gray-600 leading-relaxed mb-2">
+                혼자 끙끙 앓지 않고 도움을 요청한 용기가 멋져. 우리가 같이 단계를 나눠서 해결해볼까?
+              </p>
+              <div class="space-y-1 mt-2">
+                <div class="flex text-[14px] items-start gap-1.5">
+                  <span class="text-[#14b8a6] font-bold">1단계</span> <span class="text-gray-600">핵심 단어에 동그라미 치기</span>
+                </div>
+                <div class="flex text-[14px] items-start gap-1.5">
+                  <span class="text-gray-400 font-bold">2단계</span> <span class="text-gray-600 text-opacity-60">아는 데까지 식만
+                    먼저 써보기</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="nav-bridge.js"></script>
+</body>
+
+</html>

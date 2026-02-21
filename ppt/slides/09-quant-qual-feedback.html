@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 정량+정성 평가</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.06);
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.06);
+        }
+
+        .bg-purple-medium {
+            background-color: rgba(136, 100, 238, 0.1);
+        }
+
+        /* Scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .eval-box {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 6px solid #8864ee;
+            transition: transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .eval-box.teal-accent {
+            border-left-color: #14b8a6;
+        }
+
+        .eval-box:hover {
+            background-color: rgba(255, 255, 255, 0.95);
+            transform: translateX(4px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        .tag-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 6px;
+            margin-bottom: 4px;
+        }
+
+        .tag-purple {
+            background-color: #ede9fe;
+            color: #8864ee;
+        }
+
+        .tag-teal {
+            background-color: #ccfbf1;
+            color: #14b8a6;
+        }
+
+        .step-box {
+            background-color: rgba(255, 255, 255, 0.75);
+            border-radius: 16px;
+            padding: 16px 18px;
+            border-left: 5px solid #8864ee;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .step-box.teal-accent {
+            border-left-color: #14b8a6;
+        }
+
+        .step-num {
+            width: 30px;
+            height: 30px;
+            border-radius: 999px;
+            background: #8864ee;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .hash-pill {
+            background: #f8f7ff;
+            color: #6d59d9;
+            border: 1px solid #ddd6fe;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.85rem;
+        }
+
+        .auto-pill {
+            background: #ccfbf1;
+            color: #0f766e;
+            border-radius: 999px;
+            padding: 3px 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-purple-soft w-[800px] h-[800px] -top-40 -left-40"></div>
+        <div class="shape-circle bg-teal-soft w-[500px] h-[500px] bottom-0 right-0"></div>
+        <!-- Left Content (45%) -->
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-4 z-10 relative">
+            <!-- Section Tag -->
+            <div class="mb-6">
+                <span
+                    class="bg-purple-50 text-[#8864ee] px-4 py-2 rounded-full text-xl font-medium tracking-wide border border-purple-100 shadow-sm inline-flex items-center">
+                    <i class="fa-solid fa-user-group mr-2"></i>함께<span class="text-gray-400 mx-2">|</span><i
+                        class="fa-solid fa-robot mr-2 text-[#14b8a6]"></i>AI로
+                </span>
+            </div>
+            <!-- Title -->
+            <div class="mb-4">
+                <h1 class="text-[3.2rem] text-gray-800 leading-[1.15]">
+                    숫자로도, 글로도<br />
+                    <span class="text-[#8864ee]">피드백합니다</span>
+                </h1>
+            </div>
+            <!-- Description -->
+            <div class="mb-5">
+                <p class="text-lg text-gray-600 leading-snug">
+                    2022 교육과정 3차원 내용체계를 반영한 평가기준, AI가 자동으로 생성합니다.
+                </p>
+                <p class="text-base text-gray-500 mt-2 leading-snug">
+                    매 수업 직접 작성하기 어려운 평가기준. 학습목표와 과제만 입력하세요.
+                </p>
+                <p class="text-base text-gray-500 mt-2 leading-snug">
+                    AI가 지식·이해 / 과정·기능 / 가치·태도의 3가지 영역에 맞춰 기준을 제안하고, 선생님이 최종 수정합니다.
+                </p>
+            </div>
+            <!-- Workflow Blocks -->
+            <div class="w-full pr-6 space-y-4 overflow-y-auto no-scrollbar pb-4">
+                <div class="step-box">
+                    <div class="flex items-center mb-2">
+                        <span class="step-num">1</span>
+                        <h3 class="text-gray-800 font-bold text-xl">교사가 입력하는 것</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm">수업 설계의 핵심 키워드만 입력하세요.</p>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="hash-pill">#학습목표</span>
+                        <span class="hash-pill">#평가과제</span>
+                        <span class="hash-pill">#학교급·학년</span>
+                        <span class="hash-pill">#대상(개인/모둠)</span>
+                    </div>
+                </div>
+
+                <div class="step-box teal-accent">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <span class="step-num" style="background:#14b8a6;">2</span>
+                            <h3 class="text-gray-800 font-bold text-xl">AI가 생성하는 것</h3>
+                        </div>
+                        <span class="auto-pill">Auto</span>
+                    </div>
+                    <p class="text-gray-600 text-sm">내용체계와 성취기준을 분석하여 구조화합니다.</p>
+                    <div class="flex flex-wrap items-center gap-2 mt-3">
+                        <span class="tag-pill tag-purple">지식·이해</span>
+                        <span class="text-gray-400 font-bold">+</span>
+                        <span class="tag-pill tag-purple">과정·기능</span>
+                        <span class="text-gray-400 font-bold">+</span>
+                        <span class="tag-pill tag-purple">가치·태도</span>
+                        <span class="text-gray-400 font-bold">=</span>
+                        <span class="tag-pill tag-teal font-bold">총 6개 기준</span>
+                        <span class="text-xs text-gray-500">(개인/모둠별)</span>
+                    </div>
+                </div>
+
+                <div class="step-box">
+                    <div class="flex items-center mb-2">
+                        <span class="step-num" style="background:#6b7280;">3</span>
+                        <h3 class="text-gray-800 font-bold text-xl">교사 최종 확인 및 수정</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-2">AI는 초안을 도울 뿐, 최종 결정은 선생님의 몫입니다.</p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="tag-pill" style="background:#eef2ff;color:#4f46e5;">직접 수정 가능</span>
+                        <span class="tag-pill" style="background:#f3f4f6;color:#374151;">수동 작성 모드</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Visual (55%) -->
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-8 pl-4 z-10">
+            <!-- Vertical Phone Visual -->
+            <div
+                class="w-[600px] h-[865px] bg-white rounded-[3.5rem] overflow-hidden relative shadow-2xl border border-purple-100">
+                <div class="w-full h-full p-4 relative overflow-y-auto bg-white rounded-[3rem]"
+                    style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                    <div class="px-3 py-4">
+                        <!-- Tab -->
+                        <div class="flex gap-2 mb-4">
+                            <button
+                                class="flex-1 bg-rose-50 border-2 border-rose-300 text-rose-600 rounded-full py-2 text-[12px] font-bold cursor-pointer hover:bg-rose-100 transition-colors">◉
+                                🧑 개인평가</button>
+                            <button
+                                class="flex-1 bg-white border border-gray-200 text-gray-500 rounded-full py-2 text-[12px] cursor-pointer hover:bg-gray-50 transition-colors">○
+                                👥 모둠평가</button>
+                        </div>
+                        <!-- Date + Button -->
+                        <div class="bg-purple-50 border border-purple-100 rounded-xl p-3 mb-3">
+                            <p class="text-[11px] text-purple-600 font-bold mb-1">결과 조회</p>
+                            <p class="text-[12px] text-gray-500 mb-1.5">조회 날짜</p>
+                            <div
+                                class="bg-white border border-gray-200 rounded-lg px-3 py-1.5 mb-2 flex justify-between items-center cursor-pointer hover:border-purple-300 transition-colors">
+                                <span class="text-[11px]">2026-03-01</span><i
+                                    class="fa-regular fa-calendar text-gray-400 text-[12px]"></i>
+                            </div>
+                            <button
+                                class="w-full bg-purple-500 text-white py-2 rounded-lg text-[11px] font-bold cursor-pointer hover:bg-purple-600 active:scale-[0.98] transition-all">내
+                                결과 확인하기</button>
+                        </div>
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="bg-purple-50 rounded-xl p-2.5 text-center"><span
+                                    class="text-[20px] font-bold text-purple-600">23명</span><br /><span
+                                    class="text-[9px] text-gray-400">평가 참여 인원</span></div>
+                            <div class="bg-orange-50 rounded-xl p-2.5 text-center"><span
+                                    class="text-[20px] font-bold text-orange-500">4.27</span><br /><span
+                                    class="text-[9px] text-gray-400">나의 평균 점수</span></div>
+                            <div class="bg-blue-50 rounded-xl p-2.5 text-center"><span
+                                    class="text-[20px] font-bold text-blue-500">3.39</span><br /><span
+                                    class="text-[9px] text-gray-400">우리 반 평균</span></div>
+                        </div>
+                        <!-- Bar Charts -->
+                        <div class="bg-white border border-gray-100 rounded-xl p-3 mb-3 shadow-sm">
+                            <p class="text-[11px] font-bold text-gray-700 mb-2">📊 항목별 점수 현황</p>
+                            <div class="space-y-2.5">
+                                <div>
+                                    <p class="text-[12px] text-gray-600 mb-0.5 truncate">자연환경에 따른 생활모습이 연결되나요?</p>
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                            <div class="h-full rounded-full bg-gradient-to-r from-purple-300 to-purple-500"
+                                                style="width:72%"></div>
+                                        </div><span class="text-[12px] font-bold text-gray-700 w-6">3.6</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                                            <div class="h-full rounded-full bg-gray-300" style="width:68%"></div>
+                                        </div><span class="text-[9px] text-gray-400 w-12">반 평균 3.4</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <p class="text-[12px] text-gray-600 mb-0.5 truncate">의식주 특징을 구체적으로 소개했나요?</p>
+                                    <div class="flex items-center gap-1.5">
+                                        <div class="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                                            <div class="h-full rounded-full bg-gradient-to-r from-blue-300 to-blue-500"
+                                                style="width:90%"></div>
+                                        </div><span class="text-[12px] font-bold text-gray-700 w-6">4.5</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+                                            <div class="h-full rounded-full bg-gray-300" style="width:68%"></div>
+                                        </div><span class="text-[9px] text-gray-400 w-12">반 평균 3.4</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Partner Message -->
+                        <div
+                            class="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-xl p-3 shadow-sm">
+                            <p class="text-[11px] font-bold text-green-700 mb-1">🌱 성장 파트너의 메시지</p>
+                            <p class="text-[12px] text-gray-600 leading-relaxed">전체적으로 성실하게 참여했어! 특히 발표 자세가 좋았고, 자료 구성도
+                                보기 편했어. 조사 내용을 조금 더 구체적으로 넣으면 완벽해질 거야!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

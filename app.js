@@ -1844,11 +1844,11 @@ window.addEventListener('scroll', function () { const card = document.querySelec
 // ============================================
 function formatMarkdown(text) {
   if (!text) return '';
-  text = text.trim();
+  text = escapeHtml(String(text).trim());
   // Headers with aggressive whitespace removal after them
   let html = text
-    .replace(/^##\s*(.+)$/gm, '<h3>$1</h3>')
     .replace(/^###\s*(.+)$/gm, '<h4>$1</h4>')
+    .replace(/^##\s*(.+)$/gm, '<h3>$1</h3>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>');
 
@@ -5201,7 +5201,7 @@ async function viewMyResult() {
     let chartHtml = '';
     myAvgScores.forEach((item, i) => {
       const myPct = (item.average / 5) * 100; const cAvg = classAvgMap[item.criterion] || 0; const classPct = (cAvg / 5) * 100;
-      chartHtml += '<div class="bar-item"><div class="bar-label">' + item.criterion + '</div><div style="flex:1;"><div class="bar-track" style="margin-bottom:4px;"><div class="bar-fill color-' + (i % 6) + '" style="width:0%;" data-width="' + myPct + '%"></div></div><div class="bar-track" style="height:16px;opacity:0.8;"><div class="bar-fill" style="width:0%;background:var(--text-sub);opacity:0.6;" data-width="' + classPct + '%"></div></div></div><div class="bar-value">' + item.average.toFixed(1) + '<div style="font-size:0.7rem;color:var(--text-sub);">반 평균 ' + cAvg.toFixed(1) + '</div></div></div>';
+      chartHtml += '<div class="bar-item"><div class="bar-label">' + escapeHtml(String(item.criterion || '')) + '</div><div style="flex:1;"><div class="bar-track" style="margin-bottom:4px;"><div class="bar-fill color-' + (i % 6) + '" style="width:0%;" data-width="' + myPct + '%"></div></div><div class="bar-track" style="height:16px;opacity:0.8;"><div class="bar-fill" style="width:0%;background:var(--text-sub);opacity:0.6;" data-width="' + classPct + '%"></div></div></div><div class="bar-value">' + item.average.toFixed(1) + '<div style="font-size:0.7rem;color:var(--text-sub);">반 평균 ' + cAvg.toFixed(1) + '</div></div></div>';
     });
     chartHtml += '<div style="display:flex;gap:20px;justify-content:center;margin-top:15px;font-size:0.8rem;color:var(--text-sub);"><span style="color:var(--text-main);font-weight:600;">■ 내 점수</span><span style="color:var(--text-sub);font-weight:600;">■ 반 평균</span></div>';
     barChart.innerHTML = chartHtml;
@@ -5598,12 +5598,12 @@ function renderRankingTable(ranking, criteria, type) {
   if (!ranking || ranking.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-sub);">해당 날짜의 평가 데이터가 없습니다.</p>'; return; }
   const idHeader = type === 'group' ? '모둠' : '번호';
   let html = '<table class="ranking-table"><thead><tr><th>등수</th><th>' + idHeader + '</th><th>총점 평균</th>';
-  if (criteria) criteria.forEach(c => html += '<th>' + c + '</th>');
+  if (criteria) criteria.forEach(c => html += '<th>' + escapeHtml(String(c || '')) + '</th>');
   html += '<th>평가 수</th></tr></thead><tbody>';
   ranking.forEach(st => {
     let medal = '', rankClass = '';
     if (st.rank === 1) { medal = '🥇'; rankClass = 'rank-1'; } else if (st.rank === 2) { medal = '🥈'; rankClass = 'rank-2'; } else if (st.rank === 3) { medal = '🥉'; rankClass = 'rank-3'; }
-    html += '<tr class="' + rankClass + '"><td><span class="rank-medal">' + medal + '</span>' + st.rank + '등</td><td><strong>' + st.studentId + '</strong></td><td style="color:var(--color-result);font-weight:bold;">' + st.totalAvg.toFixed(2) + '</td>';
+    html += '<tr class="' + rankClass + '"><td><span class="rank-medal">' + medal + '</span>' + st.rank + '등</td><td><strong>' + escapeHtml(String(st.studentId || '')) + '</strong></td><td style="color:var(--color-result);font-weight:bold;">' + st.totalAvg.toFixed(2) + '</td>';
     if (criteria) criteria.forEach(c => { let s = st.criteriaScores[c]; html += '<td>' + (typeof s === 'number' ? s.toFixed(2) : '-') + '</td>'; });
     html += '<td>' + st.count + '</td></tr>';
   }); html += '</tbody></table>'; container.innerHTML = html;
@@ -10304,7 +10304,7 @@ async function generateComparePartnerMessage() {
       generationConfig: { temperature: 0.5, maxOutputTokens: 1200 },
       onToken: (textSoFar) => {
         const output = sanitizeAiSummaryText(textSoFar);
-        area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
+        area.innerHTML = '<div style="line-height:1.82; color:var(--text-main); font-size:1.01rem; letter-spacing:0.015em;">' + formatMarkdown(output) + '</div>';
       }
     });
 
@@ -10314,7 +10314,7 @@ async function generateComparePartnerMessage() {
     }
 
     const output = sanitizeAiSummaryText(result.text);
-    area.innerHTML = '<div style="line-height:1.7; color:var(--text-main); font-size:0.93rem;">' + formatMarkdown(output) + '</div>';
+    area.innerHTML = '<div style="line-height:1.82; color:var(--text-main); font-size:1.01rem; letter-spacing:0.015em;">' + formatMarkdown(output) + '</div>';
   } catch (error) {
     area.innerHTML = '<div style="color:var(--color-danger);">기록 비교 피드백 생성 중 오류가 발생했습니다.</div>';
   }

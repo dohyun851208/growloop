@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - AI 분석·시각화</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.06);
+        }
+
+        .bg-teal-soft {
+            background-color: rgba(20, 184, 166, 0.06);
+        }
+
+        /* Scrollbar hiding for cleaner look if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .feature-box {
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-left: 4px solid #8864ee;
+            transition: transform 0.2s ease;
+        }
+
+        .feature-box:hover {
+            background-color: rgba(255, 255, 255, 0.9);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 8px 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            flex: 1;
+            margin-right: 8px;
+        }
+
+        .stat-card:last-child {
+            margin-right: 0;
+        }
+
+        .tag-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: white;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-purple-soft w-[700px] h-[700px] -top-32 -left-32"></div>
+        <div class="shape-circle bg-teal-soft w-[400px] h-[400px] bottom-0 right-0"></div>
+        <!-- Left Content (45%) -->
+        <div class="w-[42%] h-full flex flex-col justify-center pl-14 pr-4 z-10 relative">
+            <!-- Section Tag -->
+            <div class="mb-4">
+                <span
+                    class="bg-purple-50 text-[#8864ee] px-4 py-1.5 rounded-full text-lg font-medium tracking-wide border border-purple-100">
+                    <i class="fa-solid fa-users mr-2"></i>함께 + <i class="fa-solid fa-robot ml-1 mr-1"></i>AI로
+                </span>
+            </div>
+            <!-- Title -->
+            <div class="mb-3">
+                <h1 class="text-4xl text-gray-800 leading-tight">
+                    친구들의 피드백이,<br />
+                    <span class="text-[#8864ee]">나를 위한 데이터</span>가 됩니다
+                </h1>
+            </div>
+            <!-- Description -->
+            <div class="mb-6">
+                <p class="text-lg text-gray-500 leading-snug">
+                    아날로그에서는 불가능했던 동료평가 취합·시각화,<br />AI가 처음으로 실현했습니다.
+                </p>
+            </div>
+            <!-- Feature List -->
+            <div class="overflow-y-auto no-scrollbar pr-2 space-y-3 pb-4">
+                <!-- Feature 1: Statistics Cards -->
+                <div class="feature-box border-l-[#8864ee]">
+                    <div class="flex items-center mb-3">
+                        <i class="fa-solid fa-chart-simple text-[#8864ee] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">한눈에 보는 통계</h3>
+                    </div>
+                    <div class="flex justify-between">
+                        <div class="stat-card">
+                            <p class="text-xs text-gray-400">참여 인원</p>
+                            <p class="text-xl font-bold text-[#8864ee]">24명</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-xs text-gray-400">나의 평균</p>
+                            <p class="text-xl font-bold text-[#8864ee]">4.2</p>
+                        </div>
+                        <div class="stat-card">
+                            <p class="text-xs text-gray-400">반 평균</p>
+                            <p class="text-xl font-bold text-gray-500">3.8</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Feature 2: Dual Bar Chart -->
+                <div class="feature-box border-l-[#14b8a6]">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-chart-column text-[#14b8a6] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">나 vs 우리 반 비교 차트</h3>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-sm text-gray-600">
+                            항목별 내 점수와 반 평균을 직관적으로 비교
+                        </p>
+                        <p class="text-xs text-gray-400 pl-1">
+                            • 6색 그라데이션 시각화로 강점/약점 파악 용이
+                        </p>
+                    </div>
+                </div>
+                <!-- Feature 3: AI Written Feedback -->
+                <div class="feature-box border-l-[#f43f5e]">
+                    <div class="flex items-center mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-[#f43f5e] mr-2"></i>
+                        <h3 class="text-gray-700 font-bold text-lg">유형별 AI 서술 피드백</h3>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="text-sm text-gray-600 flex items-start">
+                            <span class="tag-pill bg-blue-400 mt-0.5">해결형</span>
+                            <span class="flex-1">핵심 진단: 문제가 발생한 원인을 짚어줌</span>
+                        </div>
+                        <div class="text-sm text-gray-600 flex items-start">
+                            <span class="tag-pill bg-green-400 mt-0.5">계획형</span>
+                            <span class="flex-1">다음 성장 계획: 구체적인 실천 방법 제안</span>
+                        </div>
+                        <div class="text-sm text-gray-600 flex items-start">
+                            <span class="tag-pill bg-orange-400 mt-0.5">탐색형</span>
+                            <span class="flex-1">다음 성장 실험: 새로운 도전 과제 제시</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Visual (55%) -->
+        <div class="w-[62%] h-full flex flex-col items-center justify-center pr-8 pl-4 z-10">
+            <!-- Vertical Visual -->
+            <div
+                class="w-[600px] h-[865px] bg-white rounded-[3rem] overflow-hidden relative shadow-xl border border-purple-100">
+                <div class="w-full h-full p-4 relative overflow-y-auto bg-[#FFF9F5] rounded-[2.5rem]"
+                    style="scrollbar-width:none; font-family:'Jua',sans-serif; font-size:15px;">
+                    <div class="px-2 py-3">
+                        <!-- Top Nav -->
+                        <div class="flex items-center justify-end mb-2"><button
+                                class="text-[12px] bg-white border border-gray-200 px-3 py-1 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"><i
+                                    class="fa-solid fa-house text-orange-400 mr-1"></i>체험 종료</button></div>
+                        <div class="flex justify-around mb-3 text-center">
+                            <div class="cursor-pointer hover:opacity-80 transition-opacity"><span
+                                    class="text-xl">💞</span>
+                                <p class="text-[12px] text-gray-500">스스로 배움</p>
+                            </div>
+                            <div class="cursor-pointer hover:opacity-80 transition-opacity"><span
+                                    class="text-xl">👥</span>
+                                <p class="text-[12px] text-purple-600 font-bold">친구로 배움</p>
+                            </div>
+                            <div class="cursor-pointer hover:opacity-80 transition-opacity"><span
+                                    class="text-xl">💕</span>
+                                <p class="text-[12px] text-gray-500">칭찬 우체통</p>
+                            </div>
+                            <div class="cursor-pointer hover:opacity-80 transition-opacity"><span
+                                    class="text-xl">👤</span>
+                                <p class="text-[12px] text-gray-500">관리</p>
+                            </div>
+                        </div>
+                        <!-- Sub Tabs -->
+                        <div class="grid grid-cols-4 gap-1 mb-3 bg-gray-100 rounded-lg p-0.5">
+                            <button
+                                class="text-[12px] text-gray-500 py-1.5 rounded cursor-pointer hover:bg-white transition-colors">📋
+                                자료 승인</button>
+                            <button
+                                class="text-[12px] text-gray-500 py-1.5 rounded cursor-pointer hover:bg-white transition-colors">📅
+                                기준 설정</button>
+                            <button
+                                class="text-[12px] text-purple-600 font-bold py-1.5 bg-white rounded shadow-sm cursor-pointer">📊
+                                전체 현황</button>
+                            <button
+                                class="text-[12px] text-gray-500 py-1.5 rounded cursor-pointer hover:bg-white transition-colors">🧑
+                                개별 현황</button>
+                        </div>
+                        <!-- Filters -->
+                        <div class="bg-white border border-gray-100 rounded-xl p-3 mb-3 shadow-sm">
+                            <p class="text-[12px] text-gray-500 mb-1.5">📅 조회 날짜</p>
+                            <div class="flex items-center gap-2">
+                                <div
+                                    class="flex-1 bg-white border border-gray-200 rounded-lg px-2 py-1.5 text-[11px] cursor-pointer hover:border-purple-300 transition-colors">
+                                    2026-03-01 📅</div>
+                                <div class="flex bg-gray-100 rounded-lg overflow-hidden">
+                                    <button class="bg-purple-600 text-white px-3 py-1.5 text-[12px] cursor-pointer">◉ 🧑
+                                        개인</button>
+                                    <button
+                                        class="bg-white text-gray-500 px-3 py-1.5 text-[12px] cursor-pointer hover:bg-gray-50 transition-colors">○
+                                        👥 모둠</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <div class="bg-white rounded-xl border border-gray-100 p-2.5 text-center shadow-sm"><span
+                                    class="text-[18px] font-bold text-green-500">100%</span><br /><span
+                                    class="text-[9px] text-gray-400">평가 참여율 (24/24)</span></div>
+                            <div class="bg-white rounded-xl border border-gray-100 p-2.5 text-center shadow-sm"><span
+                                    class="text-[18px] font-bold text-gray-700">3.39</span><br /><span
+                                    class="text-[9px] text-gray-400">전체 평균 점수</span></div>
+                            <div class="bg-white rounded-xl border border-gray-100 p-2.5 text-center shadow-sm"><span
+                                    class="text-[18px] font-bold text-rose-500">552건</span><br /><span
+                                    class="text-[9px] text-gray-400">총 평가 수</span></div>
+                        </div>
+                        <!-- Table Section -->
+                        <div class="bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <div
+                                class="flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors">
+                                <span class="text-[11px] font-bold text-gray-700">전체 현황표</span><span
+                                    class="text-gray-400">+</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>배움로그 - 교사의 노력</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Jua&amp;display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Jua', sans-serif;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            background-color: #FFF9F0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Abstract shapes for background decoration */
+        .shape-circle {
+            border-radius: 50%;
+            position: absolute;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        .bg-purple-soft {
+            background-color: rgba(136, 100, 238, 0.05);
+        }
+
+        .bg-rose-soft {
+            background-color: rgba(244, 63, 94, 0.05);
+        }
+
+        .process-step {
+            position: relative;
+            z-index: 10;
+        }
+
+        .process-line {
+            position: absolute;
+            left: 24px;
+            top: 40px;
+            bottom: -20px;
+            width: 2px;
+            background-color: #E5E7EB;
+            z-index: 0;
+        }
+
+        .process-step:last-child .process-line {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide-container">
+        <!-- Background Elements -->
+        <div class="shape-circle bg-purple-soft w-[600px] h-[600px] -top-20 -left-20"></div>
+        <div class="shape-circle bg-rose-soft w-[400px] h-[400px] bottom-0 right-0"></div>
+        <!-- Left Content (60%) -->
+        <div class="w-[56%] h-full flex flex-col justify-center px-16 z-10">
+
+            <!-- Title -->
+            <div class="mb-4">
+                <h1 class="text-4xl text-gray-800 leading-snug">
+                    오늘도 학생의 기록물을<br />
+                    <span class="text-[#8864ee]">전부 읽고 확인하는</span> 선생님,<br />
+                    존경합니다
+                </h1>
+            </div>
+            <!-- Subtitle/Message -->
+            <div class="mb-10">
+                <p class="text-xl text-gray-500">
+                    선생님의 노력은 진심이고, 학생에게 분명히 닿습니다.
+                </p>
+            </div>
+            <!-- Process Flow -->
+            <div class="space-y-5">
+                <!-- Step 1 -->
+                <div class="process-step flex items-start group">
+                    <div class="process-line"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#8864ee] flex items-center justify-center text-[#8864ee] shadow-sm z-10 relative group-hover:bg-[#8864ee] group-hover:text-white transition-colors duration-300">
+                        <span class="text-lg font-bold">1</span>
+                    </div>
+                    <div class="ml-5 pt-2">
+                        <p class="text-xl text-gray-700">한 명 한 명의 기록을 읽는다</p>
+                    </div>
+                </div>
+                <!-- Step 2 -->
+                <div class="process-step flex items-start group">
+                    <div class="process-line"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#8864ee] flex items-center justify-center text-[#8864ee] shadow-sm z-10 relative group-hover:bg-[#8864ee] group-hover:text-white transition-colors duration-300">
+                        <span class="text-lg font-bold">2</span>
+                    </div>
+                    <div class="ml-5 pt-2">
+                        <p class="text-xl text-gray-700">학생이 무엇을 배웠는지 파악한다</p>
+                    </div>
+                </div>
+                <!-- Step 3 -->
+                <div class="process-step flex items-start group">
+                    <div class="process-line"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#8864ee] flex items-center justify-center text-[#8864ee] shadow-sm z-10 relative group-hover:bg-[#8864ee] group-hover:text-white transition-colors duration-300">
+                        <span class="text-lg font-bold">3</span>
+                    </div>
+                    <div class="ml-5 pt-2">
+                        <p class="text-xl text-gray-700">어려움을 발견하면 코멘트를 달아준다</p>
+                    </div>
+                </div>
+                <!-- Step 4 -->
+                <div class="process-step flex items-start group">
+                    <div class="process-line"></div>
+                    <div
+                        class="flex-shrink-0 w-12 h-12 rounded-full bg-white border-2 border-[#8864ee] flex items-center justify-center text-[#8864ee] shadow-sm z-10 relative group-hover:bg-[#8864ee] group-hover:text-white transition-colors duration-300">
+                        <span class="text-lg font-bold">4</span>
+                    </div>
+                    <div class="ml-5 pt-2">
+                        <p class="text-xl text-gray-700">다음 수업에 반영하려 노력한다</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Right Visual (40%) -->
+        <div class="w-[50%] h-full flex flex-col items-center justify-center pr-8 pl-4 z-10">
+            <img src="file:///C:/Users/geunt/.gemini/antigravity/brain/1433738c-a51e-445b-95df-ff433a7fe6ac/teacher_reading_notes_1771680476042.png"
+                alt="교사가 학생 기록을 읽는 모습"
+                class="w-[600px] h-[600px] rounded-full shadow-2xl object-cover border-8 border-white" />
+        </div>
+    </div>
+
+    <script src="nav-bridge.js"></script>
+</body>
+
+</html>
