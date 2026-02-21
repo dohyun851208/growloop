@@ -19,6 +19,7 @@ body {
         radial-gradient(ellipse at 80% 0%, rgba(var(--tone-together-rgb), .07) 0%, transparent 50%),
         radial-gradient(ellipse at 50% 100%, rgba(var(--tone-ai-rgb), .06) 0%, transparent 50%);
     min-height: 100vh;
+    overflow-x: hidden;
     overflow-y: auto;
     color: #2D2424;
 }
@@ -3228,7 +3229,7 @@ body.palette-berry {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 0;
 }
 
 /* Staggered fade-in delay utilities */
@@ -3310,4 +3311,247 @@ body.palette-berry {
 .hero-center.alt4-hero .hero-cta-group {
     opacity: 0;
     animation: lowerFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 4.9s forwards;
+}
+
+.alt4-intro-overlay {
+    position: absolute;
+    top: 30%;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    pointer-events: none;
+    text-align: center;
+}
+
+.alt4-intro-stack {
+    position: relative;
+    height: 6.5rem;
+}
+
+.alt4-intro-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    font-size: 7.2rem;
+    font-weight: 700;
+    line-height: 1.45;
+    letter-spacing: -0.3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2em;
+    white-space: nowrap;
+    transform-origin: center center;
+    animation: disappear 0s 2.6s forwards;
+}
+
+.alt4-intro-subline {
+    position: absolute;
+    top: 3rem;
+    left: 0;
+    right: 0;
+    margin: 0;
+    opacity: 0;
+    font-size: 4.2rem;
+    color: #44403c;
+    font-weight: 700;
+    letter-spacing: -0.8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    animation: fadeInOnly 0.8s 2.6s forwards, disappear 0s 3.8s forwards;
+}
+
+.alt4-content-wrapper {
+    opacity: 0;
+    animation: lowerFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) 3.9s forwards;
+    padding: 64px 48px;
+}
+
+.alt4-kicker {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    letter-spacing: -0.5px;
+}
+
+.alt4-subtitle {
+    font-size: 2.2rem;
+    color: #44403c;
+    font-weight: 700;
+    margin-top: 8px;
+    margin-bottom: 48px;
+    letter-spacing: -1.2px;
+}
+
+.alt4-logo-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.alt4-logo-image {
+    width: auto;
+    height: 120px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(45, 36, 36, 0.1));
+    animation: float 4s ease-in-out infinite;
+}
+
+.alt4-logo-word {
+    font-family: 'Jua', sans-serif;
+    font-size: 8.5rem;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--tone-self-main), var(--tone-together-main));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@media (max-width:768px) {
+    .alt4-intro-overlay {
+        top: 24%;
+        padding: 0 10px;
+    }
+
+    .alt4-intro-stack {
+        height: 4.8rem;
+    }
+
+    .alt4-intro-line {
+        font-size: clamp(2.8rem, 10.4vw, 4.4rem);
+        line-height: 1.3;
+    }
+
+    .alt4-intro-subline {
+        top: 2.1rem;
+        font-size: clamp(1.7rem, 6.7vw, 2.7rem);
+        letter-spacing: -0.6px;
+        white-space: normal;
+        padding: 0 12px;
+    }
+
+    .alt4-content-wrapper {
+        padding: 44px 30px;
+    }
+
+    .alt4-kicker {
+        font-size: 1.35rem;
+        gap: 6px;
+    }
+
+    .alt4-subtitle {
+        font-size: 1.7rem;
+        margin-bottom: 30px;
+        letter-spacing: -0.8px;
+    }
+
+    .alt4-logo-row {
+        gap: 16px;
+    }
+
+    .alt4-logo-image {
+        height: 92px;
+    }
+
+    .alt4-logo-word {
+        font-size: clamp(3.8rem, 12.5vw, 5.9rem);
+        letter-spacing: 2px;
+    }
+}
+
+@media (max-width:480px) {
+    .hero-center.alt4-hero {
+        gap: 18px;
+    }
+
+    .alt4-intro-overlay {
+        top: 21%;
+        padding: 0 8px;
+    }
+
+    .alt4-intro-stack {
+        height: 3.9rem;
+    }
+
+    .alt4-intro-line {
+        font-size: clamp(1.9rem, 10.5vw, 2.7rem);
+        line-height: 1.2;
+        gap: 0.14em;
+        letter-spacing: -0.5px;
+    }
+
+    .alt4-intro-subline {
+        top: 1.55rem;
+        font-size: clamp(1.12rem, 6.7vw, 1.6rem);
+        line-height: 1.25;
+        letter-spacing: -0.3px;
+        padding: 0 14px;
+    }
+
+    .alt4-content-wrapper {
+        width: 100%;
+        border-radius: 24px;
+        padding: 30px 16px;
+        margin-top: 12px;
+    }
+
+    .alt4-kicker {
+        font-size: 1.04rem;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    .alt4-subtitle {
+        font-size: 1.3rem;
+        margin-top: 6px;
+        margin-bottom: 22px;
+        letter-spacing: -0.5px;
+        line-height: 1.3;
+    }
+
+    .alt4-logo-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .alt4-logo-image {
+        height: 68px;
+    }
+
+    .alt4-logo-word {
+        font-size: clamp(2.7rem, 16vw, 4.2rem);
+        letter-spacing: 1px;
+    }
+}
+
+@media (max-width:360px) {
+    .top-nav {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .nav-login-btn {
+        padding: 7px 9px;
+        font-size: 11px;
+        min-height: 40px;
+    }
+
+    .alt4-intro-line {
+        font-size: clamp(1.65rem, 10.1vw, 2.2rem);
+    }
+
+    .alt4-intro-subline {
+        font-size: clamp(1rem, 6.2vw, 1.4rem);
+    }
 }
